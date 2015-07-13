@@ -1,0 +1,7 @@
+flake8
+nose
+coverage
+sphinx
+pyodbc
+ipdb
+ipython

@@ -1,21 +1,23 @@
+import pyodbc
 import asyncio
 from functools import partial
+from .cursor import Cursor
 
-import pyodbc
+__all__ = ['connect', 'Connection']
 
 
-def connect(connectionstring, **kwargs):
-    conn = Connection(connectionstring, **kwargs)
+def connect(connectionstring, loop=None, **kwargs):
+    loop = loop or asyncio.get_event_loop()
+    conn = Connection(connectionstring, loop=loop, **kwargs)
     yield from conn._connect()
     return conn
 
 
 class Connection:
-
     def __init__(self, connectionstring, autocommit=False, ansi=None,
-                 timeout=0, executor=None, **kwargs):
+                 timeout=0, executor=None, loop=None, **kwargs):
         self._executor = executor
-        self._loop = asyncio.get_event_loop()
+        self._loop = loop or asyncio.get_event_loop()
         self._conn = None
 
         self._timeout = timeout
@@ -27,7 +29,7 @@ class Connection:
 
     def _execute(self, func, *args, **kwargs):
         func = partial(func, **kwargs)
-        future = self._loop.run_in_executor(self._executor, func, args)
+        future = self._loop.run_in_executor(self._executor, func, *args)
         return future
 
     @asyncio.coroutine
@@ -37,12 +39,12 @@ class Connection:
         self._conn = yield from f
 
     @property
-    def autocommit(self):
-        return self._conn.autocommit
+    def loop(self):
+        return self._loop
 
     @property
-    def timeout(self):
-        return self._conn.timeout
+    def autocommit(self):
+        return self._conn.autocommit
 
     @property
     def timeout(self):
@@ -51,7 +53,8 @@ class Connection:
     @asyncio.coroutine
     def cursor(self):
         c = yield from self._execute(self._conn.cursor)
-        return c
+        connection = self
+        return Cursor(c, connection)
 
     @asyncio.coroutine
     def close(self):
@@ -82,6 +85,7 @@ class Connection:
     def add_output_converter(self):
         c = yield from self._execute(self._conn.rollback)
         return c
+
     @asyncio.coroutine
     def clear_output_converters(self):
         c = yield from self._execute(self._conn.rollback)

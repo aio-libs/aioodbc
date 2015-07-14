@@ -6,7 +6,6 @@ from tests._testutils import BaseTest
 
 class ODBCTestCase(BaseTest):
 
-
     def setUp(self):
         super(ODBCTestCase, self).setUp()
         self.dsn = os.environ.get('DSN', 'Driver=SQLite;Database=sqlite.db')
@@ -17,5 +16,5 @@ class ODBCTestCase(BaseTest):
 
     @asyncio.coroutine
     def connect(self, **kwargs):
-        conn = yield from aioodbc.connect(self.dsn, **kwargs)
+        conn = yield from aioodbc.connect(self.dsn, loop=self.loop, **kwargs)
         return conn

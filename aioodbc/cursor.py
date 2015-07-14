@@ -2,10 +2,15 @@ import asyncio
 
 
 class Cursor:
-
     def __init__(self, impl, connection):
         self._conn = connection
         self._impl = impl
+        self._loop = connection.loop
+        self._executor = connection._executor
+
+    def _execute(self, func, *args, **kwargs):
+        f = self._conn._execute(func, *args, **kwargs)
+        return f
 
     @property
     def description(self):
@@ -25,24 +30,9 @@ class Cursor:
         """Read-only attribute returning a reference to the `Connection`."""
         return self._conn
 
-    @property
-    def raw(self):
-        """Underlying psycopg cursor object, readonly"""
-        return self._impl
-
-    @property
-    def withhold(self):
-        # Not supported
-        return self._impl.withhold
-
-    @withhold.setter
-    def withhold(self, val):
-        # Not supported
-        self._impl.withhold = val
-
-    @asyncio.coroutine
-    def execute(self, operation, parameters=None, *, timeout=None):
-        pass
+    def execute(self, sql, *params):
+        fut = self._execute(self._impl.execute, sql, *params)
+        return fut
 
     @asyncio.coroutine
     def executemany(self, operation, seq_of_parameters):
@@ -66,7 +56,7 @@ class Cursor:
 
     @asyncio.coroutine
     def fetchall(self):
-        ret = self._impl.fetchall()
+        ret = self._execute(self._impl.fetchall)
         return ret
 
     @asyncio.coroutine

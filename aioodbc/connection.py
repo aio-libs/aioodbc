@@ -6,9 +6,10 @@ from .cursor import Cursor
 __all__ = ['connect', 'Connection']
 
 
-def connect(connectionstring, loop=None, **kwargs):
+def connect(connectionstring, loop=None, executor=None, **kwargs):
     loop = loop or asyncio.get_event_loop()
-    conn = Connection(connectionstring, loop=loop, **kwargs)
+    conn = Connection(connectionstring, loop=loop, executor=executor,
+                      **kwargs)
     yield from conn._connect()
     return conn
 

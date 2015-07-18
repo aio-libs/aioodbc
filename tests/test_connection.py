@@ -37,6 +37,7 @@ class TestConversion(base.ODBCTestCase):
         (ret, ) = yield from cur.fetchone()
         self.assertEqual(1, ret)
         self.assertIs(conn._loop, self.loop)
+        yield from conn.close()
 
     @run_until_complete
     def test_close_twice(self):

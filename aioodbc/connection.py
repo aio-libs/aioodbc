@@ -1,9 +1,14 @@
+import sys
 import pyodbc
 import asyncio
+import traceback
 from functools import partial
+import warnings
 from .cursor import Cursor
 
+
 __all__ = ['connect', 'Connection']
+PY_341 = sys.version_info >= (3, 4, 1)
 
 
 def connect(connectionstring, loop=None, executor=None, **kwargs):
@@ -15,6 +20,8 @@ def connect(connectionstring, loop=None, executor=None, **kwargs):
 
 
 class Connection:
+    _source_traceback = None
+
     def __init__(self, connectionstring, autocommit=False, ansi=None,
                  timeout=0, executor=None, loop=None, **kwargs):
         self._executor = executor
@@ -27,10 +34,13 @@ class Connection:
 
         self._connectionstring = connectionstring
         self._kwargs = kwargs
+        self._closed = True
+        if loop.get_debug():
+            self._source_traceback = traceback.extract_stack(sys._getframe(1))
 
     def _execute(self, func, *args, **kwargs):
-        func = partial(func, **kwargs)
-        future = self._loop.run_in_executor(self._executor, func, *args)
+        func = partial(func, *args, **kwargs)
+        future = self._loop.run_in_executor(self._executor, func)
         return future
 
     @asyncio.coroutine
@@ -38,10 +48,15 @@ class Connection:
         f = self._execute(pyodbc.connect, self._connectionstring,
                           **self._kwargs)
         self._conn = yield from f
+        self._closed = False
 
     @property
     def loop(self):
         return self._loop
+
+    @property
+    def closed(self):
+        return self._closed
 
     @property
     def autocommit(self):
@@ -59,7 +74,10 @@ class Connection:
 
     @asyncio.coroutine
     def close(self):
+        if self._closed:
+            return
         c = yield from self._execute(self._conn.close)
+        self._closed = True
         return c
 
     @asyncio.coroutine
@@ -91,3 +109,17 @@ class Connection:
     def clear_output_converters(self):
         c = yield from self._execute(self._conn.rollback)
         return c
+
+    if PY_341:  # pragma: no branch
+        def __del__(self):
+            if not self.closed:
+                # TODO: is any other way to close connection
+                asyncio.Task(self.close(), loop=self._loop)
+                warnings.warn("Unclosed connection {!r}".format(self),
+                              ResourceWarning)
+
+                context = {'connection': self,
+                           'message': 'Unclosed connection'}
+                if self._source_traceback is not None:
+                    context['source_traceback'] = self._source_traceback
+                self._loop.call_exception_handler(context)

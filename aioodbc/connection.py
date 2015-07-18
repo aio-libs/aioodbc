@@ -80,15 +80,13 @@ class Connection:
         self._conn = None
         return c
 
-    @asyncio.coroutine
     def commit(self):
-        c = yield from self._execute(self._conn.commit)
-        return c
+        fut = self._execute(self._conn.commit)
+        return future
 
-    @asyncio.coroutine
     def rollback(self):
-        c = yield from self._execute(self._conn.rollback)
-        return c
+        fut = yield from self._execute(self._conn.rollback)
+        return fut
 
     @asyncio.coroutine
     def execute(self, sql, *args):

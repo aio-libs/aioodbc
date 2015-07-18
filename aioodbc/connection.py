@@ -34,7 +34,6 @@ class Connection:
 
         self._connectionstring = connectionstring
         self._kwargs = kwargs
-        self._closed = True
         if loop.get_debug():
             self._source_traceback = traceback.extract_stack(sys._getframe(1))
 
@@ -48,7 +47,6 @@ class Connection:
         f = self._execute(pyodbc.connect, self._connectionstring,
                           **self._kwargs)
         self._conn = yield from f
-        self._closed = False
 
     @property
     def loop(self):
@@ -56,7 +54,9 @@ class Connection:
 
     @property
     def closed(self):
-        return self._closed
+        if self._conn:
+            return False
+        return True
 
     @property
     def autocommit(self):
@@ -74,10 +74,10 @@ class Connection:
 
     @asyncio.coroutine
     def close(self):
-        if self._closed:
+        if not self._conn:
             return
         c = yield from self._execute(self._conn.close)
-        self._closed = True
+        self._conn = None
         return c
 
     @asyncio.coroutine

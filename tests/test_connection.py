@@ -46,3 +46,11 @@ class TestConversion(base.ODBCTestCase):
         yield from conn.close()
         self.assertTrue(conn.closed)
 
+    @run_until_complete
+    def test_execute(self):
+        conn = yield from self.connect()
+        cur = yield from conn.execute('SELECT 10;')
+        (resp, ) = yield from cur.fetchone()
+        yield from conn.close()
+        self.assertEqual(resp, 10)
+        self.assertTrue(conn.closed)

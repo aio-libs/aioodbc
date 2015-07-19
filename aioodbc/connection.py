@@ -90,8 +90,10 @@ class Connection:
 
     @asyncio.coroutine
     def execute(self, sql, *args):
-        c = yield from self._execute(self._conn.execute, sql, *args)
-        return c
+        _cursor = yield from self._execute(self._conn.execute, sql, *args)
+        connection = self
+        cursor = Cursor(_cursor, connection)
+        return cursor
 
     @asyncio.coroutine
     def getinfo(self):

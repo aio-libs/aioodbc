@@ -82,7 +82,7 @@ class Connection:
 
     def commit(self):
         fut = self._execute(self._conn.commit)
-        return future
+        return fut
 
     def rollback(self):
         fut = yield from self._execute(self._conn.rollback)

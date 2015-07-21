@@ -54,3 +54,11 @@ class TestConversion(base.ODBCTestCase):
         yield from conn.close()
         self.assertEqual(resp, 10)
         self.assertTrue(conn.closed)
+
+    @run_until_complete
+    def test_getinfo(self):
+        conn = yield from self.connect()
+        data = yield from conn.getinfo(pyodbc.SQL_CREATE_TABLE)
+        self.assertEqual(data, 1793)
+        yield from conn.close()
+

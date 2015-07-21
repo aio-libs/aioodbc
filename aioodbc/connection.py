@@ -95,10 +95,9 @@ class Connection:
         cursor = Cursor(_cursor, connection)
         return cursor
 
-    @asyncio.coroutine
-    def getinfo(self):
-        c = yield from self._execute(self._conn.rollback)
-        return c
+    def getinfo(self, type_):
+        fut = self._execute(self._conn.getinfo, type_)
+        return fut
 
     @asyncio.coroutine
     def add_output_converter(self):

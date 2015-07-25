@@ -15,7 +15,7 @@ vtest:
 cov cover coverage: flake
 	nosetests -s --with-cover --cover-html --cover-branches $(FLAGS) --cover-package aioodbc ./tests/
 	@echo "open file://`pwd`/cover/index.html"
-
+	py.test -s -v  --cov-report term --cov-report html --cov aioodbc ./tests
 clean:
 	rm -rf `find . -name __pycache__`
 	rm -f `find . -type f -name '*.py[co]' `

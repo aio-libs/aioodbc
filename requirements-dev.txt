@@ -1,5 +1,5 @@
 flake8
-nose
+pytest
 coverage
 sphinx
 pyodbc

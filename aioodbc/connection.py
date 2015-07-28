@@ -99,15 +99,13 @@ class Connection:
         fut = self._execute(self._conn.getinfo, type_)
         return fut
 
-    @asyncio.coroutine
-    def add_output_converter(self):
-        c = yield from self._execute(self._conn.rollback)
-        return c
+    def add_output_converter(self, sqltype, func):
+        fut = self._execute(self._conn.add_output_converter, sqltype, func)
+        return fut
 
-    @asyncio.coroutine
     def clear_output_converters(self):
-        c = yield from self._execute(self._conn.rollback)
-        return c
+        fut = self._execute(self._conn.clear_output_converters)
+        return fut
 
     if PY_341:  # pragma: no branch
         def __del__(self):

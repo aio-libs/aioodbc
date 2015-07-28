@@ -1,4 +1,5 @@
 import asyncio
+import pyodbc
 from aioodbc.cursor import Cursor
 from tests import base
 
@@ -62,3 +63,27 @@ class TestConversion(base.ODBCTestCase):
         self.assertEqual(data, 1793)
         yield from conn.close()
 
+    @run_until_complete
+    def test_output_conversion(self):
+        def convert(value):
+            # `value` will be a string.  We'll simply add an X at the
+            # beginning at the end.
+            return 'X' + value + 'X'
+        conn = yield from self.connect()
+        yield from conn.add_output_converter(pyodbc.SQL_VARCHAR, convert)
+        cur = yield from conn.cursor()
+
+        yield from cur.execute("CREATE TABLE t1(n INT, v VARCHAR(10))")
+        yield from cur.execute("INSERT INTO t1 VALUES (1, '123.45')")
+        yield from cur.execute("SELECT v FROM t1")
+        (value, ) = yield from cur.fetchone()
+
+        self.assertEqual(value, 'X123.45X')
+
+        # Now clear the conversions and try again.  There should be
+        # no Xs this time.
+        yield from conn.clear_output_converters()
+        yield from cur.execute("SELECT v FROM t1")
+        (value, ) = yield from cur.fetchone()
+        self.assertEqual(value, '123.45')
+        yield from conn.close()

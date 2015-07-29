@@ -45,6 +45,8 @@ class Connection:
     @asyncio.coroutine
     def _connect(self):
         f = self._execute(pyodbc.connect, self._connectionstring,
+                          autocommit=self._autocommit, ansi=self._ansi,
+                          timeout=self._timeout,
                           **self._kwargs)
         self._conn = yield from f
 

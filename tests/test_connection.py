@@ -34,7 +34,7 @@ class TestConversion(base.ODBCTestCase):
         conn = yield from self.connect(no_loop=True)
         cur = yield from conn.cursor()
         self.assertIsInstance(cur, Cursor)
-        yield from cur.execute('SELECT 1')
+        yield from cur.execute('SELECT 1;')
         (ret, ) = yield from cur.fetchone()
         self.assertEqual(1, ret)
         self.assertIs(conn._loop, self.loop)
@@ -73,6 +73,7 @@ class TestConversion(base.ODBCTestCase):
         yield from conn.add_output_converter(pyodbc.SQL_VARCHAR, convert)
         cur = yield from conn.cursor()
 
+        yield from cur.execute("DROP TABLE IF EXISTS t1;")
         yield from cur.execute("CREATE TABLE t1(n INT, v VARCHAR(10))")
         yield from cur.execute("INSERT INTO t1 VALUES (1, '123.45')")
         yield from cur.execute("SELECT v FROM t1")
@@ -86,4 +87,10 @@ class TestConversion(base.ODBCTestCase):
         yield from cur.execute("SELECT v FROM t1")
         (value, ) = yield from cur.fetchone()
         self.assertEqual(value, '123.45')
+        yield from conn.close()
+
+    @run_until_complete
+    def test_autocommit(self):
+        conn = yield from self.connect(autocommit=True)
+        self.assertEqual(conn.autocommit, True)
         yield from conn.close()

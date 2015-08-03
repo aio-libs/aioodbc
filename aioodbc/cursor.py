@@ -7,9 +7,11 @@ class Cursor:
         self._impl = impl
         self._loop = connection.loop
 
+    @asyncio.coroutine
     def close(self):
-        fut = self._conn._execute(self._impl.close)
-        return fut
+        resp = yield from self._conn._execute(self._impl.close)
+        self._conn = None
+        return resp
 
     @property
     def connection(self):
@@ -17,19 +19,19 @@ class Cursor:
 
     @property
     def rowcount(self):
-        return self._conn
+        return self._impl.rowcount
 
     @property
     def description(self):
-        return self._conn.description
+        return self._impl.description
 
     @property
     def closed(self):
-        return self._impl.closed
+        return self._conn is None
 
     @property
     def arraysize(self):
-        return self._conn.arraysize
+        return self._impl.arraysize
 
     @arraysize.setter
     def arraysize(self, size):

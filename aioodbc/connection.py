@@ -87,7 +87,7 @@ class Connection:
         return fut
 
     def rollback(self):
-        fut = yield from self._execute(self._conn.rollback)
+        fut = self._execute(self._conn.rollback)
         return fut
 
     @asyncio.coroutine

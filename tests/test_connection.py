@@ -94,3 +94,26 @@ class TestConversion(base.ODBCTestCase):
         conn = yield from self.connect(autocommit=True)
         self.assertEqual(conn.autocommit, True)
         yield from conn.close()
+
+    @run_until_complete
+    def test_rollback(self):
+        conn = yield from self.connect()
+        self.assertEqual(conn.autocommit, False)
+
+        cur = yield from conn.cursor()
+        yield from cur.execute("DROP TABLE t1;")
+        yield from cur.execute("CREATE TABLE t1(n INT, v VARCHAR(10));")
+
+        yield from conn.commit()
+
+        yield from cur.execute("INSERT INTO t1 VALUES (1, '123.45');")
+        yield from cur.execute("SELECT v FROM t1")
+        (value, ) = yield from cur.fetchone()
+        self.assertEqual(value, '123.45')
+
+        yield from conn.rollback()
+        yield from cur.execute("SELECT v FROM t1;")
+        value = yield from cur.fetchone()
+        self.assertEqual(value, None)
+
+        yield from conn.close()

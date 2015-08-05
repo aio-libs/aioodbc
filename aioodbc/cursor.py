@@ -2,9 +2,9 @@ import asyncio
 
 
 class Cursor:
-    def __init__(self, impl, connection):
+    def __init__(self, pyodbc_cursor, connection):
         self._conn = connection
-        self._impl = impl
+        self._impl = pyodbc_cursor
         self._loop = connection.loop
 
     @asyncio.coroutine

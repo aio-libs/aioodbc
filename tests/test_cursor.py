@@ -28,6 +28,13 @@ class TestCursor(base.ODBCTestCase):
         self.assertIs(cursor._loop, conn.loop)
         self.assertEqual(cursor.arraysize, 1)
         self.assertEqual(cursor.rowcount, -1)
+
+        r = yield from cursor.setinputsizes()
+        self.assertEqual(r, None)
+
+        yield from cursor.setoutputsize()
+        self.assertEqual(r, None)
+
         yield from conn.close()
 
     @run_until_complete

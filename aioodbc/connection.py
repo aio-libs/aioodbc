@@ -75,7 +75,7 @@ class Connection:
         return Cursor(c, connection)
 
     @asyncio.coroutine
-    def close(self):
+    def ensure_closed(self):
         if not self._conn:
             return
         c = yield from self._execute(self._conn.close)
@@ -112,8 +112,10 @@ class Connection:
     if PY_341:  # pragma: no branch
         def __del__(self):
             if not self.closed:
-                # TODO: is any other way to close connection
-                asyncio.Task(self.close(), loop=self._loop)
+                # This will block the loop, please use ensure_closed
+                # coroutine to close connection
+                self._conn.close()
+
                 warnings.warn("Unclosed connection {!r}".format(self),
                               ResourceWarning)
 

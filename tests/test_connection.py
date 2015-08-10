@@ -15,7 +15,7 @@ class TestConversion(base.ODBCTestCase):
         self.assertEqual(conn.autocommit, False)
         self.assertEqual(conn.timeout, 0)
         self.assertEqual(conn.closed, False)
-        yield from conn.close()
+        yield from conn.ensure_closed()
 
     @run_until_complete
     def test_basic_cursor(self):
@@ -24,7 +24,7 @@ class TestConversion(base.ODBCTestCase):
         sql = 'SELECT 10;'
         yield from cursor.execute(sql)
         (resp, ) = yield from cursor.fetchone()
-        yield from conn.close()
+        yield from conn.ensure_closed()
         self.assertEqual(resp, 10)
 
     @run_until_complete
@@ -38,13 +38,13 @@ class TestConversion(base.ODBCTestCase):
         (ret, ) = yield from cur.fetchone()
         self.assertEqual(1, ret)
         self.assertIs(conn._loop, self.loop)
-        yield from conn.close()
+        yield from conn.ensure_closed()
 
     @run_until_complete
     def test_close_twice(self):
         conn = yield from self.connect()
-        yield from conn.close()
-        yield from conn.close()
+        yield from conn.ensure_closed()
+        yield from conn.ensure_closed()
         self.assertTrue(conn.closed)
 
     @run_until_complete
@@ -52,7 +52,7 @@ class TestConversion(base.ODBCTestCase):
         conn = yield from self.connect()
         cur = yield from conn.execute('SELECT 10;')
         (resp, ) = yield from cur.fetchone()
-        yield from conn.close()
+        yield from conn.ensure_closed()
         self.assertEqual(resp, 10)
         self.assertTrue(conn.closed)
 
@@ -61,7 +61,7 @@ class TestConversion(base.ODBCTestCase):
         conn = yield from self.connect()
         data = yield from conn.getinfo(pyodbc.SQL_CREATE_TABLE)
         self.assertEqual(data, 1793)
-        yield from conn.close()
+        yield from conn.ensure_closed()
 
     @run_until_complete
     def test_output_conversion(self):
@@ -87,13 +87,13 @@ class TestConversion(base.ODBCTestCase):
         yield from cur.execute("SELECT v FROM t1")
         (value, ) = yield from cur.fetchone()
         self.assertEqual(value, '123.45')
-        yield from conn.close()
+        yield from conn.ensure_closed()
 
     @run_until_complete
     def test_autocommit(self):
         conn = yield from self.connect(autocommit=True)
         self.assertEqual(conn.autocommit, True)
-        yield from conn.close()
+        yield from conn.ensure_closed()
 
     @run_until_complete
     def test_rollback(self):
@@ -116,4 +116,4 @@ class TestConversion(base.ODBCTestCase):
         value = yield from cur.fetchone()
         self.assertEqual(value, None)
 
-        yield from conn.close()
+        yield from conn.ensure_closed()

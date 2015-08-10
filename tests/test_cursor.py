@@ -18,7 +18,7 @@ class TestCursor(base.ODBCTestCase):
 
         yield from conn.commit()
         yield from cur.close()
-        yield from conn.close()
+        yield from conn.ensure_closed()
 
     @run_until_complete
     def test_cursor(self):
@@ -35,7 +35,7 @@ class TestCursor(base.ODBCTestCase):
         yield from cursor.setoutputsize()
         self.assertEqual(r, None)
 
-        yield from conn.close()
+        yield from conn.ensure_closed()
 
     @run_until_complete
     def test_close(self):
@@ -44,7 +44,7 @@ class TestCursor(base.ODBCTestCase):
         self.assertFalse(cursor.closed)
         yield from cursor.close()
         self.assertTrue(cursor.closed)
-        yield from conn.close()
+        yield from conn.ensure_closed()
 
     @run_until_complete
     def test_description(self):
@@ -55,7 +55,7 @@ class TestCursor(base.ODBCTestCase):
         expected = (('1', float, None, 54, 54, 0, True), )
         self.assertEqual(cursor.description, expected)
         yield from cursor.close()
-        yield from conn.close()
+        yield from conn.ensure_closed()
 
     @run_until_complete
     def test_description_with_real_table(self):
@@ -74,7 +74,7 @@ class TestCursor(base.ODBCTestCase):
         expected = (('n', int, None, 10, 10, 0, True),
                     ('v', str, None, 10, 10, 0, True))
         self.assertEqual(cur.description, expected)
-        yield from conn.close()
+        yield from conn.ensure_closed()
 
     @run_until_complete
     def test_rowcount_with_table(self):
@@ -87,7 +87,7 @@ class TestCursor(base.ODBCTestCase):
         # http://stackoverflow.com/questions/4911404/in-pythons-sqlite3-
         # module-why-cant-cursor-rowcount-tell-me-the-number-of-ro
         self.assertEqual(cursor.rowcount, 0)
-        yield from conn.close()
+        yield from conn.ensure_closed()
 
     @run_until_complete
     def test_arraysize(self):
@@ -97,4 +97,5 @@ class TestCursor(base.ODBCTestCase):
 
         cursor.arraysize = 10
         self.assertEqual(10, cursor.arraysize)
-        yield from conn.close()
+        yield from conn.ensure_closed()
+

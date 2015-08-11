@@ -1,9 +1,17 @@
 import asyncio
 import pyodbc
+import unittest
+import sys
+import gc
+from unittest import mock
+
 from aioodbc.cursor import Cursor
 from tests import base
 
 from tests._testutils import run_until_complete
+
+
+PY_341 = sys.version_info >= (3, 4, 1)
 
 
 class TestConversion(base.ODBCTestCase):
@@ -117,3 +125,20 @@ class TestConversion(base.ODBCTestCase):
         self.assertEqual(value, None)
 
         yield from conn.ensure_closed()
+
+    @unittest.skipIf(not PY_341,
+                     "Python 3.3 doesnt support __del__ calls from GC")
+    @run_until_complete
+    def test___del__(self):
+        exc_handler = mock.Mock()
+        self.loop.set_exception_handler(exc_handler)
+        conn = yield from self.connect()
+        with self.assertWarns(ResourceWarning):
+            del conn
+            gc.collect()
+
+        msg = {'connection': mock.ANY,  # conn was deleted
+               'message': 'Unclosed connection'}
+        if self.loop.get_debug():
+            msg['source_traceback'] = mock.ANY
+        exc_handler.assert_called_with(self.loop, msg)

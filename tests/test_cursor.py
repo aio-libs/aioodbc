@@ -59,15 +59,8 @@ class TestCursor(base.ODBCTestCase):
 
     @run_until_complete
     def test_description_with_real_table(self):
+        yield from self._prepare_table()
         conn = yield from self.connect()
-
-        cur = yield from conn.cursor()
-        yield from cur.execute("DROP TABLE t1;")
-        yield from cur.execute("CREATE TABLE t1(n INT, v VARCHAR(10));")
-        yield from cur.execute("INSERT INTO t1 VALUES (1, '123.45');")
-        yield from conn.commit()
-        yield from cur.close()
-
         cur = yield from conn.cursor()
         yield from cur.execute("SELECT * FROM t1;")
 
@@ -97,5 +90,19 @@ class TestCursor(base.ODBCTestCase):
 
         cursor.arraysize = 10
         self.assertEqual(10, cursor.arraysize)
+        yield from conn.ensure_closed()
+
+    @run_until_complete
+    def test_fetchall(self):
+        yield from self._prepare_table()
+        conn = yield from self.connect()
+        cursor = yield from conn.cursor()
+        yield from cursor.execute("SELECT * FROM t1;")
+        resp = yield from cursor.fetchall()
+        expected = [(1, '123.45'), (2, 'foo')]
+
+        for row, exp in zip(resp, expected):
+            self.assertEquals(exp, tuple(row))
+
         yield from conn.ensure_closed()
 

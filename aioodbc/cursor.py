@@ -1,6 +1,7 @@
 import asyncio
 from pyodbc import OperationalError
 
+
 class Cursor:
     def __init__(self, pyodbc_cursor, connection):
         self._conn = connection

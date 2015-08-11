@@ -1,11 +1,17 @@
 import asyncio
-
+from pyodbc import OperationalError
 
 class Cursor:
     def __init__(self, pyodbc_cursor, connection):
         self._conn = connection
         self._impl = pyodbc_cursor
         self._loop = connection.loop
+
+    def _run_operation(self, func, *args, **kwargs):
+        if not self._conn:
+            raise OperationalError('Cursor is closed.')
+        future = self._conn._execute(func, *args, **kwargs)
+        return future
 
     @asyncio.coroutine
     def close(self):
@@ -35,14 +41,14 @@ class Cursor:
 
     @arraysize.setter
     def arraysize(self, size):
-        self._conn.arraysize = size
+        self._impl.arraysize = size
 
     def execute(self, sql, *params):
         fut = self._conn._execute(self._impl.execute, sql, *params)
         return fut
 
     def executemany(self, sql, *params):
-        fut = self._conn._execute(self._impl.executemany, sql, *params)
+        fut = self._run_operation(self._impl.executemany, sql, *params)
         return fut
 
     @asyncio.coroutine
@@ -54,53 +60,53 @@ class Cursor:
         return None
 
     def fetchone(self):
-        fut = self._conn._execute(self._impl.fetchone)
+        fut = self._run_operation(self._impl.fetchone)
         return fut
 
     def fetchall(self):
-        fut = self._conn._execute(self._impl.fetchall)
+        fut = self._run_operation(self._impl.fetchall)
         return fut
 
     def fetchmany(self, size):
-        fut = self._conn._execute(self._impl.fetchmany, size)
+        fut = self._run_operation(self._impl.fetchmany, size)
         return fut
 
     def nextset(self):
-        fut = self._conn._execute(self._impl.nextset)
+        fut = self._run_operation(self._impl.nextset)
         return fut
 
     def tables(self, table=None, catalog=None, schema=None, tableType=None):
-        fut = self._conn._execute(self._impl.tables, table=table,
+        fut = self._run_operation(self._impl.tables, table=table,
                                   catalog=catalog, schema=schema,
                                   tableType=tableType)
         return fut
 
     def columns(self, table=None, catalog=None, schema=None, column=None):
-        fut = self._conn._execute(self._impl.columns, table=table,
+        fut = self._run_operation(self._impl.columns, table=table,
                                   catalog=catalog, schema=schema,
                                   column=column)
         return fut
 
     @asyncio.coroutine
     def statistics(self, catalog=None, schema=None, unique=False, quick=True):
-        fut = self._conn._execute(self._impl.statistics, catalog=catalog,
+        fut = self._run_operation(self._impl.statistics, catalog=catalog,
                                   schema=schema, unique=unique, quick=quick)
         return fut
 
     def rowIdColumns(self, table, catalog=None, schema=None, nullable=True):
-        fut = self._conn._execute(self._impl.rowIdColumns, table,
+        fut = self._run_operation(self._impl.rowIdColumns, table,
                                   catalog=catalog, schema=schema,
                                   nullable=nullable)
         return fut
 
     def rowVerColumns(self, table, catalog=None, schema=None, nullable=True):
-        fut = self._conn._execute(self._impl.rowVerColumns, table,
+        fut = self._run_operation(self._impl.rowVerColumns, table,
                                   catalog=catalog, schema=schema,
                                   nullable=nullable)
         return fut
 
     def primaryKeys(self, table, catalog=None, schema=None):
-        fut = self._conn._execute(self._impl.primaryKeys, table,
+        fut = self._run_operation(self._impl.primaryKeys, table,
                                   catalog=catalog, schema=schema)
         return fut
 
@@ -108,7 +114,7 @@ class Cursor:
     def foreignKeys(self, table=None, catalog=None, schema=None,
                     foreignTable=None, foreignCatalog=None,
                     foreignSchema=None):
-        fut = self._conn._execute(self._impl.foreignKeys, table=table,
+        fut = self._run_operation(self._impl.foreignKeys, table=table,
                                   catalog=catalog, schema=schema,
                                   foreignTable=foreignTable,
                                   foreignCatalog=foreignCatalog,
@@ -116,28 +122,28 @@ class Cursor:
         return fut
 
     def getTypeInfo(self, sqlType=None):
-        fut = self._conn._execute(self._impl.getTypeInfo, sqlType)
+        fut = self._run_operation(self._impl.getTypeInfo, sqlType)
         return fut
 
     def procedures(self, procedure=None, catalog=None, schema=None):
-        fut = self._conn._execute(self._impl.procedures, procedure=procedure,
+        fut = self._run_operation(self._impl.procedures, procedure=procedure,
                                   catalog=catalog, schema=schema)
         return fut
 
     def procedureColumns(self, procedure=None, catalog=None, schema=None):
-        fut = self._conn._execute(self._impl.procedureColumns,
+        fut = self._run_operation(self._impl.procedureColumns,
                                   procedure=procedure, catalog=catalog,
                                   schema=schema)
         return fut
 
     def skip(self, count):
-        fut = self._conn._execute(self._impl.skip, count)
+        fut = self._run_operation(self._impl.skip, count)
         return fut
 
     def commit(self):
-        fut = self._conn._execute(self._impl.commit)
+        fut = self._run_operation(self._impl.commit)
         return fut
 
     def rollback(self):
-        fut = self._conn._execute(self._impl.rollback)
+        fut = self._run_operation(self._impl.rollback)
         return fut

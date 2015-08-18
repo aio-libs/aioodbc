@@ -16,7 +16,7 @@ class Cursor:
 
     @asyncio.coroutine
     def close(self):
-        resp = yield from self._conn._execute(self._impl.close)
+        resp = yield from self._run_operation(self._impl.close)
         self._conn = None
         return resp
 
@@ -45,7 +45,7 @@ class Cursor:
         self._impl.arraysize = size
 
     def execute(self, sql, *params):
-        fut = self._conn._execute(self._impl.execute, sql, *params)
+        fut = self._run_operation(self._impl.execute, sql, *params)
         return fut
 
     def executemany(self, sql, *params):

@@ -106,3 +106,28 @@ class TestCursor(base.ODBCTestCase):
 
         yield from conn.ensure_closed()
 
+    @run_until_complete
+    def test_fetchmany(self):
+        yield from self._prepare_table()
+        conn = yield from self.connect()
+        cursor = yield from conn.cursor()
+        yield from cursor.execute("SELECT * FROM t1;")
+        resp = yield from cursor.fetchmany(1)
+        expected = [(1, '123.45')]
+
+        for row, exp in zip(resp, expected):
+            self.assertEquals(exp, tuple(row))
+
+        yield from conn.ensure_closed()
+
+    @run_until_complete
+    def test_fetchone(self):
+        yield from self._prepare_table()
+        conn = yield from self.connect()
+        cursor = yield from conn.cursor()
+        yield from cursor.execute("SELECT * FROM t1;")
+        resp = yield from cursor.fetchone()
+        expected = (1, '123.45')
+
+        self.assertEquals(expected, tuple(resp))
+        yield from conn.ensure_closed()

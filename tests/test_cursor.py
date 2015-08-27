@@ -1,133 +1,105 @@
-import asyncio
-from tests import base
-
-from tests._testutils import run_until_complete
+import pytest
 
 
-class TestCursor(base.ODBCTestCase):
+@pytest.mark.run_loop
+def test_cursor(conn):
+    cur = yield from conn.cursor()
+    assert cur.connection is conn
+    assert cur._loop, conn.loop
+    assert cur.arraysize == 1
+    assert cur.rowcount == -1
 
-    @asyncio.coroutine
-    def _prepare_table(self):
-        conn = yield from self.connect()
-        cur = yield from conn.cursor()
+    r = yield from cur.setinputsizes()
+    assert r is None
 
-        yield from cur.execute("DROP TABLE t1;")
-        yield from cur.execute("CREATE TABLE t1(n INT, v VARCHAR(10));")
-        yield from cur.execute("INSERT INTO t1 VALUES (1, '123.45');")
-        yield from cur.execute("INSERT INTO t1 VALUES (2, 'foo');")
+    yield from cur.setoutputsize()
+    assert r is None
+    yield from cur.close()
 
-        yield from conn.commit()
-        yield from cur.close()
-        yield from conn.ensure_closed()
 
-    @run_until_complete
-    def test_cursor(self):
-        conn = yield from self.connect()
-        cursor = yield from conn.cursor()
-        self.assertIs(cursor.connection, conn)
-        self.assertIs(cursor._loop, conn.loop)
-        self.assertEqual(cursor.arraysize, 1)
-        self.assertEqual(cursor.rowcount, -1)
+@pytest.mark.run_loop
+def test_close(conn):
+    cur = yield from conn.cursor()
+    assert not cur.closed
+    yield from cur.close()
+    yield from cur.close()
+    assert cur.closed
 
-        r = yield from cursor.setinputsizes()
-        self.assertEqual(r, None)
 
-        yield from cursor.setoutputsize()
-        self.assertEqual(r, None)
+@pytest.mark.run_loop
+def test_description(conn):
+    cur = yield from conn.cursor()
+    assert cur.description is None
+    yield from cur.execute('SELECT 1;')
+    expected = (('1', float, None, 54, 54, 0, True), )
+    assert cur.description == expected
+    yield from cur.close()
 
-        yield from conn.ensure_closed()
 
-    @run_until_complete
-    def test_close(self):
-        conn = yield from self.connect()
-        cursor = yield from conn.cursor()
-        self.assertFalse(cursor.closed)
-        yield from cursor.close()
-        self.assertTrue(cursor.closed)
-        yield from conn.ensure_closed()
+@pytest.mark.run_loop
+def test_description_with_real_table(conn, table):
+    cur = yield from conn.cursor()
+    yield from cur.execute("SELECT * FROM t1;")
 
-    @run_until_complete
-    def test_description(self):
-        conn = yield from self.connect()
-        cursor = yield from conn.cursor()
-        self.assertEqual(cursor.description, None)
-        yield from cursor.execute('SELECT 1;')
-        expected = (('1', float, None, 54, 54, 0, True), )
-        self.assertEqual(cursor.description, expected)
-        yield from cursor.close()
-        yield from conn.ensure_closed()
+    expected = (('n', int, None, 10, 10, 0, True),
+                ('v', str, None, 10, 10, 0, True))
+    assert cur.description == expected
+    yield from cur.close()
 
-    @run_until_complete
-    def test_description_with_real_table(self):
-        yield from self._prepare_table()
-        conn = yield from self.connect()
-        cur = yield from conn.cursor()
-        yield from cur.execute("SELECT * FROM t1;")
 
-        expected = (('n', int, None, 10, 10, 0, True),
-                    ('v', str, None, 10, 10, 0, True))
-        self.assertEqual(cur.description, expected)
-        yield from conn.ensure_closed()
+@pytest.mark.run_loop
+def test_rowcount_with_table(conn, table):
+    cur = yield from conn.cursor()
+    yield from cur.execute("SELECT * FROM t1;")
+    yield from cur.fetchall()
+    # sqlite does not provide working rowcount attribute
+    # http://stackoverflow.com/questions/4911404/in-pythons-sqlite3-
+    # module-why-cant-cursor-rowcount-tell-me-the-number-of-ro
+    assert cur.rowcount == 0
+    yield from cur.close()
 
-    @run_until_complete
-    def test_rowcount_with_table(self):
-        yield from self._prepare_table()
-        conn = yield from self.connect()
-        cursor = yield from conn.cursor()
-        yield from cursor.execute("SELECT * FROM t1;")
-        yield from cursor.fetchall()
-        # sqlite does not provide working rowcount attribute
-        # http://stackoverflow.com/questions/4911404/in-pythons-sqlite3-
-        # module-why-cant-cursor-rowcount-tell-me-the-number-of-ro
-        self.assertEqual(cursor.rowcount, 0)
-        yield from conn.ensure_closed()
 
-    @run_until_complete
-    def test_arraysize(self):
-        conn = yield from self.connect()
-        cursor = yield from conn.cursor()
-        self.assertEqual(1, cursor.arraysize)
+@pytest.mark.run_loop
+def test_arraysize(conn):
+    cur = yield from conn.cursor()
+    assert 1 == cur.arraysize
+    cur.arraysize = 10
+    assert 10 == cur.arraysize
+    yield from cur.close()
 
-        cursor.arraysize = 10
-        self.assertEqual(10, cursor.arraysize)
-        yield from conn.ensure_closed()
 
-    @run_until_complete
-    def test_fetchall(self):
-        yield from self._prepare_table()
-        conn = yield from self.connect()
-        cursor = yield from conn.cursor()
-        yield from cursor.execute("SELECT * FROM t1;")
-        resp = yield from cursor.fetchall()
-        expected = [(1, '123.45'), (2, 'foo')]
+@pytest.mark.run_loop
+def test_fetchall(conn, table):
+    cur = yield from conn.cursor()
+    yield from cur.execute("SELECT * FROM t1;")
+    resp = yield from cur.fetchall()
+    expected = [(1, '123.45'), (2, 'foo')]
 
-        for row, exp in zip(resp, expected):
-            self.assertEquals(exp, tuple(row))
+    for row, exp in zip(resp, expected):
+        assert exp == tuple(row)
 
-        yield from conn.ensure_closed()
+    yield from cur.close()
 
-    @run_until_complete
-    def test_fetchmany(self):
-        yield from self._prepare_table()
-        conn = yield from self.connect()
-        cursor = yield from conn.cursor()
-        yield from cursor.execute("SELECT * FROM t1;")
-        resp = yield from cursor.fetchmany(1)
-        expected = [(1, '123.45')]
 
-        for row, exp in zip(resp, expected):
-            self.assertEquals(exp, tuple(row))
+@pytest.mark.run_loop
+def test_fetchmany(conn, table):
+    cur = yield from conn.cursor()
+    yield from cur.execute("SELECT * FROM t1;")
+    resp = yield from cur.fetchmany(1)
+    expected = [(1, '123.45')]
 
-        yield from conn.ensure_closed()
+    for row, exp in zip(resp, expected):
+        assert exp == tuple(row)
 
-    @run_until_complete
-    def test_fetchone(self):
-        yield from self._prepare_table()
-        conn = yield from self.connect()
-        cursor = yield from conn.cursor()
-        yield from cursor.execute("SELECT * FROM t1;")
-        resp = yield from cursor.fetchone()
-        expected = (1, '123.45')
+    yield from cur.close()
 
-        self.assertEquals(expected, tuple(resp))
-        yield from conn.ensure_closed()
+
+@pytest.mark.run_loop
+def test_fetchone(conn, table):
+    cur = yield from conn.cursor()
+    yield from cur.execute("SELECT * FROM t1;")
+    resp = yield from cur.fetchone()
+    expected = (1, '123.45')
+
+    assert expected == tuple(resp)
+    yield from cur.close()

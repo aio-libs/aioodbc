@@ -2,11 +2,15 @@ import asyncio
 from pyodbc import OperationalError
 
 
+from .log import logger
+
+
 class Cursor:
-    def __init__(self, pyodbc_cursor, connection):
+    def __init__(self, pyodbc_cursor, connection, echo=False):
         self._conn = connection
         self._impl = pyodbc_cursor
         self._loop = connection.loop
+        self._echo = echo
 
     def _run_operation(self, func, *args, **kwargs):
         if not self._conn:
@@ -14,11 +18,10 @@ class Cursor:
         future = self._conn._execute(func, *args, **kwargs)
         return future
 
-    @asyncio.coroutine
-    def close(self):
-        resp = yield from self._run_operation(self._impl.close)
-        self._conn = None
-        return resp
+    @property
+    def echo(self):
+        """Return echo mode status."""
+        return self._echo
 
     @property
     def connection(self):
@@ -44,13 +47,27 @@ class Cursor:
     def arraysize(self, size):
         self._impl.arraysize = size
 
+    @asyncio.coroutine
+    def close(self):
+        if self._conn is None:
+            return
+        yield from self._run_operation(self._impl.close)
+        self._conn = None
+
+
     def execute(self, sql, *params):
+        if self._echo:
+            logger.info(sql)
+            logger.info("%r", sql)
         fut = self._run_operation(self._impl.execute, sql, *params)
         return fut
 
     def executemany(self, sql, *params):
         fut = self._run_operation(self._impl.executemany, sql, *params)
         return fut
+
+    def callproc(self, procname, args=()):
+        raise NotImplementedError
 
     @asyncio.coroutine
     def setinputsizes(self, *args, **kwargs):

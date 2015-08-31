@@ -115,6 +115,7 @@ class Connection:
                 # This will block the loop, please use ensure_closed
                 # coroutine to close connection
                 self._conn.close()
+                self._conn = None
 
                 warnings.warn("Unclosed connection {!r}".format(self),
                               ResourceWarning)

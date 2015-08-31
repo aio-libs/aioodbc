@@ -1,11 +1,13 @@
 import asyncio
-import warnings
-import sys
 import gc
+import os
+import sys
 from unittest import mock
 
 import pytest
 import pyodbc
+
+import aioodbc
 from aioodbc.cursor import Cursor
 
 
@@ -109,19 +111,23 @@ class TestConversion:
 
         yield from conn.ensure_closed()
 
-    @unittest.skipIf(not PY_341,
-                     "Python 3.3 doesnt support __del__ calls from GC")
-    @run_until_complete
-    def test___del__(self):
+    @pytest.mark.skipif(not PY_341, reason=
+                       "Python 3.3 doesnt support __del__ calls from GC")
+    @pytest.mark.run_loop
+    def test___del__(self, loop, recwarn):
+        dsn = os.environ.get('DSN', 'Driver=SQLite;Database=sqlite.db')
+        conn = yield from aioodbc.connect(dsn, loop=loop)
         exc_handler = mock.Mock()
-        self.loop.set_exception_handler(exc_handler)
-        conn = yield from self.connect()
-        with self.assertWarns(ResourceWarning):
-            del conn
-            gc.collect()
+        loop.set_exception_handler(exc_handler)
+
+        del conn
+        gc.collect()
+
+        w = recwarn.pop()
+        assert issubclass(w.category, ResourceWarning)
 
         msg = {'connection': mock.ANY,  # conn was deleted
                'message': 'Unclosed connection'}
-        if self.loop.get_debug():
+        if loop.get_debug():
             msg['source_traceback'] = mock.ANY
-        exc_handler.assert_called_with(self.loop, msg)
+        exc_handler.assert_called_with(loop, msg)

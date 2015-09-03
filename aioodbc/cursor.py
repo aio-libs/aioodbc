@@ -54,7 +54,6 @@ class Cursor:
         yield from self._run_operation(self._impl.close)
         self._conn = None
 
-
     def execute(self, sql, *params):
         if self._echo:
             logger.info(sql)

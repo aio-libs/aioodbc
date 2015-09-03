@@ -111,8 +111,8 @@ class TestConversion:
 
         yield from conn.ensure_closed()
 
-    @pytest.mark.skipif(not PY_341, reason=
-                       "Python 3.3 doesnt support __del__ calls from GC")
+    @pytest.mark.skipif(not PY_341, reason="Python 3.3 doesnt support __del__ "
+                                           "calls from GC")
     @pytest.mark.run_loop
     def test___del__(self, loop, recwarn):
         dsn = os.environ.get('DSN', 'Driver=SQLite;Database=sqlite.db')

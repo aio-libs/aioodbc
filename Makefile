@@ -7,15 +7,14 @@ flake:
 	flake8 aioodbc tests
 
 test: flake
-	nosetests -s $(FLAGS) ./tests/
+	py.test -s $(FLAGS) ./tests/
 
 vtest:
-	nosetests -s -v $(FLAGS) ./tests/
+	py.test -s -v $(FLAGS) ./tests/
 
 cov cover coverage: flake
-	nosetests -s --with-cover --cover-html --cover-branches $(FLAGS) --cover-package aioodbc ./tests/
-	@echo "open file://`pwd`/cover/index.html"
 	py.test -s -v  --cov-report term --cov-report html --cov aioodbc ./tests
+	@echo "open file://`pwd`/htmlcov/index.html"
 clean:
 	rm -rf `find . -name __pycache__`
 	rm -f `find . -type f -name '*.py[co]' `

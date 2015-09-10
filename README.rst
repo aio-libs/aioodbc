@@ -1,6 +1,9 @@
 aioodbc
 =======
-
+.. image:: https://travis-ci.org/jettify/aioodbc.svg?branch=master
+    :target: https://travis-ci.org/jettify/aioodbc
+.. image:: https://coveralls.io/repos/jettify/aioodbc/badge.svg?branch=master&service=github
+    :target: https://coveralls.io/github/jettify/aioodbc?branch=master
 
 Requirements
 ------------

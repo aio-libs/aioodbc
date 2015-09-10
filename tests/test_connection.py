@@ -1,6 +1,5 @@
 import asyncio
 import gc
-import os
 import sys
 from unittest import mock
 
@@ -8,7 +7,6 @@ import pytest
 import pyodbc
 
 import aioodbc
-from aioodbc.cursor import Cursor
 
 
 PY_341 = sys.version_info >= (3, 4, 1)
@@ -31,15 +29,11 @@ class TestConversion:
         assert resp == 10
 
     @pytest.mark.run_loop
-    def test_default_event_loop(self, conn_no_loop):
-        loop = asyncio.get_event_loop()
-
-        cur = yield from conn_no_loop.cursor()
-        assert isinstance(cur, Cursor)
-        yield from cur.execute('SELECT 1;')
-        (ret, ) = yield from cur.fetchone()
-        assert 1 == ret
-        assert conn_no_loop._loop is loop
+    def test_default_event_loop(self, loop, dsn):
+        asyncio.set_event_loop(loop)
+        conn = yield from aioodbc.connect(dsn)
+        assert conn._loop is loop
+        yield from conn.ensure_closed()
 
     @pytest.mark.run_loop
     def test_close_twice(self, conn):
@@ -114,8 +108,7 @@ class TestConversion:
     @pytest.mark.skipif(not PY_341, reason="Python 3.3 doesnt support __del__ "
                                            "calls from GC")
     @pytest.mark.run_loop
-    def test___del__(self, loop, recwarn):
-        dsn = os.environ.get('DSN', 'Driver=SQLite;Database=sqlite.db')
+    def test___del__(self, loop, dsn, recwarn):
         conn = yield from aioodbc.connect(dsn, loop=loop)
         exc_handler = mock.Mock()
         loop.set_exception_handler(exc_handler)

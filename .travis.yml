@@ -20,7 +20,7 @@ env:
 install:
     - pip install pyodbc
     - pip install flake8
-    - pip install pytest
+    - pip install git+https://github.com/pytest-dev/pytest
     - pip install pytest-cov
     - pip install coverage
     - pip install .

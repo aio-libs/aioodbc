@@ -112,3 +112,13 @@ def test_fetchone(conn, table):
 
     assert expected == tuple(resp)
     yield from cur.close()
+
+
+@pytest.mark.run_loop
+def test_tables(conn, table):
+    cur = yield from conn.cursor()
+    yield from cur.tables()
+    resp = yield from cur.fetchall()
+    expectd = (None, None, 't1', 'TABLE', None)
+    assert len(resp) == 1, resp
+    assert expectd == tuple(resp[0]), resp

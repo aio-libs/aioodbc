@@ -92,10 +92,8 @@ class Cursor:
         fut = self._run_operation(self._impl.nextset)
         return fut
 
-    def tables(self, table=None, catalog=None, schema=None, tableType=None):
-        fut = self._run_operation(self._impl.tables, table=table,
-                                  catalog=catalog, schema=schema,
-                                  tableType=tableType)
+    def tables(self, **kw):
+        fut = self._run_operation(self._impl.tables, **kw)
         return fut
 
     def columns(self, table=None, catalog=None, schema=None, column=None):

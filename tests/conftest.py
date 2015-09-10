@@ -83,8 +83,6 @@ def table(request, conn, loop):
     @asyncio.coroutine
     def go():
         cur = yield from conn.cursor()
-        yield from cur.execute("DROP TABLE t1;")
-        # yield from cur.execute("DROP TABLE company;")
 
         yield from cur.execute("CREATE TABLE t1(n INT, v VARCHAR(10));")
         yield from cur.execute("INSERT INTO t1 VALUES (1, '123.45');")
@@ -92,8 +90,15 @@ def table(request, conn, loop):
         yield from conn.commit()
         yield from cur.close()
 
+    @asyncio.coroutine
+    def drop_table():
+        cur = yield from conn.cursor()
+        yield from cur.execute("DROP TABLE t1;")
+        yield from cur.commit()
+        yield from cur.close()
+
     def fin():
-        loop.run_until_complete(conn.execute("DROP TABLE t1;"))
+        loop.run_until_complete(drop_table())
 
     request.addfinalizer(fin)
 

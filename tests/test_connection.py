@@ -55,7 +55,7 @@ class TestConversion:
         assert data == 1793
 
     @pytest.mark.run_loop
-    def test_output_conversion(self, conn):
+    def test_output_conversion(self, conn, table):
         def convert(value):
             # `value` will be a string.  We'll simply add an X at the
             # beginning at the end.
@@ -63,10 +63,8 @@ class TestConversion:
         yield from conn.add_output_converter(pyodbc.SQL_VARCHAR, convert)
         cur = yield from conn.cursor()
 
-        yield from cur.execute("DROP TABLE t1;")
-        yield from cur.execute("CREATE TABLE t1(n INT, v VARCHAR(10))")
-        yield from cur.execute("INSERT INTO t1 VALUES (1, '123.45')")
-        yield from cur.execute("SELECT v FROM t1")
+        yield from cur.execute("INSERT INTO t1 VALUES (3, '123.45')")
+        yield from cur.execute("SELECT v FROM t1 WHERE n=3;")
         (value, ) = yield from cur.fetchone()
 
         assert value == 'X123.45X'
@@ -77,7 +75,7 @@ class TestConversion:
         yield from cur.execute("SELECT v FROM t1")
         (value, ) = yield from cur.fetchone()
         assert value == '123.45'
-        yield from cur.execute("DROP TABLE t1;")
+        yield from cur.close()
 
     def test_autocommit(self, loop, connection_maker):
         conn = connection_maker(loop, autocommit=True)
@@ -88,7 +86,6 @@ class TestConversion:
         assert not conn.autocommit
 
         cur = yield from conn.cursor()
-        yield from cur.execute("DROP TABLE t1;")
         yield from cur.execute("CREATE TABLE t1(n INT, v VARCHAR(10));")
 
         yield from conn.commit()
@@ -102,6 +99,8 @@ class TestConversion:
         yield from cur.execute("SELECT v FROM t1;")
         value = yield from cur.fetchone()
         assert value is None
+        yield from cur.execute("DROP TABLE t1;")
+        yield from conn.commit()
 
         yield from conn.ensure_closed()
 

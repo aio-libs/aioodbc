@@ -1,4 +1,5 @@
 import pytest
+from pyodbc import OperationalError
 
 
 @pytest.mark.run_loop
@@ -15,6 +16,14 @@ def test_cursor(conn):
     yield from cur.setoutputsize()
     assert r is None
     yield from cur.close()
+
+
+@pytest.mark.run_loop
+def test_execute_on_closed_cursor(conn):
+    cur = yield from conn.cursor()
+    yield from cur.close()
+    with pytest.raises(OperationalError):
+        yield from cur.execute('SELECT 1;')
 
 
 @pytest.mark.run_loop

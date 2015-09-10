@@ -19,7 +19,7 @@ else:
 def read(f):
     return open(os.path.join(os.path.dirname(__file__), f)).read().strip()
 
-extras_require = {'sa': ['sqlalchemy>=0.9'], }
+extras_require = {}
 
 
 def read_version():

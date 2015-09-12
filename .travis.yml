@@ -19,6 +19,7 @@ env:
 
 install:
     - pip install pyodbc
+    - pip install git+https://github.com/pyflakes/pyflakes.git
     - pip install flake8
     - pip install git+https://github.com/pytest-dev/pytest
     - pip install pytest-cov

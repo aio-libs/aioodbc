@@ -123,3 +123,18 @@ def test_tables(conn, table):
     expectd = (None, None, 't1', 'TABLE', None)
     assert len(resp) == 1, resp
     assert expectd == tuple(resp[0]), resp
+
+
+@pytest.mark.run_loop
+def test_cursor_rollback(conn, table):
+
+    cur = yield from conn.cursor()
+    yield from cur.execute("INSERT INTO t1 VALUES (3, '123.45');")
+    yield from cur.execute("SELECT v FROM t1 WHERE n=3;")
+    (value, ) = yield from cur.fetchone()
+    assert value == '123.45'
+
+    yield from cur.rollback()
+    yield from cur.execute("SELECT v FROM t1 WHERE n=3;")
+    value = yield from cur.fetchone()
+    assert value is None

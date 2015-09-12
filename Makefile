@@ -4,7 +4,8 @@ FLAGS=
 
 
 flake:
-	flake8 aioodbc tests
+	pep8 aioodbc tests
+	pyflakes aioodbc tests
 
 test: flake
 	py.test -s $(FLAGS) ./tests/
@@ -12,7 +13,7 @@ test: flake
 vtest:
 	py.test -s -v $(FLAGS) ./tests/
 
-cov cover coverage: flake
+cov cover coverage:
 	py.test -s -v  --cov-report term --cov-report html --cov aioodbc ./tests
 	@echo "open file://`pwd`/htmlcov/index.html"
 clean:
@@ -27,7 +28,7 @@ clean:
 	rm -f .coverage
 	rm -rf coverage
 	rm -rf build
-	rm -rf cover
+	rm -rf htmlcov
 	rm -rf dist
 
 doc:

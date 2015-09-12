@@ -31,7 +31,7 @@ class TestConversion:
     @pytest.mark.run_loop
     def test_default_event_loop(self, loop, dsn):
         asyncio.set_event_loop(loop)
-        conn = yield from aioodbc.connect(dsn)
+        conn = yield from aioodbc.connect(dsn=dsn)
         assert conn._loop is loop
         yield from conn.ensure_closed()
 
@@ -108,7 +108,7 @@ class TestConversion:
                                            "calls from GC")
     @pytest.mark.run_loop
     def test___del__(self, loop, dsn, recwarn):
-        conn = yield from aioodbc.connect(dsn, loop=loop)
+        conn = yield from aioodbc.connect(dsn=dsn, loop=loop)
         exc_handler = mock.Mock()
         loop.set_exception_handler(exc_handler)
 

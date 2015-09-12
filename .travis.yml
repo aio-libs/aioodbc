@@ -1,7 +1,6 @@
 language: python
 
 python:
-    - 3.4
     - 3.5.0b3
 
 before_install:
@@ -19,7 +18,8 @@ env:
 
 install:
     - pip install pyodbc
-    - pip install flake8
+    - pip install git+https://github.com/pyflakes/pyflakes.git
+    - pip install pep8
     - pip install git+https://github.com/pytest-dev/pytest
     - pip install pytest-cov
     - pip install coverage

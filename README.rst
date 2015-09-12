@@ -82,17 +82,10 @@ Installation
 
    pip3 install git+https://github.com/jettify/aioodbc.git
 
-.. note::  in Linux environment pyodbc_ (hence *aioodbc*) requires unixODBC_
-           library.
-
-   You can use standard one from your distro like::
+In Linux environment pyodbc_ (hence *aioodbc*) requires unixODBC_ library.
+You can use standard one from your distro like::
 
       $ sudo apt-get install unixodbc
-
-   but if you like to use virtual environments
-   (`virtualenvwrapper`, `virtualenv` or `venv`) you
-   probably have to install :term:`unixodbc-dev` development package::
-
       $ sudo apt-get install unixodbc-dev
 
 
@@ -100,7 +93,7 @@ Other SQL Drivers
 -----------------
 
 * aiopg_ - asyncio client for PostgreSQL
-* aioodbc_ - asyncio client form MySQL
+* aiomysql_ - asyncio client form MySQL
 
 
 Requirements
@@ -116,6 +109,6 @@ Requirements
 .. _pyodbc: https://github.com/mkleehammer/pyodbc
 .. _ODBC: https://en.wikipedia.org/wiki/Open_Database_Connectivity
 .. _aiopg: https://github.com/aio-libs/aiopg
-.. _aioodbc: https://github.com/aio-libs/aioodbc
+.. _aiomysql: https://github.com/aio-libs/aiomysql
 .. _PEP492: https://www.python.org/dev/peps/pep-0492/
 .. _unixODBC: http://www.unixodbc.org/

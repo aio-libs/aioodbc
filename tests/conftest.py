@@ -37,9 +37,32 @@ def connection_maker(request):
     return f
 
 
+@pytest.fixture
+def pool_maker(request):
+    def f(loop, **kw):
+        return _connect_pool(loop, request.addfinalizer, **kw)
+    return f
+
+
+def _connect_pool(loop, finalizer, **kw):
+    pool = loop.run_until_complete(aioodbc.create_pool(loop=loop, **kw))
+
+    def fin():
+        pool.close()
+        loop.run_until_complete(pool.wait_closed())
+
+    finalizer(fin)
+    return pool
+
+
+@pytest.fixture
+def pool(request, loop, dsn):
+    return _connect_pool(loop, request.addfinalizer, dsn=dsn)
+
+
 def _connect(loop, finalizer, **kw):
     dsn = os.environ.get('DSN', 'Driver=SQLite;Database=sqlite.db')
-    conn = loop.run_until_complete(aioodbc.connect(dsn, loop=loop, **kw))
+    conn = loop.run_until_complete(aioodbc.connect(dsn=dsn, loop=loop, **kw))
 
     def fin():
         loop.run_until_complete(conn.ensure_closed())

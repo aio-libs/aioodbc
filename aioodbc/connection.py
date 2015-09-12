@@ -125,3 +125,12 @@ class Connection:
                 if self._source_traceback is not None:
                     context['source_traceback'] = self._source_traceback
                 self._loop.call_exception_handler(context)
+
+    @asyncio.coroutine
+    def __aenter__(self):
+        return self
+
+    @asyncio.coroutine
+    def __aexit__(self, exc_type, exc_val, exc_tb):
+        yield from self.ensure_closed()
+        return

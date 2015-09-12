@@ -11,10 +11,9 @@ __all__ = ['connect', 'Connection']
 PY_341 = sys.version_info >= (3, 4, 1)
 
 
-def connect(connectionstring, loop=None, executor=None, **kwargs):
+def connect(*, dsn, loop=None, executor=None, **kwargs):
     loop = loop or asyncio.get_event_loop()
-    conn = Connection(connectionstring, loop=loop, executor=executor,
-                      **kwargs)
+    conn = Connection(dsn=dsn, loop=loop, executor=executor, **kwargs)
     yield from conn._connect()
     return conn
 
@@ -22,8 +21,8 @@ def connect(connectionstring, loop=None, executor=None, **kwargs):
 class Connection:
     _source_traceback = None
 
-    def __init__(self, connectionstring, autocommit=False, ansi=None,
-                 timeout=0, executor=None, loop=None, **kwargs):
+    def __init__(self, *, dsn, autocommit=False, ansi=None,
+                 timeout=0, executor=None, echo=False, loop=None, **kwargs):
         self._executor = executor
         self._loop = loop or asyncio.get_event_loop()
         self._conn = None
@@ -31,8 +30,8 @@ class Connection:
         self._timeout = timeout
         self._autocommit = autocommit
         self._ansi = ansi
-
-        self._connectionstring = connectionstring
+        self._dsn = dsn
+        self._echo = echo
         self._kwargs = kwargs
         if loop.get_debug():
             self._source_traceback = traceback.extract_stack(sys._getframe(1))
@@ -44,7 +43,7 @@ class Connection:
 
     @asyncio.coroutine
     def _connect(self):
-        f = self._execute(pyodbc.connect, self._connectionstring,
+        f = self._execute(pyodbc.connect, self._dsn,
                           autocommit=self._autocommit, ansi=self._ansi,
                           timeout=self._timeout,
                           **self._kwargs)
@@ -67,6 +66,10 @@ class Connection:
     @property
     def timeout(self):
         return self._conn.timeout
+
+    @property
+    def echo(self):
+        return self._echo
 
     @asyncio.coroutine
     def cursor(self):

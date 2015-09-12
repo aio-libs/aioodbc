@@ -46,3 +46,15 @@ def test_cursor_awit(loop, conn, table):
         assert cur.closed
 
     loop.run_until_complete(go())
+
+
+def test_connection(loop, conn):
+
+    async def go():
+        assert not conn.closed
+        async with conn:
+            pass
+
+        assert conn.closed
+
+    loop.run_until_complete(go())

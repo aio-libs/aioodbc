@@ -240,7 +240,7 @@ def test__fill_free(loop, pool_maker, dsn):
             assert 1 == pool.size
 
             conn = yield from asyncio.wait_for(pool.acquire(), timeout=0.5,
-                                          loop=loop)
+                                               loop=loop)
             assert 0 == pool.freesize
             assert 2 == pool.size
             yield from pool.release(conn)

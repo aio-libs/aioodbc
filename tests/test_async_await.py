@@ -41,7 +41,6 @@ def test_cursor_awit(loop, conn, table):
         async with await conn.cursor() as cur:
             await cur.execute('SELECT * FROM t1;')
             assert not cur.closed
-            pass
 
         assert cur.closed
 
@@ -56,5 +55,27 @@ def test_connection(loop, conn):
             pass
 
         assert conn.closed
+
+    loop.run_until_complete(go())
+
+
+def test_pool_context_manager(loop, pool):
+    async def go():
+        assert not pool.closed
+        async with pool:
+            pass
+        assert pool.closed
+
+    loop.run_until_complete(go())
+
+
+def test_pool_context_manager2(loop, pool):
+    async def go():
+        async with await pool as conn:
+            assert not conn.closed
+            cur = await conn.cursor()
+            await cur.execute('SELECT 1')
+            val = await cur.fetchone()
+            assert (1,) == tuple(val)
 
     loop.run_until_complete(go())

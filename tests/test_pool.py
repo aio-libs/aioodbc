@@ -1,4 +1,5 @@
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import pytest
 import aioodbc
 from aioodbc.connection import Connection
@@ -433,5 +434,29 @@ def test_close_with_acquired_connections(loop, pool_maker, dsn):
                                         0.1, loop=loop)
         yield from conn.ensure_closed()
         yield from pool.release(conn)
+
+    loop.run_until_complete(go())
+
+
+def test_pool_with_executor(loop, pool_maker, dsn, executor):
+    pool = pool_maker(loop, executor=executor, dsn=dsn, minsize=2, maxsize=2)
+
+    @asyncio.coroutine
+    def go():
+        conn = yield from pool.acquire()
+        try:
+            assert isinstance(conn, Connection)
+            assert not conn.closed
+            assert conn._executor is executor
+            cur = yield from conn.cursor()
+            yield from cur.execute('SELECT 1')
+            val = yield from cur.fetchone()
+            assert (1,) == tuple(val)
+        finally:
+            yield from pool.release(conn)
+        # we close pool here instead in finalizer because of pool should be
+        # closed before executor
+        pool.close()
+        yield from pool.wait_closed()
 
     loop.run_until_complete(go())

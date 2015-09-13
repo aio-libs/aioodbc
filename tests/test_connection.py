@@ -2,7 +2,6 @@ import asyncio
 import gc
 import sys
 from unittest import mock
-from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 import pyodbc

@@ -1,5 +1,5 @@
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
+
 import pytest
 import aioodbc
 from aioodbc.connection import Connection

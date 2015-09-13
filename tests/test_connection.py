@@ -143,4 +143,3 @@ def test_custom_executor(loop, dsn, executor):
     yield from conn.ensure_closed()
     assert resp == 10
     assert conn.closed
-

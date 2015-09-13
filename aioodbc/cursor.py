@@ -96,10 +96,8 @@ class Cursor:
         fut = self._run_operation(self._impl.tables, **kw)
         return fut
 
-    def columns(self, table=None, catalog=None, schema=None, column=None):
-        fut = self._run_operation(self._impl.columns, table=table,
-                                  catalog=catalog, schema=schema,
-                                  column=column)
+    def columns(self, **kw):
+        fut = self._run_operation(self._impl.columns, **kw)
         return fut
 
     @asyncio.coroutine

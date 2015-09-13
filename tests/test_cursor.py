@@ -138,3 +138,16 @@ def test_cursor_rollback(conn, table):
     yield from cur.execute("SELECT v FROM t1 WHERE n=3;")
     value = yield from cur.fetchone()
     assert value is None
+
+
+@pytest.mark.run_loop
+def test_columns(conn, table):
+    cur = yield from conn.cursor()
+    yield from cur.columns()
+    resp = yield from cur.fetchall()
+    expectd = [('', '', 't1', 'n', 4, 'INT', 9, 10, 10, 0, 1, None,
+                'NULL', 4, None, 16384, 1, 'YES'),
+               ('', '', 't1', 'v', 12, 'VARCHAR(10)', 10, 10, 10, 0, 1, None,
+                'NULL', 12, None, 16384, 2, 'YES')]
+    columns = [tuple(r) for r in resp]
+    assert expectd == columns

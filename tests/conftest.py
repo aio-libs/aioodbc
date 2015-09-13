@@ -1,4 +1,5 @@
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import os
 
 import pytest
@@ -17,6 +18,17 @@ def loop(request):
 
     request.addfinalizer(fin)
     return loop
+
+
+@pytest.fixture
+def executor(request):
+    executor = ThreadPoolExecutor(max_workers=3)
+
+    def fin():
+        executor.shutdown()
+
+    request.addfinalizer(fin)
+    return executor
 
 
 @pytest.fixture

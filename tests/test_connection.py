@@ -2,6 +2,7 @@ import asyncio
 import gc
 import sys
 from unittest import mock
+from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 import pyodbc
@@ -131,4 +132,15 @@ def test___del__(loop, dsn, recwarn):
     if loop.get_debug():
         msg['source_traceback'] = mock.ANY
     exc_handler.assert_called_with(loop, msg)
+
+
+@pytest.mark.run_loop
+def test_custom_executor(loop, dsn, executor):
+    conn = yield from aioodbc.connect(dsn=dsn, executor=executor, loop=loop)
+    assert conn._executor is executor
+    cur = yield from conn.execute('SELECT 10;')
+    (resp,) = yield from cur.fetchone()
+    yield from conn.ensure_closed()
+    assert resp == 10
+    assert conn.closed
 

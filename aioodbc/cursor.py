@@ -5,7 +5,11 @@ from pyodbc import OperationalError
 from .log import logger
 
 
+__all__ = ['Cursor']
+
+
 class Cursor:
+
     def __init__(self, pyodbc_cursor, connection, echo=False):
         self._conn = connection
         self._impl = pyodbc_cursor

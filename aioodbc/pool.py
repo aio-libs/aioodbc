@@ -7,6 +7,9 @@ import collections
 from .connection import connect
 
 
+__all__ = ['create_pool', 'Pool']
+
+
 @asyncio.coroutine
 def create_pool(minsize=10, maxsize=10, echo=False, loop=None, **kwargs):
     if loop is None:

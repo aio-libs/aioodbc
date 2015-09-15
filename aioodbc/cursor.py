@@ -1,7 +1,6 @@
 import asyncio
 from pyodbc import OperationalError
 
-
 from .log import logger
 
 
@@ -183,8 +182,7 @@ class Cursor:
         if ret is not None:
             return ret
         else:
-            # TODO: this exception is not available in python 3.4,
-            # figure out how to support both 3.4 and 3.5
+            # This exception is not available in python < 3.5,
             raise StopAsyncIteration
 
     @asyncio.coroutine

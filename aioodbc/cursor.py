@@ -8,6 +8,14 @@ from .log import logger
 __all__ = ['Cursor']
 
 
+try:
+    StopAsyncIteration
+except NameError:
+    class StopAsyncIteration(Exception):
+        """Just stab for StopAsyncIteration from python 3.5"""
+        pass
+
+
 class Cursor:
 
     def __init__(self, pyodbc_cursor, connection, echo=False):

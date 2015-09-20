@@ -1,6 +1,7 @@
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import os
+import sys
+from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 import aioodbc
@@ -139,3 +140,9 @@ def table(request, conn, loop):
 
     loop.run_until_complete(go())
     return 't1'
+
+
+def pytest_ignore_collect(path, config):
+    if 'pep492' in str(path):
+        if sys.version_info < (3, 5, 0):
+            return True

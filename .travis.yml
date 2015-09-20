@@ -17,13 +17,8 @@ env:
         - PYTHONASYNCIODEBUG=0
 
 install:
-    - pip install pyodbc
-    - pip install git+https://github.com/pyflakes/pyflakes.git
-    - pip install pep8
-    - pip install -U pytest
-    - pip install pytest-cov
-    - pip install coverage
-    - pip install .
+    - pip install -Ur requirements-dev.txt
+    - pip install -e .
     - pip install coveralls
 
 script:

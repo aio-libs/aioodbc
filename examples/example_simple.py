@@ -15,6 +15,6 @@ def test_example():
     r = yield from cur.fetchall()
     print(r)
     yield from cur.close()
-    yield from conn.ensure_closed()
+    yield from conn.close()
 
 loop.run_until_complete(test_example())

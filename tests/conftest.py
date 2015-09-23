@@ -78,7 +78,7 @@ def _connect(loop, finalizer, **kw):
     conn = loop.run_until_complete(aioodbc.connect(dsn=dsn, loop=loop, **kw))
 
     def fin():
-        loop.run_until_complete(conn.ensure_closed())
+        loop.run_until_complete(conn.close())
 
     finalizer(fin)
     return conn

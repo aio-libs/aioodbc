@@ -72,7 +72,7 @@ class Pool(asyncio.AbstractServer):
         with (yield from self._cond):
             while self._free:
                 conn = self._free.popleft()
-                yield from conn.ensure_closed()
+                yield from conn.close()
             self._cond.notify()
 
     def close(self):
@@ -97,7 +97,7 @@ class Pool(asyncio.AbstractServer):
 
         while self._free:
             conn = self._free.popleft()
-            yield from conn.ensure_closed()
+            yield from conn.close()
 
         with (yield from self._cond):
             while self.size > self.freesize:
@@ -161,7 +161,7 @@ class Pool(asyncio.AbstractServer):
         self._used.remove(conn)
         if not conn.closed:
             if self._closing:
-                yield from conn.ensure_closed()
+                yield from conn.close()
             else:
                 self._free.append(conn)
             yield from self._wakeup()

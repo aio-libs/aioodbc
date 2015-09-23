@@ -78,7 +78,7 @@ class Connection:
         return Cursor(c, connection)
 
     @asyncio.coroutine
-    def ensure_closed(self):
+    def close(self):
         if not self._conn:
             return
         c = yield from self._execute(self._conn.close)
@@ -115,7 +115,7 @@ class Connection:
     if PY_341:  # pragma: no branch
         def __del__(self):
             if not self.closed:
-                # This will block the loop, please use ensure_closed
+                # This will block the loop, please use close
                 # coroutine to close connection
                 self._conn.close()
                 self._conn = None
@@ -135,5 +135,5 @@ class Connection:
 
     @asyncio.coroutine
     def __aexit__(self, exc_type, exc_val, exc_tb):
-        yield from self.ensure_closed()
+        yield from self.close()
         return

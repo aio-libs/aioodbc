@@ -40,7 +40,7 @@ Properties are unchanged, so ``conn.prop`` is correct as well as
         r = yield from cur.fetchall()
         print(r)
         yield from cur.close()
-        yield from conn.ensure_closed()
+        yield from conn.close()
 
     loop.run_until_complete(test_example())
 
@@ -68,7 +68,7 @@ Connection pooling ported from aiopg_ and rely on PEP492_ features:
             r = await cur.fetchall()
             print(r)
             await cur.close()
-            await conn.ensure_closed()
+            await conn.close()
         pool.close()
         await pool.wait_closed()
 

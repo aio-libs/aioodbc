@@ -33,13 +33,13 @@ def test_default_event_loop(loop, dsn):
     asyncio.set_event_loop(loop)
     conn = yield from aioodbc.connect(dsn=dsn)
     assert conn._loop is loop
-    yield from conn.ensure_closed()
+    yield from conn.close()
 
 
 @pytest.mark.run_loop
 def test_close_twice(conn):
-    yield from conn.ensure_closed()
-    yield from conn.ensure_closed()
+    yield from conn.close()
+    yield from conn.close()
     assert conn.closed
 
 
@@ -47,7 +47,7 @@ def test_close_twice(conn):
 def test_execute(conn):
     cur = yield from conn.execute('SELECT 10;')
     (resp,) = yield from cur.fetchone()
-    yield from conn.ensure_closed()
+    yield from conn.close()
     assert resp == 10
     assert conn.closed
 
@@ -109,7 +109,7 @@ def test_rollback(conn):
     yield from cur.execute("DROP TABLE t1;")
     yield from conn.commit()
 
-    yield from conn.ensure_closed()
+    yield from conn.close()
 
 
 @pytest.mark.skipif(not PY_341, reason="Python 3.3 doesnt support __del__ "
@@ -139,6 +139,6 @@ def test_custom_executor(loop, dsn, executor):
     assert conn._executor is executor
     cur = yield from conn.execute('SELECT 10;')
     (resp,) = yield from cur.fetchone()
-    yield from conn.ensure_closed()
+    yield from conn.close()
     assert resp == 10
     assert conn.closed

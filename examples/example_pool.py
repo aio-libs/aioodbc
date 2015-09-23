@@ -15,7 +15,7 @@ async def test_pool():
         r = await cur.fetchall()
         print(r)
         await cur.close()
-        await conn.ensure_closed()
+        await conn.close()
     pool.close()
     await pool.wait_closed()
 

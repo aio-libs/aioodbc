@@ -62,7 +62,7 @@ def test_release_closed(loop, pool):
     def go():
         conn = yield from pool.acquire()
         assert 9 == pool.freesize
-        yield from conn.ensure_closed()
+        yield from conn.close()
         yield from pool.release(conn)
         assert 9 == pool.freesize
         assert not pool._used
@@ -401,7 +401,7 @@ def test_release_closed_connection(loop, pool_maker, dsn):
     @asyncio.coroutine
     def go():
         conn = yield from pool.acquire()
-        yield from conn.ensure_closed()
+        yield from conn.close()
 
         yield from pool.release(conn)
         pool.close()
@@ -432,7 +432,7 @@ def test_close_with_acquired_connections(loop, pool_maker, dsn):
         with pytest.raises(asyncio.TimeoutError):
             yield from asyncio.wait_for(pool.wait_closed(),
                                         0.1, loop=loop)
-        yield from conn.ensure_closed()
+        yield from conn.close()
         yield from pool.release(conn)
 
     loop.run_until_complete(go())

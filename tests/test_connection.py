@@ -142,3 +142,9 @@ def test_custom_executor(loop, dsn, executor):
     yield from conn.close()
     assert resp == 10
     assert conn.closed
+
+
+@pytest.mark.run_loop
+def test_dataSources(loop, executor):
+    data = yield from aioodbc.dataSources(loop, executor)
+    assert isinstance(data, dict)

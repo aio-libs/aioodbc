@@ -151,3 +151,24 @@ def test_columns(conn, table):
                 'NULL', 12, None, 16384, 2, 'YES')]
     columns = [tuple(r) for r in resp]
     assert expectd == columns
+
+
+@pytest.mark.run_loop
+def test_executemany(conn):
+    cur = yield from conn.cursor()
+    yield from cur.execute("CREATE TABLE t1(a int, b VARCHAR(10))")
+    # TODO: figure out why it is possible to insert only strings... but not int
+    params = [(str(i), str(i)) for i in range(1, 6)]
+    yield from cur.executemany("INSERT INTO t1(a, b) VALUES (?, ?)", params)
+    yield from cur.execute("SELECT COUNT(*) FROM t1")
+    count = yield from cur.fetchone()
+    assert count[0] == len(params)
+
+    yield from cur.execute("SELECT a, b FROM t1 ORDER BY a")
+    rows = yield from cur.fetchall()
+    assert count[0] == len(rows)
+
+    for param, row in zip(params, rows):
+        assert int(param[0]) == row[0]
+        assert param[1] == row[1]
+    yield from cur.execute("DROP TABLE t1;")

@@ -39,14 +39,14 @@ def dsn(request):
 
 
 @pytest.fixture
-def conn(request, loop):
-    return _connect(loop, request.addfinalizer)
+def conn(request, loop, dsn):
+    return _connect(loop, dsn, request.addfinalizer)
 
 
 @pytest.fixture
-def connection_maker(request):
+def connection_maker(request, dsn):
     def f(loop, **kw):
-        return _connect(loop, request.addfinalizer, **kw)
+        return _connect(loop, dsn, request.addfinalizer, **kw)
     return f
 
 
@@ -73,8 +73,7 @@ def pool(request, loop, dsn):
     return _connect_pool(loop, request.addfinalizer, dsn=dsn)
 
 
-def _connect(loop, finalizer, **kw):
-    dsn = os.environ.get('DSN', 'Driver=SQLite;Database=sqlite.db')
+def _connect(loop, dsn, finalizer, **kw):
     conn = loop.run_until_complete(aioodbc.connect(dsn=dsn, loop=loop, **kw))
 
     def fin():

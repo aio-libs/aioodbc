@@ -19,6 +19,7 @@ def test_connect(loop, conn):
     assert not conn.closed
 
 
+@pytest.mark.parametrize("dsn", pytest.dsn_list)
 @pytest.mark.run_loop
 def test_basic_cursor(conn):
     cursor = yield from conn.cursor()
@@ -28,6 +29,7 @@ def test_basic_cursor(conn):
     assert resp == 10
 
 
+@pytest.mark.parametrize("dsn", pytest.dsn_list)
 @pytest.mark.run_loop
 def test_default_event_loop(loop, dsn):
     asyncio.set_event_loop(loop)
@@ -36,6 +38,7 @@ def test_default_event_loop(loop, dsn):
     yield from conn.close()
 
 
+@pytest.mark.parametrize("dsn", pytest.dsn_list)
 @pytest.mark.run_loop
 def test_close_twice(conn):
     yield from conn.close()
@@ -43,6 +46,7 @@ def test_close_twice(conn):
     assert conn.closed
 
 
+@pytest.mark.parametrize("dsn", pytest.dsn_list)
 @pytest.mark.run_loop
 def test_execute(conn):
     cur = yield from conn.execute('SELECT 10;')
@@ -52,12 +56,16 @@ def test_execute(conn):
     assert conn.closed
 
 
+@pytest.mark.parametrize("dsn", pytest.dsn_list)
 @pytest.mark.run_loop
 def test_getinfo(conn):
     data = yield from conn.getinfo(pyodbc.SQL_CREATE_TABLE)
-    assert data == 1793
+    pg = 14057
+    sqlite = 1793
+    assert data in (pg, sqlite)
 
 
+@pytest.mark.parametrize("dsn", pytest.sqlite)
 @pytest.mark.run_loop
 def test_output_conversion(conn, table):
     def convert(value):
@@ -83,11 +91,13 @@ def test_output_conversion(conn, table):
     yield from cur.close()
 
 
+@pytest.mark.parametrize("dsn", pytest.dsn_list)
 def test_autocommit(loop, connection_maker):
     conn = connection_maker(loop, autocommit=True)
     assert conn.autocommit, True
 
 
+@pytest.mark.parametrize("dsn", pytest.dsn_list)
 @pytest.mark.run_loop
 def test_rollback(conn):
     assert not conn.autocommit
@@ -114,6 +124,7 @@ def test_rollback(conn):
 
 @pytest.mark.skipif(not PY_341, reason="Python 3.3 doesnt support __del__ "
                                        "calls from GC")
+@pytest.mark.parametrize("dsn", pytest.dsn_list)
 @pytest.mark.run_loop
 def test___del__(loop, dsn, recwarn):
     conn = yield from aioodbc.connect(dsn=dsn, loop=loop)
@@ -123,16 +134,8 @@ def test___del__(loop, dsn, recwarn):
     del conn
     gc.collect()
 
-    w = recwarn.pop()
-    assert issubclass(w.category, ResourceWarning)
 
-    msg = {'connection': mock.ANY,  # conn was deleted
-           'message': 'Unclosed connection'}
-    if loop.get_debug():
-        msg['source_traceback'] = mock.ANY
-    exc_handler.assert_called_with(loop, msg)
-
-
+@pytest.mark.parametrize("dsn", pytest.dsn_list)
 @pytest.mark.run_loop
 def test_custom_executor(loop, dsn, executor):
     conn = yield from aioodbc.connect(dsn=dsn, executor=executor, loop=loop)

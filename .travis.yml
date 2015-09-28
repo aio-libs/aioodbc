@@ -6,11 +6,14 @@ python:
 
 before_install:
     - sudo apt-get update
-    - sudo apt-get install unixODBC
-    - sudo apt-get install unixODBC-dev
-    - sudo apt-get install sqlite3
-    - sudo apt-get install libsqliteodbc
-    - sudo apt-get install odbc-postgresql
+    - sudo apt-get install -qq unixODBC
+    - sudo apt-get install -qq unixODBC-dev
+    - sudo apt-get install -qq sqlite3
+    - sudo apt-get install -qq libsqliteodbc
+    - sudo apt-get install -qq odbc-postgresql
+    - sudo apt-get install -qq libmyodbc
+    - sudo odbcinst -i -d -f /usr/share/libmyodbc/odbcinst.ini
+
 
 before_script:
   - psql -c "create database aioodbc;" -U postgres

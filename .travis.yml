@@ -13,6 +13,8 @@ before_install:
     - sudo apt-get install -qq odbc-postgresql
     - sudo apt-get install -qq libmyodbc
     - sudo odbcinst -i -d -f /usr/share/libmyodbc/odbcinst.ini
+    - sudo cat /etc/odbcinst.ini
+    - sudo cat /etc/odbc.ini
 
 
 before_script:

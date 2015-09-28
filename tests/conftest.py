@@ -34,14 +34,17 @@ def executor(request):
 
 sqlite = 'Driver=SQLite;Database=sqlite.db,'
 pg = ('Driver={PostgreSQL UNICODE};'
-      'Server=127.0.01;Port=5432;'
+      'Server=127.0.0.1;Port=5432;'
       'Database=aioodbc;Uid=aioodbc;'
       'Pwd=passwd;')
+mysql = ('Driver={MySQL};Server=127.0.0.1;'
+        'charset=UTF8;Database=test_pymysql;User=root;'
+        'Password=')
 
 
 def pytest_namespace():
     return {'dsn_list': [sqlite, pg],
-            'pg': [pg], 'sqlite': [sqlite]}
+            'pg': [pg], 'sqlite': [sqlite], 'mysql': [mysql]}
 
 
 @pytest.fixture

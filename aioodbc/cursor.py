@@ -134,30 +134,20 @@ class Cursor:
                                   catalog=catalog, schema=schema)
         return fut
 
-    # TODO: check source code of pyodbc regadring table argument
-    def foreignKeys(self, table=None, catalog=None, schema=None,
-                    foreignTable=None, foreignCatalog=None,
-                    foreignSchema=None):
-        fut = self._run_operation(self._impl.foreignKeys, table=table,
-                                  catalog=catalog, schema=schema,
-                                  foreignTable=foreignTable,
-                                  foreignCatalog=foreignCatalog,
-                                  foreignSchema=foreignSchema)
+    def foreignKeys(self, *a, **kw):
+        fut = self._run_operation(self._impl.foreignKeys, *a, **kw)
         return fut
 
-    def getTypeInfo(self, sqlType=None):
-        fut = self._run_operation(self._impl.getTypeInfo, sqlType)
+    def getTypeInfo(self, sql_type):
+        fut = self._run_operation(self._impl.getTypeInfo, sql_type)
         return fut
 
-    def procedures(self, procedure=None, catalog=None, schema=None):
-        fut = self._run_operation(self._impl.procedures, procedure=procedure,
-                                  catalog=catalog, schema=schema)
+    def procedures(self, *a, **kw):
+        fut = self._run_operation(self._impl.procedures, *a, **kw)
         return fut
 
-    def procedureColumns(self, procedure=None, catalog=None, schema=None):
-        fut = self._run_operation(self._impl.procedureColumns,
-                                  procedure=procedure, catalog=catalog,
-                                  schema=schema)
+    def procedureColumns(self, *a, **kw):
+        fut = self._run_operation(self._impl.procedureColumns, *a, **kw)
         return fut
 
     def skip(self, count):

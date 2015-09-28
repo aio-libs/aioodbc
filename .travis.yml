@@ -15,6 +15,7 @@ before_install:
     - sudo odbcinst -i -d -f /usr/share/libmyodbc/odbcinst.ini
     - sudo cat /etc/odbcinst.ini
     - sudo cat /etc/odbc.ini
+    - sudo odbcinst -q -d
 
 
 before_script:

@@ -38,8 +38,8 @@ pg = ('Driver={PostgreSQL UNICODE};'
       'Database=aioodbc;Uid=aioodbc;'
       'Pwd=passwd;')
 mysql = ('Driver={MySQL};Server=127.0.0.1;'
-        'charset=UTF8;Database=test_pymysql;User=root;'
-        'Password=')
+         'charset=UTF8;Database=test_pymysql;User=root;'
+         'Password=')
 
 
 def pytest_namespace():

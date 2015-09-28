@@ -1,3 +1,4 @@
+import pyodbc
 import pytest
 from pyodbc import OperationalError
 
@@ -172,3 +173,30 @@ def test_executemany(conn):
         assert int(param[0]) == row[0]
         assert param[1] == row[1]
     yield from cur.execute("DROP TABLE t1;")
+
+
+@pytest.mark.run_loop
+def test_procedures_empty(conn, table):
+    cur = yield from conn.cursor()
+    yield from cur.procedures()
+    resp = yield from cur.fetchall()
+    assert resp == []
+
+
+@pytest.mark.run_loop
+def test_procedureColumns_empty(conn, table):
+    cur = yield from conn.cursor()
+    yield from cur.procedureColumns()
+    resp = yield from cur.fetchall()
+    assert resp == []
+
+
+@pytest.mark.run_loop
+def test_getTypeInfo_empty(conn, table):
+    cur = yield from conn.cursor()
+    yield from cur.getTypeInfo(pyodbc.SQL_CHAR)
+    resp = yield from cur.fetchall()
+    expected = [('char', 1, 255, "'", "'", 'length', 1, 0, 3, None, 0, 0,
+                 'char', None, None, 1, 0, None, None)]
+    type_info = [tuple(r) for r in resp]
+    assert type_info == expected

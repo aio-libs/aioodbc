@@ -32,6 +32,18 @@ def executor(request):
     return executor
 
 
+sqlite = 'Driver=SQLite;Database=sqlite.db,'
+pg = ('Driver={PostgreSQL UNICODE};'
+      'Server=127.0.01;Port=5432;'
+      'Database=aioodbc;Uid=aioodbc;'
+      'Pwd=passwd;')
+
+
+def pytest_namespace():
+    return {'dsn_list': [sqlite, pg],
+            'pg': [pg], 'sqlite': [sqlite]}
+
+
 @pytest.fixture
 def dsn(request):
     conf = os.environ.get('DSN', 'Driver=SQLite;Database=sqlite.db')

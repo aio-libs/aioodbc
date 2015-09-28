@@ -43,7 +43,7 @@ mysql = ('Driver={MySQL};Server=127.0.0.1;'
 
 
 def pytest_namespace():
-    return {'dsn_list': [sqlite, pg],
+    return {'dsn_list': [sqlite, pg, mysql],
             'pg': [pg], 'sqlite': [sqlite], 'mysql': [mysql]}
 
 

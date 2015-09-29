@@ -33,11 +33,11 @@ def executor(request):
 
 
 sqlite = 'Driver=SQLite;Database=sqlite.db,'
-pg = ('Driver={PostgreSQL Unicode};'
+pg = ('Driver=PostgreSQL Unicode;'
       'Server=localhost;Port=5432;'
       'Database=aioodbc;Uid=aioodbc;'
       'Pwd=passwd;')
-mysql = ('Driver={MySQL};Server=localhost;'
+mysql = ('Driver=MySQL;Server=localhost;'
          'Database=aioodbc;User=root;'
          'Password=')
 

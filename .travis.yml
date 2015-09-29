@@ -4,18 +4,20 @@ python:
     - 3.4
     - 3.5
 
+addons:
+  postgresql: "9.2"
+  mysql: "5.5"
+
 before_install:
     - sudo apt-get update
     - sudo apt-get install unixODBC
     - sudo apt-get install unixODBC-dev
-    - sudo apt-get install sqlite3
-    - sudo apt-get install libsqliteodbc
     - sudo apt-get install odbc-postgresql
+    - sudo apt-get install libsqliteodbc
     - sudo apt-get install libmyodbc
-    - odbcinst -i -d -f /usr/share/libmyodbc/odbcinst.ini
+    - sudo odbcinst -i -s -l -f /usr/share/psqlodbc/odbcinst.ini.template
     - sudo cat /etc/odbcinst.ini
     - sudo cat /etc/odbc.ini
-    - sudo odbcinst -q -d
 
 
 before_script:
@@ -36,7 +38,6 @@ install:
     - pip install coveralls
 
 script:
-    - python x.py
     - make cov
 
 after_success:

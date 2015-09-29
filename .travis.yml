@@ -13,6 +13,9 @@ before_install:
     - sudo apt-get install -qq odbc-postgresql
     - sudo apt-get install -qq libmyodbc
     - sudo odbcinst -i -d -f /usr/share/libmyodbc/odbcinst.ini
+    - sudo cat /etc/odbcinst.ini
+    - sudo cat /etc/odbc.ini
+    - sudo odbcinst -q -d
 
 
 before_script:
@@ -20,8 +23,7 @@ before_script:
   - psql -c "create user aioodbc with password 'passwd';" -U postgres
   - psql -c "grant all privileges on database aioodbc to aioodbc;" -U postgres
   - "mysql -e 'SELECT VERSION()'"
-  - "mysql -e 'DROP DATABASE IF EXISTS test_pymysql; create database test_pymysql  DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;'"
-  - "mysql -e 'DROP DATABASE IF EXISTS test_pymysql2; create database test_pymysql2 DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;'"
+  - "mysql -e 'DROP DATABASE IF EXISTS aioodbc; create database aioodbc DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;'"
 
 env:
     matrix:

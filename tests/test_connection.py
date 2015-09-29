@@ -19,7 +19,7 @@ def test_connect(loop, conn):
     assert not conn.closed
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 def test_basic_cursor(conn):
     cursor = yield from conn.cursor()
@@ -29,7 +29,7 @@ def test_basic_cursor(conn):
     assert resp == 10
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 def test_default_event_loop(loop, dsn):
     asyncio.set_event_loop(loop)
@@ -38,7 +38,7 @@ def test_default_event_loop(loop, dsn):
     yield from conn.close()
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 def test_close_twice(conn):
     yield from conn.close()
@@ -46,7 +46,7 @@ def test_close_twice(conn):
     assert conn.closed
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 def test_execute(conn):
     cur = yield from conn.execute('SELECT 10;')
@@ -56,7 +56,7 @@ def test_execute(conn):
     assert conn.closed
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 def test_getinfo(conn):
     data = yield from conn.getinfo(pyodbc.SQL_CREATE_TABLE)
@@ -66,7 +66,7 @@ def test_getinfo(conn):
     assert data in (pg, sqlite, mysql)
 
 
-@pytest.mark.parametrize("dsn", pytest.sqlite)
+@pytest.mark.parametrize('dsn', [pytest.sqlite])
 @pytest.mark.run_loop
 def test_output_conversion(conn, table):
     def convert(value):
@@ -92,13 +92,13 @@ def test_output_conversion(conn, table):
     yield from cur.close()
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 def test_autocommit(loop, connection_maker):
     conn = connection_maker(loop, autocommit=True)
     assert conn.autocommit, True
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 def test_rollback(conn):
     assert not conn.autocommit
@@ -125,7 +125,7 @@ def test_rollback(conn):
 
 @pytest.mark.skipif(not PY_341, reason="Python 3.3 doesnt support __del__ "
                                        "calls from GC")
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 def test___del__(loop, dsn, recwarn):
     conn = yield from aioodbc.connect(dsn=dsn, loop=loop)
@@ -136,7 +136,7 @@ def test___del__(loop, dsn, recwarn):
     gc.collect()
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 def test_custom_executor(loop, dsn, executor):
     conn = yield from aioodbc.connect(dsn=dsn, executor=executor, loop=loop)

@@ -43,8 +43,8 @@ mysql = ('Driver=MySQL;Server=localhost;'
 
 
 def pytest_namespace():
-    return {'dsn_list': [sqlite, pg, mysql],
-            'pg': [pg], 'sqlite': [sqlite], 'mysql': [mysql]}
+    return {'dsn_list': [sqlite, pg],
+            'pg': pg, 'sqlite': sqlite, 'mysql': mysql}
 
 
 @pytest.fixture

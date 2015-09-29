@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 def test_cursor(loop, conn, table):
 
     async def go():
@@ -21,7 +21,7 @@ def test_cursor(loop, conn, table):
     loop.run_until_complete(go())
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 def test_cursor_lightweight(loop, conn, table):
 
     async def go():
@@ -38,7 +38,7 @@ def test_cursor_lightweight(loop, conn, table):
     loop.run_until_complete(go())
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 def test_cursor_awit(loop, conn, table):
 
     async def go():
@@ -51,7 +51,7 @@ def test_cursor_awit(loop, conn, table):
     loop.run_until_complete(go())
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 def test_connection(loop, conn):
 
     async def go():
@@ -64,7 +64,7 @@ def test_connection(loop, conn):
     loop.run_until_complete(go())
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 def test_pool_context_manager(loop, pool):
     async def go():
         assert not pool.closed
@@ -75,7 +75,7 @@ def test_pool_context_manager(loop, pool):
     loop.run_until_complete(go())
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 def test_pool_context_manager2(loop, pool):
     async def go():
         async with await pool as conn:

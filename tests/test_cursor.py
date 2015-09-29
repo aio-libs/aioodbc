@@ -3,7 +3,7 @@ import pytest
 from pyodbc import OperationalError
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 def test_cursor(conn):
     cur = yield from conn.cursor()
@@ -20,7 +20,7 @@ def test_cursor(conn):
     yield from cur.close()
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 def test_execute_on_closed_cursor(conn):
     cur = yield from conn.cursor()
@@ -29,7 +29,7 @@ def test_execute_on_closed_cursor(conn):
         yield from cur.execute('SELECT 1;')
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 def test_close(conn):
     cur = yield from conn.cursor()
@@ -39,7 +39,7 @@ def test_close(conn):
     assert cur.closed
 
 
-@pytest.mark.parametrize("dsn", pytest.sqlite)
+@pytest.mark.parametrize('dsn', [pytest.sqlite])
 @pytest.mark.run_loop
 def test_description(conn):
     cur = yield from conn.cursor()
@@ -50,7 +50,7 @@ def test_description(conn):
     yield from cur.close()
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 def test_description_with_real_table(conn, table):
     cur = yield from conn.cursor()
@@ -62,7 +62,7 @@ def test_description_with_real_table(conn, table):
     yield from cur.close()
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 def test_rowcount_with_table(conn, table):
     cur = yield from conn.cursor()
@@ -76,7 +76,7 @@ def test_rowcount_with_table(conn, table):
     yield from cur.close()
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 def test_arraysize(conn):
     cur = yield from conn.cursor()
@@ -86,7 +86,7 @@ def test_arraysize(conn):
     yield from cur.close()
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 def test_fetchall(conn, table):
     cur = yield from conn.cursor()
@@ -100,7 +100,7 @@ def test_fetchall(conn, table):
     yield from cur.close()
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 def test_fetchmany(conn, table):
     cur = yield from conn.cursor()
@@ -114,7 +114,7 @@ def test_fetchmany(conn, table):
     yield from cur.close()
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 def test_fetchone(conn, table):
     cur = yield from conn.cursor()
@@ -126,7 +126,7 @@ def test_fetchone(conn, table):
     yield from cur.close()
 
 
-@pytest.mark.parametrize("dsn", pytest.sqlite)
+@pytest.mark.parametrize('dsn', [pytest.sqlite])
 @pytest.mark.run_loop
 def test_tables(conn, table):
     cur = yield from conn.cursor()
@@ -137,7 +137,7 @@ def test_tables(conn, table):
     assert expectd == tuple(resp[0]), resp
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 def test_cursor_rollback(conn, table):
 
@@ -153,7 +153,7 @@ def test_cursor_rollback(conn, table):
     assert value is None
 
 
-@pytest.mark.parametrize("dsn", pytest.sqlite)
+@pytest.mark.parametrize('dsn', [pytest.sqlite])
 @pytest.mark.run_loop
 def test_columns(conn, table):
     cur = yield from conn.cursor()
@@ -167,7 +167,7 @@ def test_columns(conn, table):
     assert expectd == columns
 
 
-@pytest.mark.parametrize("dsn", pytest.dsn_list)
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 def test_executemany(conn):
     cur = yield from conn.cursor()
@@ -189,7 +189,7 @@ def test_executemany(conn):
     yield from cur.execute("DROP TABLE t1;")
 
 
-@pytest.mark.parametrize("dsn", pytest.sqlite)
+@pytest.mark.parametrize('dsn', [pytest.sqlite])
 @pytest.mark.run_loop
 def test_procedures_empty(conn, table):
     cur = yield from conn.cursor()
@@ -198,7 +198,7 @@ def test_procedures_empty(conn, table):
     assert resp == []
 
 
-@pytest.mark.parametrize("dsn", pytest.sqlite)
+@pytest.mark.parametrize('dsn', [pytest.sqlite])
 @pytest.mark.run_loop
 def test_procedureColumns_empty(conn, table):
     cur = yield from conn.cursor()
@@ -207,7 +207,7 @@ def test_procedureColumns_empty(conn, table):
     assert resp == []
 
 
-@pytest.mark.parametrize("dsn", pytest.sqlite)
+@pytest.mark.parametrize('dsn', [pytest.sqlite])
 @pytest.mark.run_loop
 def test_primaryKeys_empty(conn, table):
     cur = yield from conn.cursor()
@@ -216,7 +216,7 @@ def test_primaryKeys_empty(conn, table):
     assert resp == []
 
 
-@pytest.mark.parametrize("dsn", pytest.sqlite)
+@pytest.mark.parametrize('dsn', [pytest.sqlite])
 @pytest.mark.run_loop
 def test_foreignKeys_empty(conn, table):
     cur = yield from conn.cursor()

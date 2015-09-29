@@ -25,6 +25,7 @@ def test_create_pool2(loop, pool_maker, dsn):
     assert 10 == pool.freesize
 
 
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 def test_acquire(loop, pool):
     @asyncio.coroutine
     def go():
@@ -438,6 +439,7 @@ def test_close_with_acquired_connections(loop, pool_maker, dsn):
     loop.run_until_complete(go())
 
 
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
 def test_pool_with_executor(loop, pool_maker, dsn, executor):
     pool = pool_maker(loop, executor=executor, dsn=dsn, minsize=2, maxsize=2)
 

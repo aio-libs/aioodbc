@@ -4,13 +4,28 @@ python:
     - 3.4
     - 3.5
 
+addons:
+  postgresql: "9.2"
+  mysql: "5.5"
+
 before_install:
     - sudo apt-get update
     - sudo apt-get install unixODBC
     - sudo apt-get install unixODBC-dev
-    - sudo apt-get install sqlite3
+    - sudo apt-get install odbc-postgresql
     - sudo apt-get install libsqliteodbc
-    - sleep 1
+    - sudo apt-get install libmyodbc
+    - sudo odbcinst -i -d -f /usr/share/libmyodbc/odbcinst.ini
+    - sudo cat /etc/odbcinst.ini
+    - sudo cat /etc/odbc.ini
+
+
+before_script:
+  - psql -c "create database aioodbc;" -U postgres
+  - psql -c "create user aioodbc with password 'passwd';" -U postgres
+  - psql -c "grant all privileges on database aioodbc to aioodbc;" -U postgres
+  - "mysql -e 'SELECT VERSION()'"
+  - "mysql -e 'DROP DATABASE IF EXISTS aioodbc; create database aioodbc DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;'"
 
 env:
     matrix:

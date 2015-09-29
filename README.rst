@@ -10,6 +10,14 @@ with asyncio_. It is rely on awesome pyodbc_ library, preserve same look and
 feel.
 
 
+Supported Databases
+-------------------
+
+**aioodbc** should work with all databases supported by pyodbc_. But for now
+library have been tested with: **SQLite**, **MySQL** and **PostgreSQL**. Feel
+free to add other databases to the test suite by submitting PR.
+
+
 Basic Example
 -------------
 

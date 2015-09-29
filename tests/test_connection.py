@@ -134,6 +134,14 @@ def test___del__(loop, dsn, recwarn):
 
     del conn
     gc.collect()
+    w = recwarn.pop()
+    assert issubclass(w.category, ResourceWarning)
+
+    msg = {'connection': mock.ANY,  # conn was deleted
+           'message': 'Unclosed connection'}
+    if loop.get_debug():
+        msg['source_traceback'] = mock.ANY
+    exc_handler.assert_called_with(loop, msg)
 
 
 @pytest.mark.parametrize('dsn', pytest.dsn_list)

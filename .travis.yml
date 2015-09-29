@@ -15,7 +15,7 @@ before_install:
     - sudo apt-get install odbc-postgresql
     - sudo apt-get install libsqliteodbc
     - sudo apt-get install libmyodbc
-    - sudo odbcinst -i -s -l -f /usr/share/psqlodbc/odbcinst.ini.template
+    - sudo odbcinst -i -d -f /usr/share/libmyodbc/odbcinst.ini
     - sudo cat /etc/odbcinst.ini
     - sudo cat /etc/odbc.ini
 

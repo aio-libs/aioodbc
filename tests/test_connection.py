@@ -62,7 +62,8 @@ def test_getinfo(conn):
     data = yield from conn.getinfo(pyodbc.SQL_CREATE_TABLE)
     pg = 14057
     sqlite = 1793
-    assert data in (pg, sqlite)
+    mysql = 3093
+    assert data in (pg, sqlite, mysql)
 
 
 @pytest.mark.parametrize("dsn", pytest.sqlite)

@@ -7,13 +7,13 @@ flake:
 	pep8 aioodbc tests
 	pyflakes aioodbc 
 
-test:
+test: flake
 	py.test -s $(FLAGS) ./tests/
 
 vtest:
 	py.test -s -v $(FLAGS) ./tests/
 
-cov cover coverage:
+cov cover coverage: flake
 	py.test -s -v  --cov-report term --cov-report html --cov aioodbc ./tests
 	@echo "open file://`pwd`/htmlcov/index.html"
 clean:

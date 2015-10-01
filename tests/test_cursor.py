@@ -1,6 +1,5 @@
 import pyodbc
 import pytest
-from pyodbc import OperationalError
 
 
 @pytest.mark.parametrize('dsn', pytest.dsn_list)
@@ -25,7 +24,7 @@ def test_cursor(conn):
 def test_execute_on_closed_cursor(conn):
     cur = yield from conn.cursor()
     yield from cur.close()
-    with pytest.raises(OperationalError):
+    with pytest.raises(pyodbc.OperationalError):
         yield from cur.execute('SELECT 1;')
 
 

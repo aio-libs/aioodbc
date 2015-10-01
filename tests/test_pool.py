@@ -2,8 +2,7 @@ import asyncio
 
 import pytest
 import aioodbc
-from aioodbc.connection import Connection
-from aioodbc.pool import Pool
+from aioodbc import Pool, Connection
 
 
 def test_create_pool(loop, pool_maker, dsn):

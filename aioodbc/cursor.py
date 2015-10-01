@@ -1,6 +1,6 @@
 import asyncio
-from pyodbc import OperationalError
 
+import pyodbc
 from .log import logger
 
 
@@ -25,7 +25,7 @@ class Cursor:
 
     def _run_operation(self, func, *args, **kwargs):
         if not self._conn:
-            raise OperationalError('Cursor is closed.')
+            raise pyodbc.OperationalError('Cursor is closed.')
         future = self._conn._execute(func, *args, **kwargs)
         return future
 

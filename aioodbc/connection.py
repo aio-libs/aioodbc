@@ -1,9 +1,10 @@
-import sys
-import pyodbc
 import asyncio
+import sys
 import traceback
-from functools import partial
 import warnings
+from functools import partial
+
+import pyodbc
 from .cursor import Cursor
 
 

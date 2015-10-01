@@ -11,9 +11,12 @@ __all__ = ['connect', 'Connection']
 PY_341 = sys.version_info >= (3, 4, 1)
 
 
-def connect(*, dsn, loop=None, executor=None, **kwargs):
+def connect(*, dsn, autocommit=False, ansi=False, timeout=0, loop=None,
+            executor=None, echo=False, **kwargs):
     loop = loop or asyncio.get_event_loop()
-    conn = Connection(dsn=dsn, loop=loop, executor=executor, **kwargs)
+    conn = Connection(dsn=dsn, autocommit=autocommit, ansi=ansi,
+                      timeout=timeout, echo=echo, loop=loop, executor=executor,
+                      **kwargs)
     yield from conn._connect()
     return conn
 

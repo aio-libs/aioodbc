@@ -1,6 +1,5 @@
 import asyncio
 import os
-import sys
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
@@ -43,7 +42,7 @@ mysql = ('Driver=MySQL;Server=localhost;'
 
 
 def pytest_namespace():
-    return {'dsn_list': [sqlite, pg, mysql],
+    return {'dsn_list': [sqlite, pg],
             'pg': pg, 'sqlite': sqlite, 'mysql': mysql}
 
 
@@ -135,22 +134,20 @@ def pytest_runtest_setup(item):
 @pytest.fixture
 def table(request, conn, loop):
 
-    @asyncio.coroutine
-    def go():
-        cur = yield from conn.cursor()
+    async def go():
+        cur = await conn.cursor()
 
-        yield from cur.execute("CREATE TABLE t1(n INT, v VARCHAR(10));")
-        yield from cur.execute("INSERT INTO t1 VALUES (1, '123.45');")
-        yield from cur.execute("INSERT INTO t1 VALUES (2, 'foo');")
-        yield from conn.commit()
-        yield from cur.close()
+        await cur.execute("CREATE TABLE t1(n INT, v VARCHAR(10));")
+        await cur.execute("INSERT INTO t1 VALUES (1, '123.45');")
+        await cur.execute("INSERT INTO t1 VALUES (2, 'foo');")
+        await conn.commit()
+        await cur.close()
 
-    @asyncio.coroutine
-    def drop_table():
-        cur = yield from conn.cursor()
-        yield from cur.execute("DROP TABLE t1;")
-        yield from cur.commit()
-        yield from cur.close()
+    async def drop_table():
+        cur = await conn.cursor()
+        await cur.execute("DROP TABLE t1;")
+        await cur.commit()
+        await cur.close()
 
     def fin():
         loop.run_until_complete(drop_table())
@@ -159,9 +156,3 @@ def table(request, conn, loop):
 
     loop.run_until_complete(go())
     return 't1'
-
-
-def pytest_ignore_collect(path, config):
-    if 'pep492' in str(path):
-        if sys.version_info < (3, 5, 0):
-            return True

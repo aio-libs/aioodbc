@@ -4,133 +4,176 @@ import pytest
 
 @pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
-def test_cursor(conn):
-    cur = yield from conn.cursor()
+async def test_cursor_with(loop, conn, table):
+
+    ret = []
+
+    cur = await conn.cursor()
+    await cur.execute('SELECT * FROM t1;')
+
+    assert not cur.closed
+    async with cur:
+        async for i in cur:
+            ret.append(i)
+    expected = [tuple(r) for r in ret]
+    assert [(1, '123.45'), (2, 'foo')] == expected
+    assert cur.closed
+
+
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
+@pytest.mark.run_loop
+async def test_cursor_lightweight(loop, conn, table):
+
+    cur = await conn.cursor()
+    await cur.execute('SELECT * FROM t1;')
+
+    assert not cur.closed
+    async with cur:
+        pass
+
+    assert cur.closed
+
+
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
+@pytest.mark.run_loop
+async def test_cursor_await(loop, conn, table):
+
+    async with await conn.cursor() as cur:
+        await cur.execute('SELECT * FROM t1;')
+        assert not cur.closed
+
+    assert cur.closed
+
+
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
+@pytest.mark.run_loop
+async def test_cursor(conn):
+    cur = await conn.cursor()
     assert cur.connection is conn
     assert cur._loop, conn.loop
     assert cur.arraysize == 1
     assert cur.rowcount == -1
 
-    r = yield from cur.setinputsizes()
+    r = await cur.setinputsizes()
     assert r is None
 
-    yield from cur.setoutputsize()
+    await cur.setoutputsize()
     assert r is None
-    yield from cur.close()
+    await cur.close()
 
 
 @pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
-def test_execute_on_closed_cursor(conn):
-    cur = yield from conn.cursor()
-    yield from cur.close()
+async def test_execute_on_closed_cursor(conn):
+    cur = await conn.cursor()
+    await cur.close()
     with pytest.raises(pyodbc.OperationalError):
-        yield from cur.execute('SELECT 1;')
+        await cur.execute('SELECT 1;')
 
 
 @pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
-def test_close(conn):
-    cur = yield from conn.cursor()
+async def test_close(conn):
+    cur = await conn.cursor()
     assert not cur.closed
-    yield from cur.close()
-    yield from cur.close()
+    await cur.close()
+    await cur.close()
     assert cur.closed
 
 
 @pytest.mark.parametrize('dsn', [pytest.sqlite])
 @pytest.mark.run_loop
-def test_description(conn):
-    cur = yield from conn.cursor()
+async def test_description(conn):
+    cur = await conn.cursor()
     assert cur.description is None
-    yield from cur.execute('SELECT 1;')
+    await cur.execute('SELECT 1;')
     expected = (('1', float, None, 54, 54, 0, True), )
     assert cur.description == expected
-    yield from cur.close()
+    await cur.close()
 
 
 @pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
-def test_description_with_real_table(conn, table):
-    cur = yield from conn.cursor()
-    yield from cur.execute("SELECT * FROM t1;")
+async def test_description_with_real_table(conn, table):
+    cur = await conn.cursor()
+    await cur.execute("SELECT * FROM t1;")
 
     expected = (('n', int, None, 10, 10, 0, True),
                 ('v', str, None, 10, 10, 0, True))
     assert cur.description == expected
-    yield from cur.close()
+    await cur.close()
 
 
 @pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
-def test_rowcount_with_table(conn, table):
-    cur = yield from conn.cursor()
-    yield from cur.execute("SELECT * FROM t1;")
-    yield from cur.fetchall()
+async def test_rowcount_with_table(conn, table):
+    cur = await conn.cursor()
+    await cur.execute("SELECT * FROM t1;")
+    await cur.fetchall()
     # sqlite does not provide working rowcount attribute
     # http://stackoverflow.com/questions/4911404/in-pythons-sqlite3-
     # module-why-cant-cursor-rowcount-tell-me-the-number-of-ro
     # TODO: figure out for proper test
     assert cur.rowcount in (0, 2)
-    yield from cur.close()
+    await cur.close()
 
 
 @pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
-def test_arraysize(conn):
-    cur = yield from conn.cursor()
+async def test_arraysize(conn):
+    cur = await conn.cursor()
     assert 1 == cur.arraysize
     cur.arraysize = 10
     assert 10 == cur.arraysize
-    yield from cur.close()
+    await cur.close()
 
 
 @pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
-def test_fetchall(conn, table):
-    cur = yield from conn.cursor()
-    yield from cur.execute("SELECT * FROM t1;")
-    resp = yield from cur.fetchall()
+async def test_fetchall(conn, table):
+    cur = await conn.cursor()
+    await cur.execute("SELECT * FROM t1;")
+    resp = await cur.fetchall()
     expected = [(1, '123.45'), (2, 'foo')]
 
     for row, exp in zip(resp, expected):
         assert exp == tuple(row)
 
-    yield from cur.close()
+    await cur.close()
 
 
 @pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
-def test_fetchmany(conn, table):
-    cur = yield from conn.cursor()
-    yield from cur.execute("SELECT * FROM t1;")
-    resp = yield from cur.fetchmany(1)
+async def test_fetchmany(conn, table):
+    cur = await conn.cursor()
+    await cur.execute("SELECT * FROM t1;")
+    resp = await cur.fetchmany(1)
     expected = [(1, '123.45')]
 
     for row, exp in zip(resp, expected):
         assert exp == tuple(row)
 
-    yield from cur.close()
+    await cur.close()
 
 
 @pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
-def test_fetchone(conn, table):
-    cur = yield from conn.cursor()
-    yield from cur.execute("SELECT * FROM t1;")
-    resp = yield from cur.fetchone()
+async def test_fetchone(conn, table):
+    cur = await conn.cursor()
+    await cur.execute("SELECT * FROM t1;")
+    resp = await cur.fetchone()
     expected = (1, '123.45')
 
     assert expected == tuple(resp)
-    yield from cur.close()
+    await cur.close()
 
 
 @pytest.mark.parametrize('dsn', [pytest.sqlite])
 @pytest.mark.run_loop
-def test_tables(conn, table):
-    cur = yield from conn.cursor()
-    yield from cur.tables()
-    resp = yield from cur.fetchall()
+async def test_tables(conn, table):
+    cur = await conn.cursor()
+    await cur.tables()
+    resp = await cur.fetchall()
     expectd = (None, None, 't1', 'TABLE', None)
     assert len(resp) == 1, resp
     assert expectd == tuple(resp[0]), resp
@@ -138,26 +181,26 @@ def test_tables(conn, table):
 
 @pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
-def test_cursor_rollback(conn, table):
+async def test_cursor_rollback(conn, table):
 
-    cur = yield from conn.cursor()
-    yield from cur.execute("INSERT INTO t1 VALUES (3, '123.45');")
-    yield from cur.execute("SELECT v FROM t1 WHERE n=3;")
-    (value, ) = yield from cur.fetchone()
+    cur = await conn.cursor()
+    await cur.execute("INSERT INTO t1 VALUES (3, '123.45');")
+    await cur.execute("SELECT v FROM t1 WHERE n=3;")
+    (value, ) = await cur.fetchone()
     assert value == '123.45'
 
-    yield from cur.rollback()
-    yield from cur.execute("SELECT v FROM t1 WHERE n=3;")
-    value = yield from cur.fetchone()
+    await cur.rollback()
+    await cur.execute("SELECT v FROM t1 WHERE n=3;")
+    value = await cur.fetchone()
     assert value is None
 
 
 @pytest.mark.parametrize('dsn', [pytest.sqlite])
 @pytest.mark.run_loop
-def test_columns(conn, table):
-    cur = yield from conn.cursor()
-    yield from cur.columns()
-    resp = yield from cur.fetchall()
+async def test_columns(conn, table):
+    cur = await conn.cursor()
+    await cur.columns()
+    resp = await cur.fetchall()
     expectd = [('', '', 't1', 'n', 4, 'INT', 9, 10, 10, 0, 1, None,
                 'NULL', 4, None, 16384, 1, 'YES'),
                ('', '', 't1', 'v', 12, 'VARCHAR(10)', 10, 10, 10, 0, 1, None,
@@ -168,67 +211,67 @@ def test_columns(conn, table):
 
 @pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
-def test_executemany(conn):
-    cur = yield from conn.cursor()
-    yield from cur.execute("CREATE TABLE t1(a int, b VARCHAR(10))")
+async def test_executemany(conn):
+    cur = await conn.cursor()
+    await cur.execute("CREATE TABLE t1(a int, b VARCHAR(10))")
     # TODO: figure out why it is possible to insert only strings... but not int
     params = [(str(i), str(i)) for i in range(1, 6)]
-    yield from cur.executemany("INSERT INTO t1(a, b) VALUES (?, ?)", params)
-    yield from cur.execute("SELECT COUNT(*) FROM t1")
-    count = yield from cur.fetchone()
+    await cur.executemany("INSERT INTO t1(a, b) VALUES (?, ?)", params)
+    await cur.execute("SELECT COUNT(*) FROM t1")
+    count = await cur.fetchone()
     assert count[0] == len(params)
 
-    yield from cur.execute("SELECT a, b FROM t1 ORDER BY a")
-    rows = yield from cur.fetchall()
+    await cur.execute("SELECT a, b FROM t1 ORDER BY a")
+    rows = await cur.fetchall()
     assert count[0] == len(rows)
 
     for param, row in zip(params, rows):
         assert int(param[0]) == row[0]
         assert param[1] == row[1]
-    yield from cur.execute("DROP TABLE t1;")
+    await cur.execute("DROP TABLE t1;")
 
 
 @pytest.mark.parametrize('dsn', [pytest.sqlite])
 @pytest.mark.run_loop
-def test_procedures_empty(conn, table):
-    cur = yield from conn.cursor()
-    yield from cur.procedures()
-    resp = yield from cur.fetchall()
+async def test_procedures_empty(conn, table):
+    cur = await conn.cursor()
+    await cur.procedures()
+    resp = await cur.fetchall()
     assert resp == []
 
 
 @pytest.mark.parametrize('dsn', [pytest.sqlite])
 @pytest.mark.run_loop
-def test_procedureColumns_empty(conn, table):
-    cur = yield from conn.cursor()
-    yield from cur.procedureColumns()
-    resp = yield from cur.fetchall()
+async def test_procedureColumns_empty(conn, table):
+    cur = await conn.cursor()
+    await cur.procedureColumns()
+    resp = await cur.fetchall()
     assert resp == []
 
 
 @pytest.mark.parametrize('dsn', [pytest.sqlite])
 @pytest.mark.run_loop
-def test_primaryKeys_empty(conn, table):
-    cur = yield from conn.cursor()
-    yield from cur.primaryKeys('t1', 't1', 't1')
-    resp = yield from cur.fetchall()
+async def test_primaryKeys_empty(conn, table):
+    cur = await conn.cursor()
+    await cur.primaryKeys('t1', 't1', 't1')
+    resp = await cur.fetchall()
     assert resp == []
 
 
 @pytest.mark.parametrize('dsn', [pytest.sqlite])
 @pytest.mark.run_loop
-def test_foreignKeys_empty(conn, table):
-    cur = yield from conn.cursor()
-    yield from cur.foreignKeys('t1')
-    resp = yield from cur.fetchall()
+async def test_foreignKeys_empty(conn, table):
+    cur = await conn.cursor()
+    await cur.foreignKeys('t1')
+    resp = await cur.fetchall()
     assert resp == []
 
 
 @pytest.mark.run_loop
-def test_getTypeInfo_empty(conn, table):
-    cur = yield from conn.cursor()
-    yield from cur.getTypeInfo(pyodbc.SQL_CHAR)
-    resp = yield from cur.fetchall()
+async def test_getTypeInfo_empty(conn, table):
+    cur = await conn.cursor()
+    await cur.getTypeInfo(pyodbc.SQL_CHAR)
+    resp = await cur.fetchall()
     expected = [('char', 1, 255, "'", "'", 'length', 1, 0, 3, None, 0, 0,
                  'char', None, None, 1, 0, None, None)]
     type_info = [tuple(r) for r in resp]

@@ -12,13 +12,30 @@ __all__ = ['connect', 'Connection']
 PY_341 = sys.version_info >= (3, 4, 1)
 
 
-def connect(*, dsn, autocommit=False, ansi=False, timeout=0, loop=None,
-            executor=None, echo=False, **kwargs):
+async def connect(*, dsn, autocommit=False, ansi=False, timeout=0, loop=None,
+                  executor=None, echo=False, **kwargs):
+    """Accepts an ODBC connection string and returns a new Connection object.
+
+    The connection string can be passed as the string `str`, as a list of
+    keywords,or a combination of the two.  Any keywords except autocommit,
+    ansi, and timeout are simply added to the connection string.
+
+    :param autocommit bool: False or zero, the default, if True or non-zero,
+        the connection is put into ODBC autocommit mode and statements are
+        committed automatically.
+    :param ansi bool: By default, pyodbc first attempts to connect using
+        the Unicode version of SQLDriverConnectW. If the driver returns IM001
+        indicating it does not support the Unicode version, the ANSI version
+        is tried.
+    :param timeout int: An integer login timeout in seconds, used to set
+        the SQL_ATTR_LOGIN_TIMEOUT attribute of the connection. The default is
+         0  which means the database's default timeout, if any, is use
+    """
     loop = loop or asyncio.get_event_loop()
     conn = Connection(dsn=dsn, autocommit=autocommit, ansi=ansi,
                       timeout=timeout, echo=echo, loop=loop, executor=executor,
                       **kwargs)
-    yield from conn._connect()
+    await conn._connect()
     return conn
 
 
@@ -45,13 +62,12 @@ class Connection:
         future = self._loop.run_in_executor(self._executor, func)
         return future
 
-    @asyncio.coroutine
-    def _connect(self):
+    async def _connect(self):
         f = self._execute(pyodbc.connect, self._dsn,
                           autocommit=self._autocommit, ansi=self._ansi,
                           timeout=self._timeout,
                           **self._kwargs)
-        self._conn = yield from f
+        self._conn = await f
 
     @property
     def loop(self):
@@ -75,17 +91,15 @@ class Connection:
     def echo(self):
         return self._echo
 
-    @asyncio.coroutine
-    def cursor(self):
-        c = yield from self._execute(self._conn.cursor)
+    async def cursor(self):
+        c = await self._execute(self._conn.cursor)
         connection = self
         return Cursor(c, connection)
 
-    @asyncio.coroutine
-    def close(self):
+    async def close(self):
         if not self._conn:
             return
-        c = yield from self._execute(self._conn.close)
+        c = await self._execute(self._conn.close)
         self._conn = None
         return c
 
@@ -97,9 +111,8 @@ class Connection:
         fut = self._execute(self._conn.rollback)
         return fut
 
-    @asyncio.coroutine
-    def execute(self, sql, *args):
-        _cursor = yield from self._execute(self._conn.execute, sql, *args)
+    async def execute(self, sql, *args):
+        _cursor = await self._execute(self._conn.execute, sql, *args)
         connection = self
         cursor = Cursor(_cursor, connection)
         return cursor
@@ -116,28 +129,25 @@ class Connection:
         fut = self._execute(self._conn.clear_output_converters)
         return fut
 
-    if PY_341:  # pragma: no branch
-        def __del__(self):
-            if not self.closed:
-                # This will block the loop, please use close
-                # coroutine to close connection
-                self._conn.close()
-                self._conn = None
+    def __del__(self):
+        if not self.closed:
+            # This will block the loop, please use close
+            # coroutine to close connection
+            self._conn.close()
+            self._conn = None
 
-                warnings.warn("Unclosed connection {!r}".format(self),
-                              ResourceWarning)
+            warnings.warn("Unclosed connection {!r}".format(self),
+                          ResourceWarning)
 
-                context = {'connection': self,
-                           'message': 'Unclosed connection'}
-                if self._source_traceback is not None:
-                    context['source_traceback'] = self._source_traceback
-                self._loop.call_exception_handler(context)
+            context = {'connection': self,
+                       'message': 'Unclosed connection'}
+            if self._source_traceback is not None:
+                context['source_traceback'] = self._source_traceback
+            self._loop.call_exception_handler(context)
 
-    @asyncio.coroutine
     def __aenter__(self):
         return self
 
-    @asyncio.coroutine
-    def __aexit__(self, exc_type, exc_val, exc_tb):
-        yield from self.close()
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()
         return

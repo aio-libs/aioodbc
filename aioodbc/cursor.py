@@ -1,18 +1,8 @@
-import asyncio
-
 import pyodbc
 from .log import logger
 
 
 __all__ = ['Cursor']
-
-
-try:
-    StopAsyncIteration
-except NameError:
-    class StopAsyncIteration(Exception):
-        """Just stab for StopAsyncIteration from python 3.5"""
-        pass
 
 
 class Cursor:
@@ -58,11 +48,10 @@ class Cursor:
     def arraysize(self, size):
         self._impl.arraysize = size
 
-    @asyncio.coroutine
-    def close(self):
+    async def close(self):
         if self._conn is None:
             return
-        yield from self._run_operation(self._impl.close)
+        await self._run_operation(self._impl.close)
         self._conn = None
 
     def execute(self, sql, *params):
@@ -79,12 +68,10 @@ class Cursor:
     def callproc(self, procname, args=()):
         raise NotImplementedError
 
-    @asyncio.coroutine
-    def setinputsizes(self, *args, **kwargs):
+    async def setinputsizes(self, *args, **kwargs):
         return None
 
-    @asyncio.coroutine
-    def setoutputsize(self, *args, **kwargs):
+    async def setoutputsize(self, *args, **kwargs):
         return None
 
     def fetchone(self):
@@ -111,7 +98,6 @@ class Cursor:
         fut = self._run_operation(self._impl.columns, **kw)
         return fut
 
-    @asyncio.coroutine
     def statistics(self, catalog=None, schema=None, unique=False, quick=True):
         fut = self._run_operation(self._impl.statistics, catalog=catalog,
                                   schema=schema, unique=unique, quick=quick)
@@ -162,24 +148,20 @@ class Cursor:
         fut = self._run_operation(self._impl.rollback)
         return fut
 
-    @asyncio.coroutine
-    def __aiter__(self):
+    async def __aiter__(self):
         return self
 
-    @asyncio.coroutine
-    def __anext__(self):
-        ret = yield from self.fetchone()
+    async def __anext__(self):
+        ret = await self.fetchone()
         if ret is not None:
             return ret
         else:
             # This exception is not available in python < 3.5,
             raise StopAsyncIteration
 
-    @asyncio.coroutine
-    def __aenter__(self):
+    async def __aenter__(self):
         return self
 
-    @asyncio.coroutine
-    def __aexit__(self, exc_type, exc_val, exc_tb):
-        yield from self.close()
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()
         return

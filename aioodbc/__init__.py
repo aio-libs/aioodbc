@@ -11,8 +11,7 @@ __all__ = ['connect', 'Connection', 'create_pool', 'Pool', 'dataSources']
 (connect, Connection, create_pool, Pool)  # pyflakes
 
 
-@asyncio.coroutine
-def dataSources(loop=None, executor=None):
+async def dataSources(loop=None, executor=None):
     """Returns a dictionary mapping available DSNs to their descriptions.
 
     :param loop: asyncio compatible event loop
@@ -21,5 +20,5 @@ def dataSources(loop=None, executor=None):
     :return dict: mapping of dsn to driver description
     """
     loop = loop or asyncio.get_event_loop()
-    sources = yield from loop.run_in_executor(executor, _dataSources)
+    sources = await loop.run_in_executor(executor, _dataSources)
     return sources

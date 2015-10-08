@@ -68,10 +68,10 @@ class Cursor:
     def callproc(self, procname, args=()):
         raise NotImplementedError
 
-    def setinputsizes(self, *args, **kwargs):
+    async def setinputsizes(self, *args, **kwargs):
         return None
 
-    def setoutputsize(self, *args, **kwargs):
+    async def setoutputsize(self, *args, **kwargs):
         return None
 
     def fetchone(self):

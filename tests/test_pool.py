@@ -451,13 +451,33 @@ async def test_pool_context_manager(loop, pool):
 
 
 @pytest.mark.parametrize('dsn', pytest.dsn_list)
-async def test_pool_context_manager2(loop, pool):
+def test_pool_context_manager2(loop, pool):
     async def go():
-        async with await pool as conn:
+        async with pool.get() as conn:
             assert not conn.closed
             cur = await conn.cursor()
             await cur.execute('SELECT 1')
             val = await cur.fetchone()
             assert (1,) == tuple(val)
 
+    loop.run_until_complete(go())
+
+
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
+def test_all_context_managets(dsn, loop):
+    async def go():
+        async with aioodbc.create_pool(dsn=dsn, loop=loop) as pool:
+            async with pool.get() as conn:
+                async with conn.cursor() as cur:
+                    assert not pool.closed
+                    assert not conn.closed
+                    assert not cur.closed
+
+                    await cur.execute('SELECT 1')
+                    val = await cur.fetchone()
+                    assert (1,) == tuple(val)
+
+        assert pool.closed
+        assert conn.closed
+        assert cur.closed
     loop.run_until_complete(go())

@@ -39,23 +39,6 @@ def connect(*, dsn, autocommit=False, ansi=False, timeout=0, loop=None,
 
 async def _connect(*, dsn, autocommit=False, ansi=False, timeout=0, loop=None,
                    executor=None, echo=False, **kwargs):
-    """Accepts an ODBC connection string and returns a new Connection object.
-
-    The connection string can be passed as the string `str`, as a list of
-    keywords,or a combination of the two.  Any keywords except autocommit,
-    ansi, and timeout are simply added to the connection string.
-
-    :param autocommit bool: False or zero, the default, if True or non-zero,
-        the connection is put into ODBC autocommit mode and statements are
-        committed automatically.
-    :param ansi bool: By default, pyodbc first attempts to connect using
-        the Unicode version of SQLDriverConnectW. If the driver returns IM001
-        indicating it does not support the Unicode version, the ANSI version
-        is tried.
-    :param timeout int: An integer login timeout in seconds, used to set
-        the SQL_ATTR_LOGIN_TIMEOUT attribute of the connection. The default is
-         0  which means the database's default timeout, if any, is use
-    """
     loop = loop or asyncio.get_event_loop()
     conn = Connection(dsn=dsn, autocommit=autocommit, ansi=ansi,
                       timeout=timeout, echo=echo, loop=loop, executor=executor,
@@ -173,7 +156,7 @@ class Connection:
                 context['source_traceback'] = self._source_traceback
             self._loop.call_exception_handler(context)
 
-    def __aenter__(self):
+    async def __aenter__(self):
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):

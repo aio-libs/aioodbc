@@ -6,6 +6,7 @@ from functools import partial
 
 import pyodbc
 from .cursor import Cursor
+from .utils import _CursorContextManager
 
 
 __all__ = ['connect', 'Connection']
@@ -91,10 +92,13 @@ class Connection:
     def echo(self):
         return self._echo
 
-    async def cursor(self):
+    async def _cursor(self):
         c = await self._execute(self._conn.cursor)
         connection = self
         return Cursor(c, connection)
+
+    def cursor(self):
+        return _CursorContextManager(self._cursor())
 
     async def close(self):
         if not self._conn:

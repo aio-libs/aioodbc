@@ -5,13 +5,14 @@ import pytest
 @pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 async def test_cursor_with(loop, conn, table):
-
     ret = []
 
+    # regular cursor usage
     cur = await conn.cursor()
     await cur.execute('SELECT * FROM t1;')
-
     assert not cur.closed
+
+    # cursor should be closed
     async with cur:
         async for i in cur:
             ret.append(i)
@@ -38,7 +39,7 @@ async def test_cursor_lightweight(loop, conn, table):
 @pytest.mark.run_loop
 async def test_cursor_await(loop, conn, table):
 
-    async with await conn.cursor() as cur:
+    async with conn.cursor() as cur:
         await cur.execute('SELECT * FROM t1;')
         assert not cur.closed
 

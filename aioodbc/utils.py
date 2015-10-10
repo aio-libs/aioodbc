@@ -1,13 +1,13 @@
 from collections.abc import Coroutine
 
 
-class _CursorContextManager(Coroutine):
+class _ContextManager(Coroutine):
 
-    __slots__ = ('_coro', '_cursor')
+    __slots__ = ('_coro', '_obj')
 
     def __init__(self, coro):
         self._coro = coro
-        self._cursor = None
+        self._obj = None
 
     def send(self, value):
         return self._coro.send(value)
@@ -28,8 +28,8 @@ class _CursorContextManager(Coroutine):
         return resp
 
     async def __aenter__(self):
-        self._cursor = await self._coro
-        return self._cursor
+        self._obj = await self._coro
+        return self._obj
 
     async def __aexit__(self, exc_type, exc, tb):
-        await self._cursor.close()
+        await self._obj.close()

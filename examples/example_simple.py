@@ -5,16 +5,15 @@ import aioodbc
 loop = asyncio.get_event_loop()
 
 
-@asyncio.coroutine
-def test_example():
+async def test_example():
     dsn = 'Driver=SQLite;Database=sqlite.db'
-    conn = yield from aioodbc.connect(dsn=dsn, loop=loop)
+    conn = await aioodbc.connect(dsn=dsn, loop=loop)
 
-    cur = yield from conn.cursor()
-    yield from cur.execute("SELECT 42;")
-    r = yield from cur.fetchall()
+    cur = await conn.cursor()
+    await cur.execute("SELECT 42;")
+    r = await cur.fetchall()
     print(r)
-    yield from cur.close()
-    yield from conn.close()
+    await cur.close()
+    await conn.close()
 
 loop.run_until_complete(test_example())

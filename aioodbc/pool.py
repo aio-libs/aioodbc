@@ -5,7 +5,7 @@ import asyncio
 import collections
 
 from .connection import connect
-from .utils import _PoolContextManager
+from .utils import _PoolContextManager, _PoolConnectionContextManager
 
 __all__ = ['create_pool', 'Pool']
 
@@ -14,6 +14,7 @@ def create_pool(minsize=10, maxsize=10, echo=False, loop=None,
                 **kwargs):
     return _PoolContextManager(_create_pool(minsize=minsize, maxsize=maxsize,
                                echo=echo, loop=loop, **kwargs))
+
 
 async def _create_pool(minsize=10, maxsize=10, echo=False, loop=None,
                        **kwargs):
@@ -165,11 +166,6 @@ class Pool(asyncio.AbstractServer):
                 self._free.append(conn)
             await self._wakeup()
 
-    def __await__(self):
-        # To make `with await pool` work
-        conn = yield from self.acquire()
-        return _ConnectionContextManager(self, conn)
-
     async def __aenter__(self):
         return self
 
@@ -182,33 +178,4 @@ class Pool(asyncio.AbstractServer):
         async with pool.get() as conn:
             await conn.get(key)
         """
-        return _ConnectionContextManager(self)
-
-
-class _ConnectionContextManager:
-    """Context manager.
-
-    This enables the following idiom for acquiring and releasing a
-    connection around a block:
-
-        async with pool.get() as conn:
-            cur = await conn.cursor()
-
-    """
-
-    __slots__ = ('_pool', '_conn')
-
-    def __init__(self, pool):
-        self._pool = pool
-        self._conn = None
-
-    async def __aenter__(self):
-        self._conn = await self._pool.acquire()
-        return self._conn
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        try:
-            await self._pool.release(self._conn)
-        finally:
-            self._pool = None
-            self._conn = None
+        return _PoolConnectionContextManager(self)

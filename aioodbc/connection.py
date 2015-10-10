@@ -32,7 +32,7 @@ def connect(*, dsn, autocommit=False, ansi=False, timeout=0, loop=None,
         the SQL_ATTR_LOGIN_TIMEOUT attribute of the connection. The default is
          0  which means the database's default timeout, if any, is use
     """
-    return _ContextManager(_connect(dsn=dsn, autocommit=autocommit, 
+    return _ContextManager(_connect(dsn=dsn, autocommit=autocommit,
                            ansi=ansi, timeout=timeout, loop=loop,
                            executor=executor, echo=echo, **kwargs))
 

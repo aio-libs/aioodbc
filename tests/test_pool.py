@@ -301,7 +301,7 @@ def test_true_parallel_tasks(loop, pool_maker, dsn):
         maxsize = 0
         minfreesize = 100
 
-        def inner():
+        async def inner():
             nonlocal maxsize, minfreesize
             maxsize = max(maxsize, pool.size)
             minfreesize = min(minfreesize, pool.freesize)
@@ -344,12 +344,12 @@ def test_wait_closed(loop, pool_maker, dsn):
 
         ops = []
 
-        def do_release(conn):
+        async def do_release(conn):
             await asyncio.sleep(0, loop=loop)
             await pool.release(conn)
             ops.append('release')
 
-        def wait_closed():
+        async def wait_closed():
             await pool.wait_closed()
             ops.append('wait_closed')
 

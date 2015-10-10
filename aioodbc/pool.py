@@ -177,7 +177,7 @@ class Pool(asyncio.AbstractServer):
         async with pool.get() as conn:
             await conn.get(key)
         """
-        return _AsyncConnectionContextManager(self)
+        return _ConnectionContextManager(self)
 
 
 class _ConnectionContextManager:

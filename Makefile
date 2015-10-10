@@ -4,8 +4,8 @@ FLAGS=
 
 
 flake:
-	pep8 aioodbc tests
-	pyflakes aioodbc 
+	pyflakes aioodbc tests setup.py
+	pep8 aioodbc tests setup.py
 
 test: flake
 	py.test -s $(FLAGS) ./tests/

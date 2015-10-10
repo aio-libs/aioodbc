@@ -5,9 +5,10 @@ aioodbc
 .. image:: https://coveralls.io/repos/jettify/aioodbc/badge.svg?branch=master&service=github
     :target: https://coveralls.io/github/jettify/aioodbc?branch=master
 
-**aioodbc** is Python module that makes possible accessing ODBC_ databases
+**aioodbc** is Python 3.5+ module that makes possible accessing ODBC_ databases
 with asyncio_. It is rely on awesome pyodbc_ library, preserve same look and
-feel.
+feel. *aioodbc* was written `async/await` syntax (PEP492_ ) thus not
+compatible with Python older then 3.5.
 
 
 Supported Databases
@@ -38,17 +39,16 @@ Properties are unchanged, so ``conn.prop`` is correct as well as
     loop = asyncio.get_event_loop()
 
 
-    @asyncio.coroutine
-    def test_example():
+    async def test_example():
         dsn = 'Driver=SQLite;Database=sqlite.db'
-        conn = yield from aioodbc.connect(dsn=dsn, loop=loop)
+        conn = await aioodbc.connect(dsn=dsn, loop=loop)
 
-        cur = yield from conn.cursor()
-        yield from cur.execute("SELECT 42;")
-        r = yield from cur.fetchall()
+        cur = await conn.cursor()
+        await cur.execute("SELECT 42;")
+        r = await cur.fetchall()
         print(r)
-        yield from cur.close()
-        yield from conn.close()
+        await cur.close()
+        await conn.close()
 
     loop.run_until_complete(test_example())
 
@@ -107,8 +107,7 @@ Other SQL Drivers
 Requirements
 ------------
 
-* Python_ 3.3+
-* asyncio_ or Python_ 3.4+
+* Python_ 3.5+
 * pyodbc_
 
 

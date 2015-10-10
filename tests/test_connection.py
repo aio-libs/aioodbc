@@ -164,9 +164,17 @@ async def test_dataSources(loop, executor):
 
 @pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
-async def test_connection3(loop, conn):
+async def test_connection_simple_with(loop, conn):
     assert not conn.closed
     async with conn:
         pass
 
+    assert conn.closed
+
+
+@pytest.mark.parametrize('dsn', pytest.dsn_list)
+@pytest.mark.run_loop
+async def test_connect_context_manager(loop, dsn):
+    async with aioodbc.connect(dsn=dsn, loop=loop) as conn:
+        assert not conn.closed
     assert conn.closed

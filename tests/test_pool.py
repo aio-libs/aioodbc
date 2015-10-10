@@ -440,11 +440,11 @@ def test_pool_with_executor(loop, pool_maker, dsn, executor):
 
 
 @pytest.mark.parametrize('dsn', pytest.dsn_list)
-async def test_pool_context_manager(loop, pool):
+def test_pool_context_manager(loop, pool):
     async def go():
         assert not pool.closed
         async with pool:
-            pass
+            assert not pool.closed
         assert pool.closed
 
     loop.run_until_complete(go())

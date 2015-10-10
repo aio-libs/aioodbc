@@ -7,8 +7,9 @@ aioodbc
 
 **aioodbc** is Python 3.5+ module that makes possible accessing ODBC_ databases
 with asyncio_. It is rely on awesome pyodbc_ library, preserve same look and
-feel. *aioodbc* was written `async/await` syntax (PEP492_ ) thus not
-compatible with Python older then 3.5.
+feel. *aioodbc* was written `async/await` syntax (PEP492_) thus not
+compatible with Python older then 3.5. Internally aioodbc employ threads
+to avoid blocking the event loop, btw threads_ are not that bad as you think :)
 
 
 Supported Databases
@@ -119,3 +120,4 @@ Requirements
 .. _aiomysql: https://github.com/aio-libs/aiomysql
 .. _PEP492: https://www.python.org/dev/peps/pep-0492/
 .. _unixODBC: http://www.unixodbc.org/
+.. _threads: http://techspot.zzzeek.org/2015/02/15/asynchronous-python-and-databases/

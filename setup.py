@@ -8,12 +8,8 @@ install_requires = ['pyodbc']
 
 PY_VER = sys.version_info
 
-if PY_VER >= (3, 4):
-    pass
-elif PY_VER >= (3, 3):
-    install_requires.append('asyncio')
-else:
-    raise RuntimeError("aioodbc doesn't suppport Python earllier than 3.3")
+if not PY_VER >= (3, 5):
+    raise RuntimeError("aioodbc doesn't support Python earlier than 3.5")
 
 
 def read(f):
@@ -38,8 +34,6 @@ classifiers = [
     'License :: OSI Approved :: MIT License',
     'Intended Audience :: Developers',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.3',
-    'Programming Language :: Python :: 3.4',
     'Programming Language :: Python :: 3.5',
     'Operating System :: POSIX',
     'Environment :: Web Environment',

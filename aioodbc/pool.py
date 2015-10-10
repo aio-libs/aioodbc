@@ -161,8 +161,9 @@ class Pool(asyncio.AbstractServer):
             await self._wakeup()
 
     def __await__(self):
-        yield
-        return _ConnectionContextManager(self)
+        # To make `with await pool` work
+        conn = yield from self.acquire()
+        return _ConnectionContextManager(self, conn)
 
     async def __aenter__(self):
         return self
@@ -171,6 +172,13 @@ class Pool(asyncio.AbstractServer):
         self.close()
         await self.wait_closed()
 
+    def get(self):
+        """Return async context manager for working with connection.
+        async with pool.get() as conn:
+            await conn.get(key)
+        """
+        return _AsyncConnectionContextManager(self)
+
 
 class _ConnectionContextManager:
     """Context manager.
@@ -178,13 +186,9 @@ class _ConnectionContextManager:
     This enables the following idiom for acquiring and releasing a
     connection around a block:
 
-        with (await pool) as conn:
+        async with pool.get() as conn:
             cur = await conn.cursor()
 
-    while failing loudly when accidentally using:
-
-        with pool:
-            <block>
     """
 
     __slots__ = ('_pool', '_conn')
@@ -194,7 +198,6 @@ class _ConnectionContextManager:
         self._conn = None
 
     async def __aenter__(self):
-        assert not self._conn
         self._conn = await self._pool.acquire()
         return self._conn
 

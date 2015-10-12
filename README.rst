@@ -89,7 +89,7 @@ Installation
 
 .. code::
 
-   pip3 install git+https://github.com/jettify/aioodbc.git
+   pip install aioodbc
 
 In Linux environment pyodbc_ (hence *aioodbc*) requires unixODBC_ library.
 You can use standard one from your distro like::

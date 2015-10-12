@@ -59,7 +59,6 @@ target/
 .idea
 *.iml
 # rope
+*.swp
 .ropeproject
 
-
-tests/fixtures/my.cnf

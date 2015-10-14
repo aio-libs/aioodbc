@@ -31,7 +31,7 @@ class _ContextManager(Coroutine):
         return r
 
     def __await__(self):
-        resp = yield from self._coro
+        resp = yield from self._wrap_async_func()
         return resp
 
     async def __aenter__(self):

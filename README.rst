@@ -1,9 +1,9 @@
 aioodbc
 =======
-.. image:: https://travis-ci.org/jettify/aioodbc.svg?branch=master
-    :target: https://travis-ci.org/jettify/aioodbc
-.. image:: https://coveralls.io/repos/jettify/aioodbc/badge.svg?branch=master&service=github
-    :target: https://coveralls.io/github/jettify/aioodbc?branch=master
+.. image:: https://travis-ci.org/aio-libs/aioodbc.svg?branch=master
+    :target: https://travis-ci.org/aio-libs/aioodbc
+.. image:: https://coveralls.io/repos/aio-libs/aioodbc/badge.svg?branch=master&service=github
+    :target: https://coveralls.io/github/aio-libs/aioodbc?branch=master
 
 **aioodbc** is Python 3.5+ module that makes possible accessing ODBC_ databases
 with asyncio_. It is rely on awesome pyodbc_ library, preserve same look and
@@ -89,7 +89,7 @@ Installation
 
 .. code::
 
-   pip3 install git+https://github.com/jettify/aioodbc.git
+   pip install aioodbc
 
 In Linux environment pyodbc_ (hence *aioodbc*) requires unixODBC_ library.
 You can use standard one from your distro like::

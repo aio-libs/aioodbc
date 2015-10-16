@@ -8,7 +8,7 @@ aioodbc
 **aioodbc** is Python 3.5+ module that makes possible accessing ODBC_ databases
 with asyncio_. It is rely on awesome pyodbc_ library, preserve same look and
 feel. *aioodbc* was written `async/await` syntax (PEP492_) thus not
-compatible with Python older then 3.5. Internally aioodbc employ threads
+compatible with Python older then 3.5. Internally *aioodbc* employ threads
 to avoid blocking the event loop, btw threads_ are not that bad as you think :)
 
 
@@ -84,6 +84,33 @@ Connection pooling ported from aiopg_ and rely on PEP492_ features:
     loop.run_until_complete(test_example())
 
 
+Context Managers
+----------------
+`Pool`, `Connection` and `Cursor` objects support context manager
+protocol:
+
+.. code:: python
+
+    import asyncio
+    import aioodbc
+
+
+    loop = asyncio.get_event_loop()
+
+
+    async def test_example():
+        dsn = 'Driver=SQLite;Database=sqlite.db'
+
+        async with aioodbc.create_pool(dsn=dsn, loop=loop) as pool:
+            async with pool.get() as conn:
+                async with conn.cursor() as cur:
+                    await cur.execute('SELECT 42;')
+                    val = await cur.fetchone()
+                    print(val)
+
+    loop.run_until_complete(test_example())
+
+
 Installation
 ------------
 
@@ -92,7 +119,7 @@ Installation
    pip install aioodbc
 
 In Linux environment pyodbc_ (hence *aioodbc*) requires unixODBC_ library.
-You can use standard one from your distro like::
+You can install it using package manager from your OS distribution::
 
       $ sudo apt-get install unixodbc
       $ sudo apt-get install unixodbc-dev

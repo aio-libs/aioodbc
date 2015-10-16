@@ -9,7 +9,7 @@ async def test_pool():
     dsn = 'Driver=SQLite;Database=sqlite.db'
     pool = await aioodbc.create_pool(dsn=dsn, loop=loop)
 
-    async with pool.get as conn:
+    async with pool.get() as conn:
         cur = await conn.cursor()
         await cur.execute("SELECT 42;")
         r = await cur.fetchall()
@@ -19,4 +19,4 @@ async def test_pool():
     pool.close()
     await pool.wait_closed()
 
-loop.run_until_complete(test_example())
+loop.run_until_complete(test_pool())

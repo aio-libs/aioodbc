@@ -1,4 +1,3 @@
-import asyncio
 from collections.abc import Coroutine
 
 
@@ -25,14 +24,8 @@ class _ContextManager(Coroutine):
     def close(self):
         return self._coro.close()
 
-    @asyncio.coroutine
-    def _wrap_async_func(self):
-        r = yield from self._coro
-        return r
-
     def __await__(self):
-        resp = yield from self._wrap_async_func()
-        return resp
+        return self._coro.__await__()
 
     async def __aenter__(self):
         self._obj = await self._coro

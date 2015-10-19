@@ -156,7 +156,6 @@ class Cursor:
         if ret is not None:
             return ret
         else:
-            # This exception is not available in python < 3.5,
             raise StopAsyncIteration
 
     async def __aenter__(self):

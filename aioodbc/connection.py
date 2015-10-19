@@ -66,11 +66,13 @@ class Connection:
             self._source_traceback = traceback.extract_stack(sys._getframe(1))
 
     def _execute(self, func, *args, **kwargs):
+        # execute function with args and kwargs in thread pool
         func = partial(func, *args, **kwargs)
         future = self._loop.run_in_executor(self._executor, func)
         return future
 
     async def _connect(self):
+        # create pyodbc connection
         f = self._execute(pyodbc.connect, self._dsn,
                           autocommit=self._autocommit, ansi=self._ansi,
                           timeout=self._timeout,
@@ -108,6 +110,7 @@ class Connection:
         return _ContextManager(self._cursor())
 
     async def close(self):
+        """Close pyodbc connection"""
         if not self._conn:
             return
         c = await self._execute(self._conn.close)
@@ -115,14 +118,28 @@ class Connection:
         return c
 
     def commit(self):
+        """Commit any pending transaction to the database."""
         fut = self._execute(self._conn.commit)
         return fut
 
     def rollback(self):
+        """Causes the database to roll back to the start of any pending
+        transaction.
+        """
         fut = self._execute(self._conn.rollback)
         return fut
 
     async def execute(self, sql, *args):
+        """Create a new Cursor object, call its execute method, and return it.
+
+        See Cursor.execute for more details.This is a convenience method
+        that is not part of the DB API.  Since a new Cursor is allocated
+        by each call, this should not be used if more than one SQL
+        statement needs to be executed.
+
+        :param sql: str, formated sql statement
+        :param args: tuple, arguments for construction of sql statement
+        """
         _cursor = await self._execute(self._conn.execute, sql, *args)
         connection = self
         cursor = Cursor(_cursor, connection)

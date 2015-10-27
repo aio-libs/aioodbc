@@ -48,6 +48,10 @@ async def _connect(*, dsn, autocommit=False, ansi=False, timeout=0, loop=None,
 
 
 class Connection:
+    """ Connection objects manage connections to the database.
+
+    Connections should only be created by the aioodbc.connect function.
+    """
     _source_traceback = None
 
     def __init__(self, *, dsn, autocommit=False, ansi=None,
@@ -91,6 +95,10 @@ class Connection:
 
     @property
     def autocommit(self):
+        """Show autocommit mode for current database session. True if the
+        connection is in autocommit mode; False otherwise. The default
+        is False
+        """
         return self._conn.autocommit
 
     @property

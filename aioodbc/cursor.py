@@ -6,6 +6,13 @@ __all__ = ['Cursor']
 
 
 class Cursor:
+    """Cursors represent a database cursor (and map to ODBC HSTMTs), which
+    is used to manage the context of a fetch operation.
+
+    Cursors created from the same connection are not isolated, i.e., any
+    changes made to the database by a cursor are immediately visible by
+    the other cursors.
+    """
 
     def __init__(self, pyodbc_cursor, connection, echo=False):
         self._conn = connection
@@ -14,6 +21,7 @@ class Cursor:
         self._echo = echo
 
     def _run_operation(self, func, *args, **kwargs):
+        # execute func in thread pool of attached to cursor connection
         if not self._conn:
             raise pyodbc.OperationalError('Cursor is closed.')
         future = self._conn._execute(func, *args, **kwargs)
@@ -26,22 +34,50 @@ class Cursor:
 
     @property
     def connection(self):
+        """Cursors database connection"""
         return self._conn
 
     @property
     def rowcount(self):
+        """The number of rows modified by the previous DDL statement.
+
+        This is -1 if no SQL has been executed or if the number of rows is
+        unknown. Note that it is not uncommon for databases to report -1
+        after a select statement for performance reasons. (The exact number
+        may not be known before the first records are returned to the
+        application.)
+        """
         return self._impl.rowcount
 
     @property
     def description(self):
+        """This read-only attribute is a list of 7-item tuples, each
+        containing (name, type_code, display_size, internal_size, precision,
+        scale, null_ok).
+
+        pyodbc only provides values for name, type_code, internal_size,
+        and null_ok. The other values are set to None.
+
+        This attribute will be None for operations that do not return rows
+        or if one of the execute methods has not been called.
+
+        The type_code member is the class type used to create the Python
+        objects when reading rows. For example, a varchar column's type will
+        be str.
+        """
         return self._impl.description
 
     @property
     def closed(self):
+        """Read only property indicates if cursor has been closed"""
         return self._conn is None
 
     @property
     def arraysize(self):
+        """This read/write attribute specifies the number of rows to fetch
+        at a time with .fetchmany() . It defaults to 1 meaning to fetch a
+        single row at a time.
+        """
         return self._impl.arraysize
 
     @arraysize.setter
@@ -49,6 +85,12 @@ class Cursor:
         self._impl.arraysize = size
 
     async def close(self):
+        """Close the cursor now (rather than whenever __del__ is called).
+
+        The cursor will be unusable from this point forward; an Error
+        (or subclass) exception will be raised if any operation is attempted
+        with the cursor.
+        """
         if self._conn is None:
             return
         await self._run_operation(self._impl.close)

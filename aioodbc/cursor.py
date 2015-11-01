@@ -97,6 +97,15 @@ class Cursor:
         self._conn = None
 
     def execute(self, sql, *params):
+        """Executes the given operation substituting any markers with
+        the given parameters.
+
+        :param sql: the SQL statement to execute with optional ? parameter
+            markers. Note that pyodbc never modifies the SQL statement.
+        :param params: optional parameters for the markers in the SQL. They
+            can be passed in a single sequence as defined by the DB API.
+            For convenience, however, they can also be passed individually
+        """
         if self._echo:
             logger.info(sql)
             logger.info("%r", sql)
@@ -104,6 +113,12 @@ class Cursor:
         return fut
 
     def executemany(self, sql, *params):
+        """Prepare a database query or command and then execute it against
+        all parameter sequences  found in the sequence seq_of_params.
+
+        :param sql: the SQL statement to execute with optional ? parameters
+        :param params: sequence parameters for the markers in the SQL.
+        """
         fut = self._run_operation(self._impl.executemany, sql, *params)
         return fut
 
@@ -111,9 +126,11 @@ class Cursor:
         raise NotImplementedError
 
     async def setinputsizes(self, *args, **kwargs):
+        """Does nothing, required by DB API."""
         return None
 
     async def setoutputsize(self, *args, **kwargs):
+        """Does nothing, required by DB API."""
         return None
 
     def fetchone(self):

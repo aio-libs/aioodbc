@@ -134,18 +134,57 @@ class Cursor:
         return None
 
     def fetchone(self):
+        """Returns the next row or None when no more data is available.
+
+        A ProgrammingError exception is raised if no SQL has been executed
+        or if it did not return a result set (e.g. was not a SELECT
+        statement).
+        """
         fut = self._run_operation(self._impl.fetchone)
         return fut
 
     def fetchall(self):
+        """Returns a list of all remaining rows.
+
+        Since this reads all rows into memory, it should not be used if
+        there are a lot of rows. Consider iterating over the rows instead.
+        However, it is useful for freeing up a Cursor so you can perform a
+        second query before processing the resulting rows.
+
+        A ProgrammingError exception is raised if no SQL has been executed
+        or if it did not return a result set (e.g. was not a SELECT statement)
+        """
         fut = self._run_operation(self._impl.fetchall)
         return fut
 
     def fetchmany(self, size):
+        """Returns a list of remaining rows, containing no more than size
+        rows, used to process results in chunks. The list will be empty when
+        there are no more rows.
+
+        The default for cursor.arraysize is 1 which is no different than
+        calling fetchone().
+
+        A ProgrammingError exception is raised if no SQL has been executed
+        or if it did not return a result set (e.g. was not a SELECT
+        statement).
+
+        :param size: int, max number of rows to return
+        """
         fut = self._run_operation(self._impl.fetchmany, size)
         return fut
 
     def nextset(self):
+        """This method will make the cursor skip to the next available
+        set, discarding any remaining rows from the current set.
+
+        If there are no more sets, the method returns None. Otherwise,
+        it returns a true value and subsequent calls to the fetch methods
+        will return rows from the next result set.
+
+        This method is primarily used if you have stored procedures that
+        return multiple results.
+        """
         fut = self._run_operation(self._impl.nextset)
         return fut
 

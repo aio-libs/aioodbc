@@ -164,6 +164,17 @@ class Connection:
         fut = self._execute(self._conn.clear_output_converters)
         return fut
 
+    def set_attr(self, attr_id, value):
+        """Calls SQLSetConnectAttr with the given values.
+
+        :param attr_id: the attribute ID (integer) to set. These are ODBC or
+            driver constants.
+        :parm value: the connection attribute value to set. At this time
+            only integer values are supported.
+        """
+        fut = self._execute(self._conn.set_attr, attr_id, value)
+        return fut
+
     def __del__(self):
         if not self.closed:
             # This will block the loop, please use close

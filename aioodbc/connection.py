@@ -10,7 +10,6 @@ from .utils import _ContextManager
 
 
 __all__ = ['connect', 'Connection']
-PY_341 = sys.version_info >= (3, 4, 1)
 
 
 def connect(*, dsn, autocommit=False, ansi=False, timeout=0, loop=None,

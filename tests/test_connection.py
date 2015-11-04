@@ -9,9 +9,6 @@ import pyodbc
 import aioodbc
 
 
-PY_341 = sys.version_info >= (3, 4, 1)
-
-
 def test_connect(loop, conn):
     assert conn.loop is loop
     assert not conn.autocommit
@@ -123,8 +120,6 @@ async def test_rollback(conn):
     await conn.close()
 
 
-@pytest.mark.skipif(not PY_341, reason="Python 3.3 doesnt support __del__ "
-                                       "calls from GC")
 @pytest.mark.parametrize('dsn', pytest.dsn_list)
 @pytest.mark.run_loop
 async def test___del__(loop, dsn, recwarn):

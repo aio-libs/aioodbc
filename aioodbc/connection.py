@@ -153,14 +153,36 @@ class Connection:
         return cursor
 
     def getinfo(self, type_):
+        """Returns general information about the driver and data source
+        associated with a connection by calling SQLGetInfo and returning its
+        results. See Microsoft's SQLGetInfo documentation for the types of
+        information available.
+
+        :param type_: int, pyodbc.SQL_* constant
+        """
         fut = self._execute(self._conn.getinfo, type_)
         return fut
 
     def add_output_converter(self, sqltype, func):
+        """Register an output converter function that will be called whenever
+        a value with the given SQL type is read from the database.
+
+        :param sqltype: the integer SQL type value to convert, which can
+            be one of the defined standard constants (pyodbc.SQL_VARCHAR)
+            or a database-specific value (e.g. -151 for the SQL Server 2008
+            geometry data type).
+        :param func: the converter function which will be called with a
+            single parameter, the value, and should return the converted
+            value. If the value is NULL, the parameter will be None.
+            Otherwise it will be a Python string.
+        """
         fut = self._execute(self._conn.add_output_converter, sqltype, func)
         return fut
 
     def clear_output_converters(self):
+        """Remove all output converter functions added by
+        add_output_converter.
+        """
         fut = self._execute(self._conn.clear_output_converters)
         return fut
 

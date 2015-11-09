@@ -189,14 +189,41 @@ class Cursor:
         return fut
 
     def tables(self, **kw):
+        """Creates a result set of tables in the database that match the
+        given criteria.
+
+        :param table: the table tname
+        :param catalog: the catalog name
+        :param schema: the schmea name
+        :param tableType: one of TABLE, VIEW, SYSTEM TABLE ...
+        """
         fut = self._run_operation(self._impl.tables, **kw)
         return fut
 
     def columns(self, **kw):
+        """Creates a results set of column names in specified tables by
+        executing the ODBC SQLColumns function. Each row fetched has the
+        following columns.
+
+        :param table: the table tname
+        :param catalog: the catalog name
+        :param schema: the schmea name
+        :param column: string search pattern for column names.
+        """
         fut = self._run_operation(self._impl.columns, **kw)
         return fut
 
     def statistics(self, catalog=None, schema=None, unique=False, quick=True):
+        """Creates a results set of statistics about a single table and
+        the indexes associated with the table by executing SQLStatistics.
+
+        :param catalog: the catalog name
+        :param schema: the schmea name
+        :param unique: if True, only unique indexes are retured. Otherwise
+            all indexes are returned.
+        :param quick: if True, CARDINALITY and PAGES are returned  only if
+            they are readily available from the server
+        """
         fut = self._run_operation(self._impl.statistics, catalog=catalog,
                                   schema=schema, unique=unique, quick=quick)
         return fut

@@ -229,12 +229,19 @@ class Cursor:
         return fut
 
     def rowIdColumns(self, table, catalog=None, schema=None, nullable=True):
+        """Executes SQLSpecialColumns with SQL_BEST_ROWID which creates a
+        result set of columns that uniquely identify a row
+        """
         fut = self._run_operation(self._impl.rowIdColumns, table,
                                   catalog=catalog, schema=schema,
                                   nullable=nullable)
         return fut
 
     def rowVerColumns(self, table, catalog=None, schema=None, nullable=True):
+        """Executes SQLSpecialColumns with SQL_ROWVER which creates a
+        result set of columns that are automatically updated when any
+        value in the row is updated.
+        """
         fut = self._run_operation(self._impl.rowVerColumns, table,
                                   catalog=catalog, schema=schema,
                                   nullable=nullable)

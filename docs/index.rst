@@ -4,12 +4,16 @@
    contain the root `toctree` directive.
 
 Welcome to aioodbc's documentation!
-====================================
+===================================
 
 .. _GitHub: https://github.com/aio-libs/aioodbc
 .. _asyncio: http://docs.python.org/3.4/library/asyncio.html
 .. _aiopg: https://github.com/aio-libs/aiopg
 .. _aio-libs: https://github.com/aio-libs
+.. _pyodbc: https://github.com/mkleehammer/pyodbc
+.. _PEP492: https://www.python.org/dev/peps/pep-0492/
+.. _unixODBC: http://www.unixodbc.org/
+.. _threads: http://techspot.zzzeek.org/2015/02/15/asynchronous-python-and-databases/
 
 
 **aioodbc** is Python 3.5+ module that makes possible accessing ODBC_ databases
@@ -21,67 +25,11 @@ to avoid blocking the event loop, btw threads_ are not that bad as you think :)
 
 Features
 --------
+* Implements `asyncio` :term:`DBAPI` *like* interface for
+  :term:`ODBC`.  It includes :ref:`aioodbc-connection`,
+  :ref:`aioodbc-cursor` and :ref:`aioodbc-pool` objects.
+* Support connection pooling.
 
-* Implements *asyncio* :term:`DBAPI` *like* interface for
-  :term:`MySQL`.  It includes :ref:`aioodbc-connection`,
-  :ref:`aioodbc-cursors` and :ref:`aiomysql-pool` objects.
-* Implements *optional* support for charming :term:`sqlalchemy`
-  functional sql layer.
-
-Basics
-------
-
-**aioodbc** based on :term:`PyMySQL` , and provides same api, you just need
-to use  ``yield from conn.f()`` instead of just call ``conn.f()`` for
-every method.
-
-Properties are unchanged, so ``conn.prop`` is correct as well as
-``conn.prop = val``.
-
-See example:
-
-.. code:: python
-
-    import asyncio
-    import aioodbc
-
-    loop = asyncio.get_event_loop()
-
-    @asyncio.coroutine
-    def test_example():
-        conn = yield from aioodbc.connect(host='127.0.0.1', port=3306,
-                                           user='root', password='', db='mysql',
-                                           loop=loop)
-
-        cur = yield from conn.cursor()
-        yield from cur.execute("SELECT Host,User FROM user")
-        print(cur.description)
-        r = yield from cur.fetchall()
-        print(r)
-        yield from cur.close()
-        conn.close()
-
-    loop.run_until_complete(test_example())
-
-
-Installation
-------------
-
-.. code::
-
-   pip3 install aioodbc
-
-.. note:: :mod:`aioodbc` requires :term:`PyMySQL` library.
-
-
-Also you probably want to use :mod:`aioodbc.sa`.
-
-.. _aioodbc-install-sqlalchemy:
-
-:mod:`aioodbc.sa` module is **optional** and requires
-:term:`sqlalchemy`. You can install *sqlalchemy* by running::
-
-  pip3 install sqlalchemy
 
 Source code
 -----------
@@ -94,16 +42,16 @@ or have some suggestion for library improvement.
 
 The library uses `Travis <https://travis-ci.org/aio-libs/aioodbc>`_ for
 Continious Integration and `Coveralls
-<https://coveralls.io/r/jettify/aioodbc?branch=master>`_ for
+<https://coveralls.io/r/aio-libs/aioodbc?branch=master>`_ for
 coverage reports.
 
 
 Dependencies
 ------------
 
-- Python 3.3 and :mod:`asyncio` or Python 3.4+
-- :term:`PyMySQL`
-- aioodbc.sa requires :term:`sqlalchemy`.
+- Python 3.5 (PEP492_ coroutines)
+- pyodbc_
+- unixODBC_
 
 
 Authors and License

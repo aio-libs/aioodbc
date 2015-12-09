@@ -265,10 +265,17 @@ class Cursor:
         return fut
 
     def getTypeInfo(self, sql_type):
+        """Executes SQLGetTypeInfo a creates a result set with information
+        about the specified data type or all data types supported by the
+        ODBC driver if not specified.
+        """
         fut = self._run_operation(self._impl.getTypeInfo, sql_type)
         return fut
 
     def procedures(self, *a, **kw):
+        """Executes SQLProcedures and creates a result set of information
+        about the procedures in the data source.
+        """
         fut = self._run_operation(self._impl.procedures, *a, **kw)
         return fut
 

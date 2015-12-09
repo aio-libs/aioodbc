@@ -248,11 +248,19 @@ class Cursor:
         return fut
 
     def primaryKeys(self, table, catalog=None, schema=None):
+        """Creates a result set of column names that make up the primary key
+        for a table by executing the SQLPrimaryKeys function."""
         fut = self._run_operation(self._impl.primaryKeys, table,
                                   catalog=catalog, schema=schema)
         return fut
 
     def foreignKeys(self, *a, **kw):
+        """Executes the SQLForeignKeys function and creates a result set
+        of column names that are foreign keys in the specified table (columns
+        in the specified table that refer to primary keys in other tables)
+        or foreign keys in other tables that refer to the primary key in
+        the specified table.
+        """
         fut = self._run_operation(self._impl.foreignKeys, *a, **kw)
         return fut
 

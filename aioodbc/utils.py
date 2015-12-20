@@ -47,12 +47,14 @@ class _ContextManager(Coroutine):
 
     async def __aexit__(self, exc_type, exc, tb):
         await self._obj.close()
+        self._obj = None
 
 
 class _PoolContextManager(_ContextManager):
     async def __aexit__(self, exc_type, exc, tb):
         self._obj.close()
         await self._obj.wait_closed()
+        self._obj = None
 
 
 class _PoolConnectionContextManager:

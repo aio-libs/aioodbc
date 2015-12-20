@@ -6,7 +6,6 @@ class _ContextManager(Coroutine):
     __slots__ = ('_coro', '_obj')
 
     def __init__(self, coro):
-
         self._coro = coro
         self._obj = None
 
@@ -23,6 +22,21 @@ class _ContextManager(Coroutine):
 
     def close(self):
         return self._coro.close()
+
+    @property
+    def gi_frame(self):
+        return self._coro.gi_frame
+
+    @property
+    def gi_running(self):
+        return self._coro.gi_running
+
+    @property
+    def gi_code(self):
+        return self._coro.gi_code
+
+    def __next__(self):
+        return self.send(None)
 
     def __await__(self):
         return self._coro.__await__()

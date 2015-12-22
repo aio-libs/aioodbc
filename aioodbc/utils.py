@@ -57,30 +57,24 @@ class _PoolContextManager(_ContextManager):
         self._obj = None
 
 
-class _PoolConnectionContextManager:
-    """Context manager.
+class _PoolConnectionContextManager(_ContextManager):
 
-    This enables the following idiom for acquiring and releasing a
-    connection around a block:
+    __slots__ = ('_coro', '_conn', '_pool')
 
-        async with pool.get() as conn:
-            cur = await conn.cursor()
-
-    """
-
-    __slots__ = ('_pool', '_conn')
-
-    def __init__(self, pool):
-        self._pool = pool
+    def __init__(self, coro, pool):
+        self._coro = coro
         self._conn = None
+        self._pool = pool
+
+    def __await__(self):
+        self._pool = None
+        return self._coro.__await__()
 
     async def __aenter__(self):
-        self._conn = await self._pool.acquire()
+        self._conn = await self._coro
         return self._conn
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        try:
-            await self._pool.release(self._conn)
-        finally:
-            self._pool = None
-            self._conn = None
+    async def __aexit__(self, exc_type, exc, tb):
+        await self._pool.release(self._conn)
+        self._pool = None
+        self._conn = None

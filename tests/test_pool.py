@@ -453,7 +453,7 @@ def test_pool_context_manager(loop, pool):
 @pytest.mark.parametrize('dsn', pytest.dsn_list)
 def test_pool_context_manager2(loop, pool):
     async def go():
-        async with pool.get() as conn:
+        async with pool.acquire() as conn:
             assert not conn.closed
             cur = await conn.cursor()
             await cur.execute('SELECT 1')
@@ -467,7 +467,7 @@ def test_pool_context_manager2(loop, pool):
 def test_all_context_managets(dsn, loop):
     async def go():
         async with aioodbc.create_pool(dsn=dsn, loop=loop) as pool:
-            async with pool.get() as conn:
+            async with pool.acquire() as conn:
                 async with conn.cursor() as cur:
                     assert not pool.closed
                     assert not conn.closed

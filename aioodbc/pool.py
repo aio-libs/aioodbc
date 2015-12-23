@@ -109,8 +109,12 @@ class Pool(asyncio.AbstractServer):
 
         self._closed = True
 
-    async def acquire(self):
+    def acquire(self):
         """Acquire free connection from the pool."""
+        coro = self._acquire()
+        return _PoolConnectionContextManager(coro, self)
+
+    async def _acquire(self):
         if self._closing:
             raise RuntimeError("Cannot acquire connection after closing pool")
         with (await self._cond):
@@ -172,10 +176,3 @@ class Pool(asyncio.AbstractServer):
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         self.close()
         await self.wait_closed()
-
-    def get(self):
-        """Return async context manager for working with connection.
-        async with pool.get() as conn:
-            await conn.get(key)
-        """
-        return _PoolConnectionContextManager(self)

@@ -76,7 +76,7 @@ Connection pooling ported from aiopg_ and rely on PEP492_ features:
         dsn = 'Driver=SQLite;Database=sqlite.db'
         pool = await aioodbc.create_pool(dsn=dsn, loop=loop)
 
-        async with pool.get() as conn:
+        async with pool.acquire() as conn:
             cur = await conn.cursor()
             await cur.execute("SELECT 42;")
             r = await cur.fetchall()
@@ -107,7 +107,7 @@ protocol:
         dsn = 'Driver=SQLite;Database=sqlite.db'
 
         async with aioodbc.create_pool(dsn=dsn, loop=loop) as pool:
-            async with pool.get() as conn:
+            async with pool.acquire() as conn:
                 async with conn.cursor() as cur:
                     await cur.execute('SELECT 42;')
                     val = await cur.fetchone()

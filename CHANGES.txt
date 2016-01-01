@@ -1,8 +1,18 @@
 Changes
 -------
 
+0.0.2 (2016-01-01)
+^^^^^^^^^^^^^^^^^^
+* Improved pep 492 support.
+
+* pool.get method removed, use acquire instead.
+
+* Added tests against MySQL.
+
+* Added bunch of doc strings.
+
+
 0.0.1 (2015-10-12)
 ^^^^^^^^^^^^^^^^^^
 
 * Initial release.
-

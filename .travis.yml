@@ -29,7 +29,7 @@ before_script:
 env:
     matrix:
         - PYTHONASYNCIODEBUG=1
-        - PYTHONASYNCIODEBUG=0
+        - PYTHONASYNCIODEBUG=
 
 install:
     - pip install -Ur requirements-dev.txt

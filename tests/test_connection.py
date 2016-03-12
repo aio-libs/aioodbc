@@ -89,8 +89,9 @@ async def test_output_conversion(conn, table):
 
 
 @pytest.mark.parametrize('dsn', pytest.dsn_list)
+@pytest.mark.run_loop
 async def test_autocommit(loop, connection_maker):
-    conn = connection_maker(loop, autocommit=True)
+    conn = await connection_maker(autocommit=True)
     assert conn.autocommit, True
 
 

@@ -58,9 +58,17 @@ def conn(request, loop, dsn):
 
 
 @pytest.fixture
-def connection_maker(request, dsn):
-    def f(loop, **kw):
-        return _connect(loop, dsn, request.addfinalizer, **kw)
+def connection_maker(request, loop, dsn):
+    _conn = None
+    async def f(**kw):
+        nonlocal _conn
+        _conn = await _connect(loop, dsn, **kw)
+        return _conn
+
+    def fin():
+        if _conn is not None:
+            loop.run_until_complete(_conn.close())
+    request.addfinalizer(fin)
     return f
 
 
@@ -87,13 +95,8 @@ def pool(request, loop, dsn):
     return _connect_pool(loop, request.addfinalizer, dsn=dsn)
 
 
-def _connect(loop, dsn, finalizer, **kw):
-    conn = loop.run_until_complete(aioodbc.connect(dsn=dsn, loop=loop, **kw))
-
-    def fin():
-        loop.run_until_complete(conn.close())
-
-    finalizer(fin)
+async def _connect(loop, dsn, **kw):
+    conn = await aioodbc.connect(dsn=dsn, loop=loop, **kw)
     return conn
 
 

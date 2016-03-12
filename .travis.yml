@@ -1,4 +1,8 @@
+sudo: required
 language: python
+
+services:
+  - docker
 
 python:
     - 3.5
@@ -18,14 +22,6 @@ before_install:
     - sudo cat /etc/odbcinst.ini
     - sudo cat /etc/odbc.ini
 
-
-before_script:
-  - psql -c "create database aioodbc;" -U postgres
-  - psql -c "create user aioodbc with password 'passwd';" -U postgres
-  - psql -c "grant all privileges on database aioodbc to aioodbc;" -U postgres
-  - "mysql -e 'SELECT VERSION()'"
-  - "mysql -e 'DROP DATABASE IF EXISTS aioodbc; create database aioodbc DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;'"
-
 env:
     matrix:
         - PYTHONASYNCIODEBUG=1
@@ -38,6 +34,13 @@ install:
 
 script:
     - make cov
+
+cache:
+  directories:
+  - $HOME/.cache/pip
+
+before_cache:
+  - rm -f $HOME/.cache/pip/log/debug.log
 
 after_success:
     - coveralls

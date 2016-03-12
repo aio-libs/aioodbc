@@ -228,7 +228,8 @@ class Cursor:
                                   schema=schema, unique=unique, quick=quick)
         return fut
 
-    def rowIdColumns(self, table, catalog=None, schema=None, nullable=True):
+    def rowIdColumns(self, table, catalog=None, schema=None,  # nopep8
+                     nullable=True):
         """Executes SQLSpecialColumns with SQL_BEST_ROWID which creates a
         result set of columns that uniquely identify a row
         """
@@ -237,7 +238,8 @@ class Cursor:
                                   nullable=nullable)
         return fut
 
-    def rowVerColumns(self, table, catalog=None, schema=None, nullable=True):
+    def rowVerColumns(self, table, catalog=None, schema=None,  # nopep8
+                      nullable=True):
         """Executes SQLSpecialColumns with SQL_ROWVER which creates a
         result set of columns that are automatically updated when any
         value in the row is updated.
@@ -247,14 +249,14 @@ class Cursor:
                                   nullable=nullable)
         return fut
 
-    def primaryKeys(self, table, catalog=None, schema=None):
+    def primaryKeys(self, table, catalog=None, schema=None):  # nopep8
         """Creates a result set of column names that make up the primary key
         for a table by executing the SQLPrimaryKeys function."""
         fut = self._run_operation(self._impl.primaryKeys, table,
                                   catalog=catalog, schema=schema)
         return fut
 
-    def foreignKeys(self, *a, **kw):
+    def foreignKeys(self, *a, **kw):  # nopep8
         """Executes the SQLForeignKeys function and creates a result set
         of column names that are foreign keys in the specified table (columns
         in the specified table that refer to primary keys in other tables)
@@ -264,7 +266,7 @@ class Cursor:
         fut = self._run_operation(self._impl.foreignKeys, *a, **kw)
         return fut
 
-    def getTypeInfo(self, sql_type):
+    def getTypeInfo(self, sql_type):  # nopep8
         """Executes SQLGetTypeInfo a creates a result set with information
         about the specified data type or all data types supported by the
         ODBC driver if not specified.
@@ -279,7 +281,7 @@ class Cursor:
         fut = self._run_operation(self._impl.procedures, *a, **kw)
         return fut
 
-    def procedureColumns(self, *a, **kw):
+    def procedureColumns(self, *a, **kw):  # nopep8
         fut = self._run_operation(self._impl.procedureColumns, *a, **kw)
         return fut
 

@@ -158,7 +158,7 @@ def executor(request, pg_server):
 
 
 def pytest_namespace():
-    return {'db_list': ['pg', 'sqlite']}
+    return {'db_list': ['pg', 'mysql', 'sqlite']}
 
 
 @pytest.fixture

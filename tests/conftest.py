@@ -1,10 +1,12 @@
 import asyncio
 import os
 import socket
+import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 
 import aioodbc
+import pyodbc
 import pytest
 
 from docker import Client as DockerClient
@@ -45,7 +47,107 @@ def loop(request):
 
 
 @pytest.fixture
-def executor(request):
+def pg_params(pg_server):
+    return dict(**pg_server['pg_params'])
+
+
+@pytest.yield_fixture(scope='session')
+def pg_server(unused_port, docker, session_id):
+    pg_tag = '9.5'
+    docker.pull('postgres:{}'.format(pg_tag))
+    port = unused_port()
+    container = docker.create_container(
+        image='postgres:{}'.format(pg_tag),
+        name='aioodbc-test-server-{}-{}'.format(pg_tag, session_id),
+        ports=[5432],
+        detach=True,
+        host_config=docker.create_host_config(port_bindings={5432: port})
+    )
+    docker.start(container=container['Id'])
+    pg_params = dict(database='postgres',
+                     user='postgres',
+                     password='mysecretpassword',
+                     host='127.0.0.1',
+                     port=port)
+    delay = 0.001
+    dsn = create_pg_dsn(pg_params)
+    for i in range(100):
+        try:
+            conn = pyodbc.connect(dsn)
+            cur = conn.cursor()
+            cur.execute("SELECT 1;")
+            cur.close()
+            conn.close()
+            break
+        except pyodbc.Error as e:
+
+            time.sleep(delay)
+            delay *= 2
+    else:
+        pytest.fail("Cannot start postgres server: {}".format(e))
+    container['port'] = port
+    container['pg_params'] = pg_params
+    yield container
+
+    docker.kill(container=container['Id'])
+    docker.remove_container(container['Id'])
+
+
+@pytest.fixture
+def mysql_params(mysql_server):
+    return dict(**mysql_server['mysql_params'])
+
+
+@pytest.yield_fixture(scope='session')
+def mysql_server(unused_port, docker, session_id):
+    mysql_tag = '5.5'
+    docker.pull('mysql:{}'.format(mysql_tag))
+    port = unused_port()
+    container = docker.create_container(
+        image='mysql:{}'.format(mysql_tag),
+        name='aioodbc-test-server-{}-{}'.format(mysql_tag, session_id),
+        ports=[3306],
+        detach=True,
+        environment={'MYSQL_USER': 'aioodbc',
+                     'MYSQL_PASSWORD': 'mysecretpassword',
+                     'MYSQL_ROOT_PASSWORD': ''},
+        host_config=docker.create_host_config(port_bindings={3306: port})
+    )
+    docker.start(container=container['Id'])
+    mysql_params = dict(database='aioodbc',
+                        user='aioodbc',
+                        password='mysecretpassword',
+                        host='127.0.0.1',
+                        port=port)
+    delay = 0.001
+    dsn = ('Driver=MySQL;Server={host};Port={port};'
+           'Database={database};User={user};'
+           'Password={password}'.format(**mysql_params))
+
+    for i in range(100):
+        try:
+            conn = pyodbc.connect(dsn)
+            cur = conn.cursor()
+            cur.execute("SELECT 1;")
+            cur.close()
+            conn.close()
+            break
+        except pyodbc.Error as e:
+
+            time.sleep(delay)
+            delay *= 2
+    else:
+        pytest.fail("Cannot start postgres server: {}".format(e))
+    container['port'] = port
+    container['mysql_params'] = mysql_params
+    yield container
+
+    docker.kill(container=container['Id'])
+    docker.remove_container(container['Id'])
+
+
+@pytest.fixture
+def executor(request, pg_server):
     executor = ThreadPoolExecutor(max_workers=3)
 
     def fin():
@@ -55,30 +157,48 @@ def executor(request):
     return executor
 
 
-sqlite = 'Driver=SQLite;Database=sqlite.db,'
-pg = ('Driver=PostgreSQL Unicode;'
-      'Server=localhost;Port=5432;'
-      'Database=aioodbc;Uid=aioodbc;'
-      'Pwd=passwd;')
-mysql = ('Driver=MySQL;Server=localhost;'
-         'Database=aioodbc;User=root;'
-         'Password=')
-
-
 def pytest_namespace():
-    return {'dsn_list': [sqlite, pg, mysql],
-            'pg': pg, 'sqlite': sqlite, 'mysql': mysql}
+    return {'db_list': ['pg', 'sqlite']}
 
 
 @pytest.fixture
-def dsn(request):
-    conf = os.environ.get('DSN', 'Driver=SQLite;Database=sqlite.db')
+def db(request):
+    return 'sqlite'
+
+
+def create_pg_dsn(pg_params):
+    dsn = ('Driver=PostgreSQL Unicode;'
+           'Server={host};Port={port};'
+           'Database={database};Uid={user};'
+           'Pwd={password};'.format(**pg_params))
+    return dsn
+
+
+def create_mysql_dsn(pg_params):
+    dsn = ('Driver=MySQL;Server={host};Port={port};'
+           'Database={database};User={user};'
+           'Password={password}'.format(**mysql_params))
+    return dsn
+
+
+@pytest.fixture
+def dsn(request, db):
+    if db == 'pg':
+        pg_params = request.getfuncargvalue('pg_params')
+        conf = create_pg_dsn(pg_params)
+    elif db == 'mysql':
+        mysql_params = request.getfuncargvalue('mysql_params')
+        conf = create_pg_dsn(mysql_params)
+    else:
+        conf = os.environ.get('DSN', 'Driver=SQLite;Database=sqlite.db')
     return conf
 
 
-@pytest.fixture
+@pytest.yield_fixture
 def conn(request, loop, dsn):
-    return _connect(loop, dsn, request.addfinalizer)
+    connection = loop.run_until_complete(_connect(loop, dsn))
+    yield connection
+    loop.run_until_complete(connection.close())
 
 
 @pytest.fixture

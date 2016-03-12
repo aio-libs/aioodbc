@@ -13,11 +13,11 @@ addons:
 
 before_install:
     - sudo apt-get update
-    - sudo apt-get install unixODBC
-    - sudo apt-get install unixODBC-dev
-    - sudo apt-get install odbc-postgresql
-    - sudo apt-get install libsqliteodbc
-    - sudo apt-get install libmyodbc
+    - sudo apt-get install -y unixODBC
+    - sudo apt-get install -y unixODBC-dev
+    - sudo apt-get install -y odbc-postgresql
+    - sudo apt-get install -y libsqliteodbc
+    - sudo apt-get install -y libmyodbc
     - sudo odbcinst -i -d -f /usr/share/libmyodbc/odbcinst.ini
     - sudo cat /etc/odbcinst.ini
     - sudo cat /etc/odbc.ini

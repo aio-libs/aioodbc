@@ -1,10 +1,24 @@
 import asyncio
 import os
 import socket
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 
-import pytest
 import aioodbc
+import pytest
+
+from docker import Client as DockerClient
+
+
+@pytest.fixture(scope='session')
+def session_id():
+    """Unique session identifier, random string."""
+    return str(uuid.uuid4())
+
+
+@pytest.fixture(scope='session')
+def docker():
+    return DockerClient(version='auto')
 
 
 @pytest.fixture(scope='session')

@@ -100,7 +100,7 @@ def mysql_params(mysql_server):
 
 @pytest.yield_fixture(scope='session')
 def mysql_server(unused_port, docker, session_id):
-    mysql_tag = '5.5'
+    mysql_tag = '5.6'
     docker.pull('mysql:{}'.format(mysql_tag))
     port = unused_port()
     container = docker.create_container(
@@ -110,7 +110,8 @@ def mysql_server(unused_port, docker, session_id):
         detach=True,
         environment={'MYSQL_USER': 'aioodbc',
                      'MYSQL_PASSWORD': 'mysecretpassword',
-                     'MYSQL_ROOT_PASSWORD': ''},
+                     'MYSQL_DATABASE': 'aioodbc',
+                     'MYSQL_ROOT_PASSWORD': 'mysecretpassword'},
         host_config=docker.create_host_config(port_bindings={3306: port})
     )
     docker.start(container=container['Id'])
@@ -120,10 +121,7 @@ def mysql_server(unused_port, docker, session_id):
                         host='127.0.0.1',
                         port=port)
     delay = 0.001
-    dsn = ('Driver=MySQL;Server={host};Port={port};'
-           'Database={database};User={user};'
-           'Password={password}'.format(**mysql_params))
-
+    dsn = create_mysql_dsn(mysql_params)
     for i in range(100):
         try:
             conn = pyodbc.connect(dsn)
@@ -147,7 +145,7 @@ def mysql_server(unused_port, docker, session_id):
 
 
 @pytest.fixture
-def executor(request, pg_server):
+def executor(request):
     executor = ThreadPoolExecutor(max_workers=3)
 
     def fin():
@@ -174,7 +172,7 @@ def create_pg_dsn(pg_params):
     return dsn
 
 
-def create_mysql_dsn(pg_params):
+def create_mysql_dsn(mysql_params):
     dsn = ('Driver=MySQL;Server={host};Port={port};'
            'Database={database};User={user};'
            'Password={password}'.format(**mysql_params))
@@ -188,7 +186,7 @@ def dsn(request, db):
         conf = create_pg_dsn(pg_params)
     elif db == 'mysql':
         mysql_params = request.getfuncargvalue('mysql_params')
-        conf = create_pg_dsn(mysql_params)
+        conf = create_mysql_dsn(mysql_params)
     else:
         conf = os.environ.get('DSN', 'Driver=SQLite;Database=sqlite.db')
     return conf

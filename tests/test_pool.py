@@ -24,7 +24,7 @@ def test_create_pool2(loop, pool_maker, dsn):
     assert 10 == pool.freesize
 
 
-@pytest.mark.parametrize('dsn', pytest.dsn_list)
+@pytest.mark.parametrize('db', pytest.db_list)
 def test_acquire(loop, pool):
     async def go():
         conn = await pool.acquire()
@@ -415,7 +415,7 @@ def test_close_with_acquired_connections(loop, pool_maker, dsn):
     loop.run_until_complete(go())
 
 
-@pytest.mark.parametrize('dsn', pytest.dsn_list)
+@pytest.mark.parametrize('db', pytest.db_list)
 def test_pool_with_executor(loop, pool_maker, dsn, executor):
     pool = pool_maker(loop, executor=executor, dsn=dsn, minsize=2, maxsize=2)
 
@@ -439,7 +439,7 @@ def test_pool_with_executor(loop, pool_maker, dsn, executor):
     loop.run_until_complete(go())
 
 
-@pytest.mark.parametrize('dsn', pytest.dsn_list)
+@pytest.mark.parametrize('db', pytest.db_list)
 def test_pool_context_manager(loop, pool):
     async def go():
         assert not pool.closed
@@ -450,7 +450,7 @@ def test_pool_context_manager(loop, pool):
     loop.run_until_complete(go())
 
 
-@pytest.mark.parametrize('dsn', pytest.dsn_list)
+@pytest.mark.parametrize('db', pytest.db_list)
 def test_pool_context_manager2(loop, pool):
     async def go():
         async with pool.acquire() as conn:
@@ -463,7 +463,7 @@ def test_pool_context_manager2(loop, pool):
     loop.run_until_complete(go())
 
 
-@pytest.mark.parametrize('dsn', pytest.dsn_list)
+@pytest.mark.parametrize('db', pytest.db_list)
 def test_all_context_managets(dsn, loop):
     async def go():
         async with aioodbc.create_pool(dsn=dsn, loop=loop) as pool:

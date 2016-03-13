@@ -4,8 +4,7 @@ FLAGS=
 
 
 flake:
-	pyflakes aioodbc tests examples setup.py
-	pep8 aioodbc tests examples setup.py
+	flake8 aioodbc tests examples setup.py
 
 test: flake
 	py.test -s $(FLAGS) ./tests/

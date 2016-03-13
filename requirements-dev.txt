@@ -1,9 +1,11 @@
-pep8
-pyflakes
-pytest
-pytest-cov
 coverage
-sphinx
-pyodbc
+docker-py
+flake8
 ipdb
 ipython
+pyodbc
+pytest
+pytest-cov
+pytest-sugar
+sphinx
+sphinxcontrib-asyncio

@@ -1,4 +1,8 @@
+sudo: required
 language: python
+
+services:
+  - docker
 
 python:
     - 3.5
@@ -9,22 +13,14 @@ addons:
 
 before_install:
     - sudo apt-get update
-    - sudo apt-get install unixODBC
-    - sudo apt-get install unixODBC-dev
-    - sudo apt-get install odbc-postgresql
-    - sudo apt-get install libsqliteodbc
-    - sudo apt-get install libmyodbc
+    - sudo apt-get install -y unixODBC
+    - sudo apt-get install -y unixODBC-dev
+    - sudo apt-get install -y odbc-postgresql
+    - sudo apt-get install -y libsqliteodbc
+    - sudo apt-get install -y libmyodbc
     - sudo odbcinst -i -d -f /usr/share/libmyodbc/odbcinst.ini
     - sudo cat /etc/odbcinst.ini
     - sudo cat /etc/odbc.ini
-
-
-before_script:
-  - psql -c "create database aioodbc;" -U postgres
-  - psql -c "create user aioodbc with password 'passwd';" -U postgres
-  - psql -c "grant all privileges on database aioodbc to aioodbc;" -U postgres
-  - "mysql -e 'SELECT VERSION()'"
-  - "mysql -e 'DROP DATABASE IF EXISTS aioodbc; create database aioodbc DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;'"
 
 env:
     matrix:
@@ -38,6 +34,13 @@ install:
 
 script:
     - make cov
+
+cache:
+  directories:
+  - $HOME/.cache/pip
+
+before_cache:
+  - rm -f $HOME/.cache/pip/log/debug.log
 
 after_success:
     - coveralls

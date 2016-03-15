@@ -1,5 +1,9 @@
 Changes
 -------
+0.0.3 (2016-01-01)
+^^^^^^^^^^^^^^^^^^
+* Dockerize tests, now we can add more DBs to tests using docker.
+
 
 0.0.2 (2016-01-01)
 ^^^^^^^^^^^^^^^^^^

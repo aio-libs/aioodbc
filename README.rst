@@ -129,6 +129,25 @@ You can install it using package manager from your OS distribution::
       $ sudo apt-get install unixodbc
       $ sudo apt-get install unixodbc-dev
 
+Run tests
+---------
+
+For testing purposes you need to install docker_ and development
+requirements::
+
+    $ pip install -r requirements-dev.txt
+
+Then just execute::
+
+    $ make test
+
+Or if you want to run only one particular test::
+
+    $ py.test tests/test_connection.py -k test_basic_cursor
+
+Test will automatically pull images and build containers with
+required databases.
+
 
 Other SQL Drivers
 -----------------
@@ -153,3 +172,4 @@ Requirements
 .. _PEP492: https://www.python.org/dev/peps/pep-0492/
 .. _unixODBC: http://www.unixodbc.org/
 .. _threads: http://techspot.zzzeek.org/2015/02/15/asynchronous-python-and-databases/
+.. _docker: https://docs.docker.com/engine/installation/

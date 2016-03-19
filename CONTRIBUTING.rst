@@ -32,7 +32,7 @@ In order to make a clone of the GitHub_ repo: open the link and press the
 
 I hope everybody knows how to work with git and github nowadays :)
 
-Workflow is pretty straightforward:
+Work flow is pretty straightforward:
 
   1. Clone the GitHub_ repo
 
@@ -47,7 +47,8 @@ Workflow is pretty straightforward:
 Preconditions for running aioodbc test suite
 ---------------------------------------------
 
-We expect you to use a python virtual environment to run our tests.
+We expect you to use a python virtual environment and docker_ to run
+our tests.
 
 There are several ways to make a virtual environment.
 
@@ -79,9 +80,11 @@ We also recommend to install *ipdb* but it's on your own::
 
 Congratulations, you are ready to run the test suite
 
+
 Install database
 ----------------
-TODO
+You do not need to install any databases, docker_ will pull images and create
+containers for you automatically, after the tests, containers will be removed.
 
 
 Run aioodbc test suite
@@ -91,6 +94,10 @@ After all the preconditions are met you can run tests typing the next
 command::
 
    $ make test
+
+Or if you want to run only one particular test::
+
+    $ py.test tests/test_connection.py -k test_basic_cursor
 
 The command at first will run the static and style checkers (sorry, we don't
 accept pull requests with `pep8` or `pyflakes` errors).
@@ -141,3 +148,4 @@ After finishing all steps make a GitHub_ Pull Request, thanks.
 
 .. _unixODBC: http://www.unixodbc.org/
 .. _GitHub: https://github.com/aio-libs/aioodbc
+.. _docker: https://docs.docker.com/engine/installation/

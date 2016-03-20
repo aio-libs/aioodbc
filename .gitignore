@@ -62,3 +62,6 @@ target/
 *.swp
 .ropeproject
 
+# Project
+tags
+ci/aioodbc

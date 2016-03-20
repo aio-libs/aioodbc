@@ -34,4 +34,11 @@ doc:
 	make -C docs html
 	@echo "open file://`pwd`/docs/_build/html/index.html"
 
+docker_build:
+	make -C ci build
+docker_test:
+	docker run -v /$$(pwd):/aioodbc -v /var/run/docker.sock:/var/run/docker.sock --name aioodbc-test-$$(date +%s) --net=host -it aioodbc:latest py.test -sv tests $(FLAGS)
+
+docker_clean:
+
 .PHONY: all flake test vtest cov clean doc

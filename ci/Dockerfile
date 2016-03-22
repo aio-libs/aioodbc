@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
     dpkg -i libsqliteodbc_0.9992-0.1_amd64.deb && \
     apt-get autoremove -y
 
-ADD aioodbc /aioodbc
+ADD / /aioodbc
 RUN pip install -e /aioodbc/
 RUN pip install -Ur /aioodbc/requirements-dev.txt
 RUN rm -rf /aioodbc

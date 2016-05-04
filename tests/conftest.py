@@ -110,7 +110,7 @@ def mysql_params(mysql_server):
 
 @pytest.yield_fixture(scope='session')
 def mysql_server(unused_port, docker, session_id):
-    mysql_tag = '5.6'
+    mysql_tag = '5.7'
     docker.pull('mysql:{}'.format(mysql_tag))
     port = unused_port()
     container = docker.create_container(

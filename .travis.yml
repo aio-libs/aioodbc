@@ -14,7 +14,6 @@ addons:
 before_install:
     - sudo apt-get update
     - sudo apt-get install -y build-essential
-    - sudo apt-get install -y cython
     - sudo apt-get install -y autotools-dev
     - sudo apt-get install -y unixODBC
     - sudo apt-get install -y unixODBC-dev
@@ -31,6 +30,7 @@ env:
         - PYTHONASYNCIODEBUG=
 
 install:
+    - pip install cython
     - pip install -Ur requirements-dev.txt
     - pip install -e .
     - pip install coveralls

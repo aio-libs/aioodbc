@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 import aioodbc
 import pyodbc
 import pytest
+import uvloop
 
 from docker import Client as DockerClient
 
@@ -32,11 +33,20 @@ def unused_port():
     return f
 
 
+def pytest_generate_tests(metafunc):
+    if 'loop_type' in metafunc.fixturenames:
+        loop_type = ['default', 'uvloop']
+        metafunc.parametrize("loop_type", loop_type)
+
+
 @pytest.fixture
-def loop(request):
+def loop(request, loop_type):
     old_loop = asyncio.get_event_loop()
-    loop = asyncio.new_event_loop()
     asyncio.set_event_loop(None)
+    if loop_type == 'uvloop':
+        loop = uvloop.new_event_loop()
+    else:
+        loop = asyncio.new_event_loop()
 
     def fin():
         loop.close()
@@ -100,7 +110,7 @@ def mysql_params(mysql_server):
 
 @pytest.yield_fixture(scope='session')
 def mysql_server(unused_port, docker, session_id):
-    mysql_tag = '5.6'
+    mysql_tag = '5.7'
     docker.pull('mysql:{}'.format(mysql_tag))
     port = unused_port()
     container = docker.create_container(

@@ -39,7 +39,7 @@ install:
     - pip install coveralls
 
 script:
-    - make cov
+    - make docker_cov
 
 cache:
   directories:

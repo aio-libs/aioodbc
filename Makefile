@@ -42,8 +42,6 @@ docker_test:
 
 docker_cov:
 	docker run -v /$$(pwd):/aioodbc -v /var/run/docker.sock:/var/run/docker.sock --name aioodbc-test-$$(date +%s) --net=host -it jettify/aioodbc-test:latest py.test -sv --cov-report term --cov-report html --cov tests $(FLAGS)
-	docker run -v /$$(pwd):/aioodbc -v /var/run/docker.sock:/var/run/docker.sock --name aioodbc-test-$$(date +%s) --net=host -it jettify/aioodbc-test:latest coveralls
-
 
 docker_clean:
 

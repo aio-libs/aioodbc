@@ -21,7 +21,16 @@ def session_id():
 
 @pytest.fixture(scope='session')
 def docker():
-    return DockerClient(version='auto')
+    if os.environ.get('DOCKER_MACHINE_IP') is not None:
+        docker = DockerClient.from_env(assert_hostname=False)
+    else:
+        docker = DockerClient(version='auto')
+    return docker
+
+
+@pytest.fixture(scope='session')
+def host():
+    return os.environ.get('DOCKER_MACHINE_IP', '127.0.0.1')
 
 
 @pytest.fixture(scope='session')
@@ -62,7 +71,7 @@ def pg_params(pg_server):
 
 
 @pytest.yield_fixture(scope='session')
-def pg_server(unused_port, docker, session_id):
+def pg_server(host, unused_port, docker, session_id):
     pg_tag = '9.5'
     docker.pull('postgres:{}'.format(pg_tag))
     port = unused_port()
@@ -77,7 +86,7 @@ def pg_server(unused_port, docker, session_id):
     pg_params = dict(database='postgres',
                      user='postgres',
                      password='mysecretpassword',
-                     host='127.0.0.1',
+                     host=host,
                      port=port)
     delay = 0.001
     dsn = create_pg_dsn(pg_params)
@@ -109,7 +118,7 @@ def mysql_params(mysql_server):
 
 
 @pytest.yield_fixture(scope='session')
-def mysql_server(unused_port, docker, session_id):
+def mysql_server(host, unused_port, docker, session_id):
     mysql_tag = '5.7'
     docker.pull('mysql:{}'.format(mysql_tag))
     port = unused_port()
@@ -128,7 +137,7 @@ def mysql_server(unused_port, docker, session_id):
     mysql_params = dict(database='aioodbc',
                         user='aioodbc',
                         password='mysecretpassword',
-                        host='127.0.0.1',
+                        host=host,
                         port=port)
     delay = 0.001
     dsn = create_mysql_dsn(mysql_params)

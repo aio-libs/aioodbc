@@ -11,6 +11,8 @@ feel. *aioodbc* was written `async/await` syntax (PEP492_) thus not
 compatible with Python older then 3.5. Internally *aioodbc* employ threads
 to avoid blocking the event loop, btw threads_ are not that bad as you think :)
 
+**aioodbc** fully compatible and tested with uvloop_. Take a look on a test
+suite, all tests are executed with both: default and uvloop_.
 
 Supported Databases
 -------------------
@@ -161,11 +163,13 @@ Requirements
 
 * Python_ 3.5+
 * pyodbc_
+* uvloop_ (optional)
 
 
 .. _Python: https://www.python.org
 .. _asyncio: http://docs.python.org/3.4/library/asyncio.html
 .. _pyodbc: https://github.com/mkleehammer/pyodbc
+.. _uvloop: https://github.com/MagicStack/uvloop
 .. _ODBC: https://en.wikipedia.org/wiki/Open_Database_Connectivity
 .. _aiopg: https://github.com/aio-libs/aiopg
 .. _aiomysql: https://github.com/aio-libs/aiomysql

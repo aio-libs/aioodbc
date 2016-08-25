@@ -1,8 +1,10 @@
 Changes
 -------
-0.0.3 (2016-01-01)
+0.0.3 (2016-07-05)
 ^^^^^^^^^^^^^^^^^^
-* Dockerize tests, now we can add more DBs to tests using docker.
+* Dockerize tests, now we can add more DBs to tests using docker #15, #17, #19
+
+* Test suite executed with both default asyncio and uvloop #18
 
 
 0.0.2 (2016-01-01)

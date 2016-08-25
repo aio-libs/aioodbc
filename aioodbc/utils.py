@@ -1,4 +1,8 @@
+import sys
 from collections.abc import Coroutine
+
+
+PY_352 = sys.version_info >= (3, 5, 2)
 
 
 class _ContextManager(Coroutine):

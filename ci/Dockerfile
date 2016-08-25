@@ -1,8 +1,8 @@
-FROM python:3.5.1-slim
+FROM python:3.5.2-slim
 RUN apt-get update && apt-get install -y \
     unixODBC wget g++ unixodbc-dev odbc-postgresql libmyodbc libsqlite-dev libtool build-essential && \
     odbcinst -i -d -f /usr/share/libmyodbc/odbcinst.ini && \
-    wget http://http.us.debian.org/debian/pool/main/s/sqliteodbc/libsqliteodbc_0.9992-0.1_amd64.deb && \
+    wget http://archive.ubuntu.com/ubuntu/pool/universe/s/sqliteodbc/libsqliteodbc_0.9992-0.1_amd64.deb && \
     dpkg -i libsqliteodbc_0.9992-0.1_amd64.deb
 
 ADD / /aioodbc

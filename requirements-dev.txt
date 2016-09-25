@@ -6,7 +6,7 @@ ipython
 pyodbc
 pytest
 pytest-cov
-pytest-sugar
+pytest-sugar==0.7.1
 sphinx
 sphinxcontrib-asyncio==0.2.0
 uvloop==0.5.3

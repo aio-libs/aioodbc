@@ -31,7 +31,7 @@ def read_version():
             raise RuntimeError('Cannot find version in aioodbc/__init__.py')
 
 classifiers = [
-    'License :: OSI Approved :: MIT License',
+    'License :: OSI Approved :: Apache Software License',
     'Intended Audience :: Developers',
     'Programming Language :: Python :: 3',
     'Programming Language :: Python :: 3.5',

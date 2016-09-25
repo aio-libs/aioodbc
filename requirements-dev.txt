@@ -8,5 +8,5 @@ pytest
 pytest-cov
 pytest-sugar
 sphinx
-sphinxcontrib-asyncio
+sphinxcontrib-asyncio==0.2.0
 uvloop==0.5.3

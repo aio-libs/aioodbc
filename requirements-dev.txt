@@ -1,6 +1,6 @@
 coverage
 docker-py
-flake8
+flake8==3.0.4
 ipdb==0.10.1
 ipython
 pyodbc

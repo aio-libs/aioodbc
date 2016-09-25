@@ -1,7 +1,7 @@
 coverage
 docker-py
 flake8
-ipdb
+ipdb==0.10.1
 ipython
 pyodbc
 pytest

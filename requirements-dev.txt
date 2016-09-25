@@ -7,6 +7,6 @@ pyodbc==3.0.10
 pytest
 pytest-cov
 pytest-sugar==0.7.1
-sphinx
+sphinx==1.4.6
 sphinxcontrib-asyncio==0.2.0
 uvloop==0.5.3

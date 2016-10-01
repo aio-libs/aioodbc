@@ -16,7 +16,7 @@ env:
         - PYTHONASYNCIODEBUG=
 
 install:
-    - pip install coveralls
+    - pip install codecov
 
 script:
     - make docker_build
@@ -30,4 +30,4 @@ before_cache:
   - rm -f $HOME/.cache/pip/log/debug.log
 
 after_success:
-    - coveralls
+    - codecov

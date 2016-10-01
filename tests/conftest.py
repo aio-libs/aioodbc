@@ -90,6 +90,7 @@ def pg_server(host, unused_port, docker, session_id):
                      port=port)
     delay = 0.001
     dsn = create_pg_dsn(pg_params)
+    last_error = None
     for i in range(100):
         try:
             conn = pyodbc.connect(dsn)
@@ -99,11 +100,11 @@ def pg_server(host, unused_port, docker, session_id):
             conn.close()
             break
         except pyodbc.Error as e:
-
+            last_error = e
             time.sleep(delay)
             delay *= 2
     else:
-        pytest.fail("Cannot start postgres server: {}".format(e))
+        pytest.fail("Cannot start postgres server: {}".format(last_error))
     container['port'] = port
     container['pg_params'] = pg_params
     yield container
@@ -141,6 +142,7 @@ def mysql_server(host, unused_port, docker, session_id):
                         port=port)
     delay = 0.001
     dsn = create_mysql_dsn(mysql_params)
+    last_error = None
     for i in range(100):
         try:
             conn = pyodbc.connect(dsn)
@@ -150,11 +152,11 @@ def mysql_server(host, unused_port, docker, session_id):
             conn.close()
             break
         except pyodbc.Error as e:
-
+            last_error = e
             time.sleep(delay)
             delay *= 2
     else:
-        pytest.fail("Cannot start postgres server: {}".format(e))
+        pytest.fail("Cannot start postgres server: {}".format(last_error))
     container['port'] = port
     container['mysql_params'] = mysql_params
     yield container

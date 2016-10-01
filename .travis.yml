@@ -16,6 +16,9 @@ env:
         - PYTHONASYNCIODEBUG=
 
 install:
+    - pip install coverage
+    - pip install pytest
+    - pip install pytest-cov
     - pip install codecov
 
 script:

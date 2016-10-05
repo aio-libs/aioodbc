@@ -9,7 +9,8 @@ aioodbc
 with asyncio_. It is rely on awesome pyodbc_ library, preserve same look and
 feel. *aioodbc* was written `async/await` syntax (PEP492_) thus not
 compatible with Python older then 3.5. Internally *aioodbc* employ threads
-to avoid blocking the event loop, btw threads_ are not that bad as you think :)
+to avoid blocking the event loop, btw threads_ are not that bad as you think,
+other drivers like motor_ use same aproach.
 
 **aioodbc** fully compatible and tested with uvloop_. Take a look on a test
 suite, all tests are executed with both: default and uvloop_.
@@ -177,3 +178,4 @@ Requirements
 .. _unixODBC: http://www.unixodbc.org/
 .. _threads: http://techspot.zzzeek.org/2015/02/15/asynchronous-python-and-databases/
 .. _docker: https://docs.docker.com/engine/installation/
+.. _motor: https://emptysqua.re/blog/motor-0-7-beta/

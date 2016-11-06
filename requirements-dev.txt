@@ -9,4 +9,4 @@ pytest-cov==2.4.0
 pytest-sugar==0.7.1
 sphinx==1.4.8
 sphinxcontrib-asyncio==0.2.0
-uvloop==0.5.4
+uvloop==0.6.0

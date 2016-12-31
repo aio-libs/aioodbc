@@ -10,7 +10,7 @@ with asyncio_. It is rely on awesome pyodbc_ library, preserve same look and
 feel. *aioodbc* was written `async/await` syntax (PEP492_) thus not
 compatible with Python older then 3.5. Internally *aioodbc* employ threads
 to avoid blocking the event loop, btw threads_ are not that bad as you think,
-other drivers like motor_ use same aproach.
+other drivers like motor_ use same approach.
 
 **aioodbc** fully compatible and tested with uvloop_. Take a look on a test
 suite, all tests are executed with both: default and uvloop_.
@@ -122,15 +122,18 @@ protocol:
 Installation
 ------------
 
+In Linux environment pyodbc_ (hence *aioodbc*) requires unixODBC_ library.
+You can install it using package manager from your OS distribution, for example::
+
+      $ sudo apt-get install unixodbc
+      $ sudo apt-get install unixodbc-dev
+
+then::
+
 .. code::
 
    pip install aioodbc
 
-In Linux environment pyodbc_ (hence *aioodbc*) requires unixODBC_ library.
-You can install it using package manager from your OS distribution::
-
-      $ sudo apt-get install unixodbc
-      $ sudo apt-get install unixodbc-dev
 
 Run tests
 ---------
@@ -140,13 +143,14 @@ requirements::
 
     $ pip install -r requirements-dev.txt
 
+In order to simplify development all tests and environment created inside
+separate docker image, you do not need to install any database of system level
+libraries, everything happens automatically inside container.
+
 Then just execute::
 
-    $ make test
-
-Or if you want to run only one particular test::
-
-    $ py.test tests/test_connection.py -k test_basic_cursor
+    $ make docker_build
+    $ make docker_test
 
 Test will automatically pull images and build containers with
 required databases.

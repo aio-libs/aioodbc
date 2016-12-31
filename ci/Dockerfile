@@ -8,8 +8,7 @@ RUN apt-get update && apt-get install -y \
 ADD / /aioodbc
 RUN pip install -e /aioodbc/ && \
     pip install -U pip setuptools && \
-    pip install -Ur /aioodbc/requirements-dev.txt && \
-    pip install https://bitbucket.org/ned/coveragepy/get/coverage-4.1b2.zip
+    pip install -r /aioodbc/requirements-dev.txt
 
 RUN rm -rf /aioodbc && \
     rm libsqliteodbc_0.9992-0.1_amd64.deb && \

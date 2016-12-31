@@ -62,13 +62,15 @@ async def test_getinfo(conn):
     assert data in (pg, sqlite, mysql)
 
 
-@pytest.mark.parametrize('db', ['sqlite'])
+@pytest.mark.parametrize('db', ['mysql'])
 @pytest.mark.run_loop
 async def test_output_conversion(conn, table):
     def convert(value):
-        # `value` will be a string.  We'll simply add an X at the
+        # value will be a string.  We'll simply add an X at the
         # beginning at the end.
-        return 'X' + value + 'X'
+        if isinstance(value, str):
+            return 'X' + value + 'X'
+        return b'X' + value + b'X'
 
     await conn.add_output_converter(pyodbc.SQL_VARCHAR, convert)
     cur = await conn.cursor()
@@ -77,7 +79,7 @@ async def test_output_conversion(conn, table):
     await cur.execute("SELECT v FROM t1 WHERE n=3;")
     (value,) = await cur.fetchone()
 
-    assert value == 'X123.45X'
+    assert value in (b'X123.45X', 'X123.45X')
 
     # Now clear the conversions and try again. There should be
     # no Xs this time.

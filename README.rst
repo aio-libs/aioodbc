@@ -130,8 +130,6 @@ You can install it using package manager from your OS distribution, for example:
 
 then::
 
-.. code::
-
    pip install aioodbc
 
 

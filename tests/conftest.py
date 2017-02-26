@@ -167,7 +167,7 @@ def mysql_server(host, unused_port, docker, session_id):
 
 @pytest.fixture
 def executor(request):
-    executor = ThreadPoolExecutor(max_workers=3)
+    executor = ThreadPoolExecutor(max_workers=1)
 
     def fin():
         executor.shutdown()
@@ -214,25 +214,30 @@ def dsn(request, db):
 
 
 @pytest.yield_fixture
-def conn(request, loop, dsn):
-    connection = loop.run_until_complete(_connect(loop, dsn))
+def conn(request, loop, dsn, connection_maker):
+    connection = loop.run_until_complete(connection_maker())
     yield connection
-    loop.run_until_complete(connection.close())
 
 
-@pytest.fixture
+@pytest.yield_fixture
 def connection_maker(request, loop, dsn):
-    _conn = None
+    cleanup = []
     async def f(**kw):
-        nonlocal _conn
-        _conn = await _connect(loop, dsn, **kw)
-        return _conn
+        if kw.get('executor', None) is None:
+            executor = ThreadPoolExecutor(max_workers=1)
+            kw['executor'] = executor
+        else:
+            executor = kw['executor']
 
-    def fin():
-        if _conn is not None:
-            loop.run_until_complete(_conn.close())
-    request.addfinalizer(fin)
-    return f
+        conn = await _connect(loop, dsn, **kw)
+        cleanup.append((conn, executor))
+        return conn
+
+    yield f
+
+    for conn, executor in cleanup:
+        loop.run_until_complete(conn.close())
+        executor.shutdown()
 
 
 @pytest.fixture

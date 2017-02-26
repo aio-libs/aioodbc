@@ -464,9 +464,10 @@ def test_pool_context_manager2(loop, pool):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-def test_all_context_managets(dsn, loop):
+def test_all_context_managets(dsn, loop, executor):
     async def go():
-        async with aioodbc.create_pool(dsn=dsn, loop=loop) as pool:
+        kw = dict(dsn=dsn, loop=loop, executor=executor)
+        async with aioodbc.create_pool(**kw) as pool:
             async with pool.acquire() as conn:
                 async with conn.cursor() as cur:
                     assert not pool.closed

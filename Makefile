@@ -44,5 +44,7 @@ docker_cov:
 	docker run -v /$$(pwd):/aioodbc -v /var/run/docker.sock:/var/run/docker.sock --name aioodbc-test-$$(date +%s) --net=host -it jettify/aioodbc-test:latest py.test -sv --cov-report term --cov-report html --cov tests --cov aioodbc $(FLAGS)
 
 docker_clean:
+	docker rm -v $$(docker ps -a -q)
+	docker volume rm $(docker volume ls -qf dangling=true)
 
 .PHONY: all flake test vtest cov clean doc

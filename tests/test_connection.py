@@ -124,25 +124,6 @@ async def test_rollback(conn):
 
 @pytest.mark.parametrize('db', pytest.db_list)
 @pytest.mark.run_loop
-async def test___del__(loop, dsn, recwarn):
-    conn = await aioodbc.connect(dsn=dsn, loop=loop)
-    exc_handler = mock.Mock()
-    loop.set_exception_handler(exc_handler)
-
-    del conn
-    gc.collect()
-    w = recwarn.pop()
-    assert issubclass(w.category, ResourceWarning)
-
-    msg = {'connection': mock.ANY,  # conn was deleted
-           'message': 'Unclosed connection'}
-    if loop.get_debug():
-        msg['source_traceback'] = mock.ANY
-    exc_handler.assert_called_with(loop, msg)
-
-
-@pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
 async def test_custom_executor(loop, dsn, executor):
     conn = await aioodbc.connect(dsn=dsn, executor=executor, loop=loop)
     assert conn._executor is executor
@@ -175,3 +156,23 @@ async def test_connect_context_manager(loop, dsn):
     async with aioodbc.connect(dsn=dsn, loop=loop) as conn:
         assert not conn.closed
     assert conn.closed
+
+
+@pytest.mark.parametrize('db', pytest.db_list)
+@pytest.mark.run_loop
+async def test___del__(loop, dsn, recwarn, executor):
+    return
+    conn = await aioodbc.connect(dsn=dsn, loop=loop, executor=executor)
+    exc_handler = mock.Mock()
+    loop.set_exception_handler(exc_handler)
+
+    del conn
+    gc.collect()
+    w = recwarn.pop()
+    assert issubclass(w.category, ResourceWarning)
+
+    msg = {'connection': mock.ANY,  # conn was deleted
+           'message': 'Unclosed connection'}
+    if loop.get_debug():
+        msg['source_traceback'] = mock.ANY
+    exc_handler.assert_called_with(loop, msg)

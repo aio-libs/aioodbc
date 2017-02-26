@@ -1,4 +1,5 @@
 import asyncio
+import gc
 import os
 import socket
 import time
@@ -48,7 +49,7 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize("loop_type", loop_type)
 
 
-@pytest.fixture
+@pytest.yield_fixture
 def loop(request, loop_type):
     old_loop = asyncio.get_event_loop()
     asyncio.set_event_loop(None)
@@ -57,12 +58,11 @@ def loop(request, loop_type):
     else:
         loop = asyncio.new_event_loop()
 
-    def fin():
-        loop.close()
-        asyncio.set_event_loop(old_loop)
+    yield loop
+    gc.collect()
+    loop.close()
+    asyncio.set_event_loop(old_loop)
 
-    request.addfinalizer(fin)
-    return loop
 
 
 @pytest.fixture

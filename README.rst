@@ -23,7 +23,7 @@ library have been tested with: **SQLite**, **MySQL** and **PostgreSQL**. Feel
 free to add other databases to the test suite by submitting PR.
 
 
-community
+Community
 ---------
 Mailing List: https://groups.google.com/forum/#!forum/aio-libs
 

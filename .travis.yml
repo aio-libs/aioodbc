@@ -34,3 +34,15 @@ before_cache:
 
 after_success:
     - codecov
+
+deploy:
+  provider: pypi
+  user: jettify
+  password:
+    secure: fA+uPZkrDP5ndVcGYL4pmcEees/LunVKlEtGvwozXnArIeH7GmqO62oblkqn+XqHAps4EabbgB/vi9e0111vm1a938B/Cf4H276mrZIOvOoSawDvgxHM8f1v5udF+Q7nl94rskvv2Y83emmdPd2iWhm/TyNket5dmcfmPoVOzPO2/mqZgmIoFHOg5OK/pKFMFbYdtiWxvlYqXkP6dZiJyn9zWMbz89pbHAA/FCEUPjW9LtJ6x2htP1hzEzUGhHW4KNdpreNOvO03LqskBXlfIzlTNxfDIXZ77JIEzmWV4WPffQ9Lekxt3odwMJqFjzl3YLwIDUIgLQZLcfM11COYMO98wDzuZzUUB+KCjmC9emFpVRGnlw6BB4KUnSUrgej/B/KO/YZdFGpmWiDElpJy8FlO3f53SmVMNEcqYXqTitRP4dyLEXxWwMiGRPH+p305U1YlmE2cNbjbD34zWH2fL7SF9fJ9g8eX9o4VQp40ijrUOKRT/7YC0VquG8r4DjqdXgse+MlhWb6zS8wzXiOhqZ7hYYoN9EIW3V8nKsobujYr5GZUDUPr+RcriU4F9exsDeS64oqi8LGHvp/69EPHVLc6m7wsk6UIeyu9s9MSVW+81hXcqEbmV9VZxh16PSBKuHz3krmgSmK39h8iAuhu+sV3bOmWmvmGxiWcuSTnCyM=
+  on:
+    tags: true
+    distributions: sdist bdist_wheel
+    repo: aio-libs/aioodbc
+    all_branches: true
+    python: 3.5

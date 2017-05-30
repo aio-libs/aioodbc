@@ -28,7 +28,7 @@ async def test_basic_cursor(conn):
 @pytest.mark.parametrize('db', pytest.db_list)
 @pytest.mark.asyncio
 async def test_default_loop(loop, dsn):
-    asyncio.set_loop(loop)
+    asyncio.set_event_loop(loop)
     conn = await aioodbc.connect(dsn=dsn)
     assert conn._loop is loop
     await conn.close()

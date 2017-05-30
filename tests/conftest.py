@@ -257,16 +257,16 @@ async def pool(loop, dsn):
 
 @pytest.fixture
 async def pool_maker(loop):
-    pool = None
+    pool_list = []
 
     async def make(loop, **kw):
-        nonlocal pool
         pool = await aioodbc.create_pool(loop=loop, **kw)
+        pool_list.append(pool)
         return pool
 
     yield make
 
-    if pool:
+    for pool in pool_list:
         pool.close()
         await pool.wait_closed()
 

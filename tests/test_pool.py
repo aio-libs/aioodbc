@@ -195,7 +195,7 @@ async def test_parallel_tasks_more(event_loop, pool_maker, dsn):
 
 
 @pytest.mark.asyncio
-def test_default_event_loop(event_loop, dsn):
+async def test_default_event_loop(event_loop, dsn):
     pool = await aioodbc.create_pool(dsn=dsn)
     assert pool._loop is event_loop
     pool.close()

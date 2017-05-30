@@ -16,7 +16,7 @@ def test_connect(loop, conn):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_basic_cursor(conn):
     cursor = await conn.cursor()
     sql = 'SELECT 10;'
@@ -26,8 +26,8 @@ async def test_basic_cursor(conn):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
-async def test_default_event_loop(loop, dsn):
+@pytest.mark.asyncio
+async def test_default_loop(loop, dsn):
     asyncio.set_event_loop(loop)
     conn = await aioodbc.connect(dsn=dsn)
     assert conn._loop is loop
@@ -35,7 +35,7 @@ async def test_default_event_loop(loop, dsn):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_close_twice(conn):
     await conn.close()
     await conn.close()
@@ -43,7 +43,7 @@ async def test_close_twice(conn):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_execute(conn):
     cur = await conn.execute('SELECT 10;')
     (resp,) = await cur.fetchone()
@@ -53,7 +53,7 @@ async def test_execute(conn):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_getinfo(conn):
     data = await conn.getinfo(pyodbc.SQL_CREATE_TABLE)
     pg = 14057
@@ -63,7 +63,7 @@ async def test_getinfo(conn):
 
 
 @pytest.mark.parametrize('db', ['mysql'])
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_output_conversion(conn, table):
     def convert(value):
         # value will be a string.  We'll simply add an X at the
@@ -91,14 +91,14 @@ async def test_output_conversion(conn, table):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_autocommit(loop, connection_maker):
     conn = await connection_maker(autocommit=True)
     assert conn.autocommit, True
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_rollback(conn):
     assert not conn.autocommit
 
@@ -123,7 +123,7 @@ async def test_rollback(conn):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_custom_executor(loop, dsn, executor):
     conn = await aioodbc.connect(dsn=dsn, executor=executor, loop=loop)
     assert conn._executor is executor
@@ -134,14 +134,14 @@ async def test_custom_executor(loop, dsn, executor):
     assert conn.closed
 
 
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_dataSources(loop, executor):
     data = await aioodbc.dataSources(loop, executor)
     assert isinstance(data, dict)
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_connection_simple_with(loop, conn):
     assert not conn.closed
     async with conn:
@@ -151,7 +151,7 @@ async def test_connection_simple_with(loop, conn):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_connect_context_manager(loop, dsn):
     async with aioodbc.connect(dsn=dsn, loop=loop) as conn:
         assert not conn.closed
@@ -159,7 +159,7 @@ async def test_connect_context_manager(loop, dsn):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test___del__(loop, dsn, recwarn, executor):
     return
     conn = await aioodbc.connect(dsn=dsn, loop=loop, executor=executor)

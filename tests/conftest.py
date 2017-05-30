@@ -11,7 +11,7 @@ import pyodbc
 import pytest
 import uvloop
 
-from docker import Client as DockerClient
+from aiodocker import Docker
 
 
 @pytest.fixture(scope='session')
@@ -20,13 +20,35 @@ def session_id():
     return str(uuid.uuid4())
 
 
+def pytest_generate_tests(metafunc):
+    if 'loop_type' in metafunc.fixturenames:
+        loop_type = ['default', 'uvloop']
+        metafunc.parametrize("loop_type", loop_type, scope='session')
+
+
 @pytest.fixture(scope='session')
-def docker():
-    if os.environ.get('DOCKER_MACHINE_IP') is not None:
-        docker = DockerClient.from_env(assert_hostname=False)
-    else:
-        docker = DockerClient(version='auto')
-    return docker
+def event_loop(loop_type):
+    if loop_type == 'default':
+        asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
+    elif loop_type == 'uvloop':
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    gc.collect()
+    loop.close()
+
+
+# alias
+@pytest.fixture(scope='session')
+def loop(event_loop):
+    return event_loop
+
+
+@pytest.fixture(scope='session')
+async def docker(loop):
+    client = Docker()
+    yield client
+    await client.close()
 
 
 @pytest.fixture(scope='session')
@@ -34,55 +56,31 @@ def host():
     return os.environ.get('DOCKER_MACHINE_IP', '127.0.0.1')
 
 
-@pytest.fixture(scope='session')
-def unused_port():
-    def f():
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind(('127.0.0.1', 0))
-            return s.getsockname()[1]
-    return f
-
-
-def pytest_generate_tests(metafunc):
-    if 'loop_type' in metafunc.fixturenames:
-        loop_type = ['default', 'uvloop']
-        metafunc.parametrize("loop_type", loop_type)
-
-
-@pytest.yield_fixture
-def loop(request, loop_type):
-    old_loop = asyncio.get_event_loop()
-    asyncio.set_event_loop(None)
-    if loop_type == 'uvloop':
-        loop = uvloop.new_event_loop()
-    else:
-        loop = asyncio.new_event_loop()
-
-    yield loop
-    gc.collect()
-    loop.close()
-    asyncio.set_event_loop(old_loop)
-
-
-
 @pytest.fixture
-def pg_params(pg_server):
-    return dict(**pg_server['pg_params'])
+async def pg_params(loop, pg_server):
+    server_info = (pg_server)['pg_params']
+    return dict(**server_info)
 
 
-@pytest.yield_fixture(scope='session')
-def pg_server(host, unused_port, docker, session_id):
+@pytest.fixture(scope='session')
+async def pg_server(loop, host, docker, session_id):
     pg_tag = '9.5'
-    docker.pull('postgres:{}'.format(pg_tag))
-    port = unused_port()
-    container = docker.create_container(
-        image='postgres:{}'.format(pg_tag),
-        name='aioodbc-test-server-{}-{}'.format(pg_tag, session_id),
-        ports=[5432],
-        detach=True,
-        host_config=docker.create_host_config(port_bindings={5432: port})
+
+    await docker.pull('postgres:{}'.format(pg_tag))
+    container = await docker.containers.create_or_replace(
+        name=f'aioodbc-test-server-{pg_tag}-{session_id}',
+        config={
+            'Image': f'postgres:{pg_tag}',
+            'AttachStdout': False,
+            'AttachStderr': False,
+            'HostConfig': {
+                'PublishAllPorts': True,
+            },
+        }
     )
-    docker.start(container=container['Id'])
+    await container.start()
+    port = (await container.port(5432))[0]['HostPort']
+
     pg_params = dict(database='postgres',
                      user='postgres',
                      password='mysecretpassword',
@@ -105,36 +103,44 @@ def pg_server(host, unused_port, docker, session_id):
             delay *= 2
     else:
         pytest.fail("Cannot start postgres server: {}".format(last_error))
-    container['port'] = port
-    container['pg_params'] = pg_params
-    yield container
 
-    docker.kill(container=container['Id'])
-    docker.remove_container(container['Id'])
+    container_info = {
+        'port': port,
+        'pg_params': pg_params,
+    }
+    yield container_info
+
+    await container.kill()
+    await container.delete(force=True)
 
 
 @pytest.fixture
-def mysql_params(mysql_server):
-    return dict(**mysql_server['mysql_params'])
+async def mysql_params(loop, mysql_server):
+    server_info = (mysql_server)['mysql_params']
+    return dict(**server_info)
 
 
-@pytest.yield_fixture(scope='session')
-def mysql_server(host, unused_port, docker, session_id):
+@pytest.fixture(scope='session')
+async def mysql_server(loop, host, docker, session_id):
     mysql_tag = '5.7'
-    docker.pull('mysql:{}'.format(mysql_tag))
-    port = unused_port()
-    container = docker.create_container(
-        image='mysql:{}'.format(mysql_tag),
-        name='aioodbc-test-server-{}-{}'.format(mysql_tag, session_id),
-        ports=[3306],
-        detach=True,
-        environment={'MYSQL_USER': 'aioodbc',
-                     'MYSQL_PASSWORD': 'mysecretpassword',
-                     'MYSQL_DATABASE': 'aioodbc',
-                     'MYSQL_ROOT_PASSWORD': 'mysecretpassword'},
-        host_config=docker.create_host_config(port_bindings={3306: port})
+    await docker.pull('mysql:{}'.format(mysql_tag))
+    container = await docker.containers.create_or_replace(
+        name=f'aioodbc-test-server-{mysql_tag}-{session_id}',
+        config={
+            'Image': 'mysql:{}'.format(mysql_tag),
+            'AttachStdout': False,
+            'AttachStderr': False,
+            'Env': ['MYSQL_USER=aioodbc',
+                    'MYSQL_PASSWORD=mysecretpassword',
+                    'MYSQL_DATABASE=aioodbc',
+                    'MYSQL_ROOT_PASSWORD=mysecretpassword'],
+            'HostConfig': {
+                'PublishAllPorts': True,
+            },
+        }
     )
-    docker.start(container=container['Id'])
+    await container.start()
+    port = (await container.port(3306))[0]['HostPort']
     mysql_params = dict(database='aioodbc',
                         user='aioodbc',
                         password='mysecretpassword',
@@ -156,24 +162,22 @@ def mysql_server(host, unused_port, docker, session_id):
             time.sleep(delay)
             delay *= 2
     else:
-        pytest.fail("Cannot start postgres server: {}".format(last_error))
-    container['port'] = port
-    container['mysql_params'] = mysql_params
-    yield container
+        pytest.fail("Cannot start mysql server: {}".format(last_error))
+    container_info = {
+        'port': port,
+        'mysql_params': mysql_params,
+    }
+    yield container_info
 
-    docker.kill(container=container['Id'])
-    docker.remove_container(container['Id'])
+    await container.kill()
+    await container.delete(force=True)
 
 
 @pytest.fixture
-def executor(request):
+def executor():
     executor = ThreadPoolExecutor(max_workers=1)
-
-    def fin():
-        executor.shutdown()
-
-    request.addfinalizer(fin)
-    return executor
+    yield executor
+    executor.shutdown()
 
 
 def pytest_namespace():
@@ -203,127 +207,83 @@ def create_mysql_dsn(mysql_params):
 @pytest.fixture
 def dsn(request, db):
     if db == 'pg':
-        pg_params = request.getfuncargvalue('pg_params')
+        pg_params = request.getfixturevalue('pg_params')
         conf = create_pg_dsn(pg_params)
     elif db == 'mysql':
-        mysql_params = request.getfuncargvalue('mysql_params')
+        mysql_params = request.getfixturevalue('mysql_params')
         conf = create_mysql_dsn(mysql_params)
     else:
         conf = os.environ.get('DSN', 'Driver=SQLite;Database=sqlite.db')
     return conf
 
 
-@pytest.yield_fixture
-def conn(request, loop, dsn, connection_maker):
-    connection = loop.run_until_complete(connection_maker())
+@pytest.fixture
+async def conn(loop, dsn, connection_maker):
+    connection = await connection_maker()
     yield connection
 
 
-@pytest.yield_fixture
-def connection_maker(request, loop, dsn):
+@pytest.fixture
+async def connection_maker(loop, dsn):
     cleanup = []
-    async def f(**kw):
+
+    async def make(**kw):
         if kw.get('executor', None) is None:
             executor = ThreadPoolExecutor(max_workers=1)
             kw['executor'] = executor
         else:
             executor = kw['executor']
 
-        conn = await _connect(loop, dsn, **kw)
+        conn = await aioodbc.connect(dsn=dsn, loop=loop, **kw)
         cleanup.append((conn, executor))
         return conn
 
-    yield f
+    yield make
 
     for conn, executor in cleanup:
-        loop.run_until_complete(conn.close())
+        await conn.close()
         executor.shutdown()
 
 
 @pytest.fixture
-def pool_maker(request):
-    def f(loop, **kw):
-        return _connect_pool(loop, request.addfinalizer, **kw)
-    return f
+async def pool(loop, dsn):
+    pool = await aioodbc.create_pool(loop=loop, dsn=dsn)
+
+    yield pool
+
+    pool.close()
+    await pool.wait_closed()
 
 
-def _connect_pool(loop, finalizer, **kw):
-    pool = loop.run_until_complete(aioodbc.create_pool(loop=loop, **kw))
+@pytest.fixture
+async def pool_maker(loop):
+    pool = None
 
-    def fin():
+    async def make(loop, **kw):
+        nonlocal pool
+        pool = await aioodbc.create_pool(loop=loop, **kw)
+        return pool
+
+    yield make
+
+    if pool:
         pool.close()
-        loop.run_until_complete(pool.wait_closed())
-
-    finalizer(fin)
-    return pool
+        await pool.wait_closed()
 
 
 @pytest.fixture
-def pool(request, loop, dsn):
-    return _connect_pool(loop, request.addfinalizer, dsn=dsn)
+async def table(loop, conn):
 
+    cur = await conn.cursor()
+    await cur.execute("CREATE TABLE t1(n INT, v VARCHAR(10));")
+    await cur.execute("INSERT INTO t1 VALUES (1, '123.45');")
+    await cur.execute("INSERT INTO t1 VALUES (2, 'foo');")
+    await conn.commit()
+    await cur.close()
 
-async def _connect(loop, dsn, **kw):
-    conn = await aioodbc.connect(dsn=dsn, loop=loop, **kw)
-    return conn
+    yield 't1'
 
-
-@pytest.mark.tryfirst
-def pytest_pycollect_makeitem(collector, name, obj):
-    if collector.funcnamefilter(name):
-        item = pytest.Function(name, parent=collector)
-        if 'run_loop' in item.keywords:
-            return list(collector._genfunctions(name, obj))
-
-
-@pytest.mark.tryfirst
-def pytest_pyfunc_call(pyfuncitem):
-    """
-    Run asyncio marked test functions in an event loop instead of a normal
-    function call.
-    """
-    if 'run_loop' in pyfuncitem.keywords:
-        funcargs = pyfuncitem.funcargs
-        loop = funcargs['loop']
-        testargs = {arg: funcargs[arg]
-                    for arg in pyfuncitem._fixtureinfo.argnames}
-
-        if not asyncio.iscoroutinefunction(pyfuncitem.obj):
-            func = asyncio.coroutine(pyfuncitem.obj)
-        else:
-            func = pyfuncitem.obj
-        loop.run_until_complete(func(**testargs))
-        return True
-
-
-def pytest_runtest_setup(item):
-    if 'run_loop' in item.keywords and 'loop' not in item.fixturenames:
-        # inject an event loop fixture for all async tests
-        item.fixturenames.append('loop')
-
-
-@pytest.fixture
-def table(request, conn, loop):
-
-    async def go():
-        cur = await conn.cursor()
-
-        await cur.execute("CREATE TABLE t1(n INT, v VARCHAR(10));")
-        await cur.execute("INSERT INTO t1 VALUES (1, '123.45');")
-        await cur.execute("INSERT INTO t1 VALUES (2, 'foo');")
-        await conn.commit()
-        await cur.close()
-
-    async def drop_table():
-        cur = await conn.cursor()
-        await cur.execute("DROP TABLE t1;")
-        await cur.commit()
-        await cur.close()
-
-    def fin():
-        loop.run_until_complete(drop_table())
-
-    request.addfinalizer(fin)
-
-    loop.run_until_complete(go())
-    return 't1'
+    cur = await conn.cursor()
+    await cur.execute("DROP TABLE t1;")
+    await cur.commit()
+    await cur.close()

@@ -7,7 +7,7 @@ import pytest
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test___del__(loop, dsn, recwarn, executor):
     conn = await aioodbc.connect(dsn=dsn, loop=loop, executor=executor)
     exc_handler = mock.Mock()
@@ -23,3 +23,4 @@ async def test___del__(loop, dsn, recwarn, executor):
     if loop.get_debug():
         msg['source_traceback'] = mock.ANY
     exc_handler.assert_called_with(loop, msg)
+    assert not loop.is_closed()

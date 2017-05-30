@@ -5,7 +5,7 @@ services:
   - docker
 
 python:
-    - 3.5
+    - 3.6
 
 before_install:
     - sudo apt-get update
@@ -16,6 +16,7 @@ env:
         - PYTHONASYNCIODEBUG=
 
 install:
+    - sudo apt-get install -o Dpkg::Options::="--force-confold" --force-yes -y docker-engine
     - pip install coverage
     - pip install pytest
     - pip install pytest-cov

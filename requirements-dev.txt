@@ -1,10 +1,11 @@
 coverage==4.4.1
-docker-py==1.10.6
+aiodocker==0.7.0
 flake8==3.3.0
 ipdb==0.10.3
 ipython==6.0.0
 pyodbc==4.0.16
 pytest==3.1.0
+pytest-asyncio==0.6.0
 pytest-cov==2.5.1
 pytest-sugar==0.8.0
 sphinx==1.6.1

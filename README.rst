@@ -7,10 +7,10 @@ aioodbc
 
 **aioodbc** is Python 3.5+ module that makes possible accessing ODBC_ databases
 with asyncio_. It is rely on awesome pyodbc_ library, preserve same look and
-feel. *aioodbc* was written `async/await` syntax (PEP492_) thus not
-compatible with Python older then 3.5. Internally *aioodbc* employ threads
-to avoid blocking the event loop, btw threads_ are not that bad as you think,
-other drivers like motor_ use same approach.
+feel. *aioodbc* was written `async/await` syntax (PEP492_) thus not compatible
+with Python older then 3.5.  Internally *aioodbc* employ threads to avoid
+blocking the event loop, btw threads_ are not that bad as you think, other
+drivers like motor_ use same approach.
 
 **aioodbc** fully compatible and tested with uvloop_. Take a look on a test
 suite, all tests are executed with both: default and uvloop_.
@@ -154,6 +154,8 @@ Then just execute::
 
 Test will automatically pull images and build containers with
 required databases.
+
+*NOTE:* Running tests requires Python 3.6 or higher.
 
 
 Other SQL Drivers

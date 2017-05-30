@@ -3,8 +3,8 @@ import pytest
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
-async def test_cursor_with(loop, conn, table):
+@pytest.mark.asyncio
+async def test_cursor_with(conn, table):
     ret = []
 
     # regular cursor usage
@@ -22,8 +22,8 @@ async def test_cursor_with(loop, conn, table):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
-async def test_cursor_lightweight(loop, conn, table):
+@pytest.mark.asyncio
+async def test_cursor_lightweight(conn, table):
 
     cur = await conn.cursor()
     await cur.execute('SELECT * FROM t1;')
@@ -36,8 +36,8 @@ async def test_cursor_lightweight(loop, conn, table):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
-async def test_cursor_await(loop, conn, table):
+@pytest.mark.asyncio
+async def test_cursor_await(conn, table):
 
     async with conn.cursor() as cur:
         await cur.execute('SELECT * FROM t1;')
@@ -47,7 +47,7 @@ async def test_cursor_await(loop, conn, table):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_cursor(conn):
     cur = await conn.cursor()
     assert cur.connection is conn
@@ -64,7 +64,7 @@ async def test_cursor(conn):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_execute_on_closed_cursor(conn):
     cur = await conn.cursor()
     await cur.close()
@@ -73,7 +73,7 @@ async def test_execute_on_closed_cursor(conn):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_close(conn):
     cur = await conn.cursor()
     assert not cur.closed
@@ -83,7 +83,7 @@ async def test_close(conn):
 
 
 @pytest.mark.parametrize('db', ['sqlite'])
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_description(conn):
     cur = await conn.cursor()
     assert cur.description is None
@@ -94,7 +94,7 @@ async def test_description(conn):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_description_with_real_table(conn, table):
     cur = await conn.cursor()
     await cur.execute("SELECT * FROM t1;")
@@ -106,7 +106,7 @@ async def test_description_with_real_table(conn, table):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_rowcount_with_table(conn, table):
     cur = await conn.cursor()
     await cur.execute("SELECT * FROM t1;")
@@ -120,7 +120,7 @@ async def test_rowcount_with_table(conn, table):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_arraysize(conn):
     cur = await conn.cursor()
     assert 1 == cur.arraysize
@@ -130,7 +130,7 @@ async def test_arraysize(conn):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_fetchall(conn, table):
     cur = await conn.cursor()
     await cur.execute("SELECT * FROM t1;")
@@ -144,7 +144,7 @@ async def test_fetchall(conn, table):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_fetchmany(conn, table):
     cur = await conn.cursor()
     await cur.execute("SELECT * FROM t1;")
@@ -158,7 +158,7 @@ async def test_fetchmany(conn, table):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_fetchone(conn, table):
     cur = await conn.cursor()
     await cur.execute("SELECT * FROM t1;")
@@ -170,7 +170,7 @@ async def test_fetchone(conn, table):
 
 
 @pytest.mark.parametrize('db', ['sqlite'])
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_tables(conn, table):
     cur = await conn.cursor()
     await cur.tables()
@@ -181,7 +181,7 @@ async def test_tables(conn, table):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_cursor_rollback(conn, table):
 
     cur = await conn.cursor()
@@ -197,7 +197,7 @@ async def test_cursor_rollback(conn, table):
 
 
 @pytest.mark.parametrize('db', ['sqlite'])
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_columns(conn, table):
     cur = await conn.cursor()
     await cur.columns()
@@ -211,7 +211,7 @@ async def test_columns(conn, table):
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_executemany(conn):
     cur = await conn.cursor()
     await cur.execute("CREATE TABLE t1(a int, b VARCHAR(10))")
@@ -233,7 +233,7 @@ async def test_executemany(conn):
 
 
 @pytest.mark.parametrize('db', ['sqlite'])
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_procedures_empty(conn, table):
     cur = await conn.cursor()
     await cur.procedures()
@@ -242,7 +242,7 @@ async def test_procedures_empty(conn, table):
 
 
 @pytest.mark.parametrize('db', ['sqlite'])
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_procedureColumns_empty(conn, table):
     cur = await conn.cursor()
     await cur.procedureColumns()
@@ -251,7 +251,7 @@ async def test_procedureColumns_empty(conn, table):
 
 
 @pytest.mark.parametrize('db', ['sqlite'])
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_primaryKeys_empty(conn, table):
     cur = await conn.cursor()
     await cur.primaryKeys('t1', 't1', 't1')
@@ -260,7 +260,7 @@ async def test_primaryKeys_empty(conn, table):
 
 
 @pytest.mark.parametrize('db', ['sqlite'])
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_foreignKeys_empty(conn, table):
     cur = await conn.cursor()
     await cur.foreignKeys('t1')
@@ -268,7 +268,7 @@ async def test_foreignKeys_empty(conn, table):
     assert resp == []
 
 
-@pytest.mark.run_loop
+@pytest.mark.asyncio
 async def test_getTypeInfo_empty(conn, table):
     cur = await conn.cursor()
     await cur.getTypeInfo(pyodbc.SQL_CHAR)

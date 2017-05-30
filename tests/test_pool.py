@@ -6,8 +6,8 @@ from aioodbc import Pool, Connection
 
 
 @pytest.mark.asyncio
-async def test_create_pool(event_loop, pool_maker, dsn):
-    pool = await pool_maker(event_loop, dsn=dsn)
+async def test_create_pool(loop, pool_maker, dsn):
+    pool = await pool_maker(loop, dsn=dsn)
     assert isinstance(pool, Pool)
     assert 10 == pool.minsize
     assert 10 == pool.maxsize
@@ -17,8 +17,8 @@ async def test_create_pool(event_loop, pool_maker, dsn):
 
 
 @pytest.mark.asyncio
-async def test_create_pool2(event_loop, pool_maker, dsn):
-    pool = await pool_maker(event_loop, dsn=dsn, maxsize=20)
+async def test_create_pool2(loop, pool_maker, dsn):
+    pool = await pool_maker(loop, dsn=dsn, maxsize=20)
     assert isinstance(pool, Pool)
     assert 10 == pool.minsize
     assert 20 == pool.maxsize
@@ -88,8 +88,8 @@ async def test_clear(pool):
 
 
 @pytest.mark.asyncio
-async def test_initial_empty(event_loop, pool_maker, dsn):
-    pool = await pool_maker(event_loop, dsn=dsn, minsize=0)
+async def test_initial_empty(loop, pool_maker, dsn):
+    pool = await pool_maker(loop, dsn=dsn, minsize=0)
 
     assert 10 == pool.maxsize
     assert 0 == pool.minsize
@@ -123,8 +123,8 @@ async def test_initial_empty(event_loop, pool_maker, dsn):
 
 
 @pytest.mark.asyncio
-async def test_parallel_tasks(event_loop, pool_maker, dsn):
-    pool = await pool_maker(event_loop, dsn=dsn, minsize=0, maxsize=2)
+async def test_parallel_tasks(loop, pool_maker, dsn):
+    pool = await pool_maker(loop, dsn=dsn, minsize=0, maxsize=2)
 
     assert 2 == pool.maxsize
     assert 0 == pool.minsize
@@ -134,7 +134,7 @@ async def test_parallel_tasks(event_loop, pool_maker, dsn):
     fut1 = pool.acquire()
     fut2 = pool.acquire()
 
-    conn1, conn2 = await asyncio.gather(fut1, fut2, loop=event_loop)
+    conn1, conn2 = await asyncio.gather(fut1, fut2, loop=loop)
     assert 2 == pool.size
     assert 0 == pool.freesize
     assert {conn1, conn2} == pool._used
@@ -156,15 +156,15 @@ async def test_parallel_tasks(event_loop, pool_maker, dsn):
 
 
 @pytest.mark.asyncio
-async def test_parallel_tasks_more(event_loop, pool_maker, dsn):
-    pool = await pool_maker(event_loop, dsn=dsn, minsize=0, maxsize=3)
+async def test_parallel_tasks_more(loop, pool_maker, dsn):
+    pool = await pool_maker(loop, dsn=dsn, minsize=0, maxsize=3)
 
     fut1 = pool.acquire()
     fut2 = pool.acquire()
     fut3 = pool.acquire()
 
     conn1, conn2, conn3 = await asyncio.gather(fut1, fut2, fut3,
-                                               loop=event_loop)
+                                               loop=loop)
     assert 3 == pool.size
     assert 0 == pool.freesize
     assert {conn1, conn2, conn3} == pool._used
@@ -195,16 +195,16 @@ async def test_parallel_tasks_more(event_loop, pool_maker, dsn):
 
 
 @pytest.mark.asyncio
-async def test_default_event_loop(event_loop, dsn):
+async def test_default_loop(loop, dsn):
     pool = await aioodbc.create_pool(dsn=dsn)
-    assert pool._loop is event_loop
+    assert pool._loop is loop
     pool.close()
     await pool.wait_closed()
 
 
 @pytest.mark.asyncio
-async def test__fill_free(event_loop, pool_maker, dsn):
-    pool = await pool_maker(event_loop, dsn=dsn, minsize=1)
+async def test__fill_free(loop, pool_maker, dsn):
+    pool = await pool_maker(loop, dsn=dsn, minsize=1)
 
     first_conn = await pool.acquire()
     try:
@@ -212,7 +212,7 @@ async def test__fill_free(event_loop, pool_maker, dsn):
         assert 1 == pool.size
 
         conn = await asyncio.wait_for(pool.acquire(), timeout=0.5,
-                                      loop=event_loop)
+                                      loop=loop)
         assert 0 == pool.freesize
         assert 2 == pool.size
         await pool.release(conn)
@@ -225,8 +225,8 @@ async def test__fill_free(event_loop, pool_maker, dsn):
 
 
 @pytest.mark.asyncio
-async def test_connect_from_acquire(event_loop, pool_maker, dsn):
-    pool = await pool_maker(event_loop, dsn=dsn, minsize=0)
+async def test_connect_from_acquire(loop, pool_maker, dsn):
+    pool = await pool_maker(loop, dsn=dsn, minsize=0)
 
     assert 0 == pool.freesize
     assert 0 == pool.size
@@ -241,8 +241,8 @@ async def test_connect_from_acquire(event_loop, pool_maker, dsn):
 
 
 @pytest.mark.asyncio
-async def test_concurrency(event_loop, pool_maker, dsn):
-    pool = await pool_maker(event_loop, dsn=dsn, minsize=2, maxsize=4)
+async def test_concurrency(loop, pool_maker, dsn):
+    pool = await pool_maker(loop, dsn=dsn, minsize=2, maxsize=4)
 
     c1 = await pool.acquire()
     c2 = await pool.acquire()
@@ -253,18 +253,18 @@ async def test_concurrency(event_loop, pool_maker, dsn):
 
 
 @pytest.mark.asyncio
-async def test_invalid_minsize_and_maxsize(event_loop, dsn):
+async def test_invalid_minsize_and_maxsize(loop, dsn):
     with pytest.raises(ValueError):
-        await aioodbc.create_pool(dsn=dsn, loop=event_loop, minsize=-1)
+        await aioodbc.create_pool(dsn=dsn, loop=loop, minsize=-1)
 
     with pytest.raises(ValueError):
-        await aioodbc.create_pool(dsn=dsn, loop=event_loop, minsize=5,
+        await aioodbc.create_pool(dsn=dsn, loop=loop, minsize=5,
                                   maxsize=2)
 
 
 @pytest.mark.asyncio
-async def test_true_parallel_tasks(event_loop, pool_maker, dsn):
-    pool = await pool_maker(event_loop, dsn=dsn, minsize=0, maxsize=1)
+async def test_true_parallel_tasks(loop, pool_maker, dsn):
+    pool = await pool_maker(loop, dsn=dsn, minsize=0, maxsize=1)
 
     assert 1 == pool.maxsize
     assert 0 == pool.minsize
@@ -281,20 +281,20 @@ async def test_true_parallel_tasks(event_loop, pool_maker, dsn):
         conn = await pool.acquire()
         maxsize = max(maxsize, pool.size)
         minfreesize = min(minfreesize, pool.freesize)
-        await asyncio.sleep(0.01, loop=event_loop)
+        await asyncio.sleep(0.01, loop=loop)
         await pool.release(conn)
         maxsize = max(maxsize, pool.size)
         minfreesize = min(minfreesize, pool.freesize)
 
-    await asyncio.gather(inner(), inner(), loop=event_loop)
+    await asyncio.gather(inner(), inner(), loop=loop)
 
     assert 1 == maxsize
     assert 0 == minfreesize
 
 
 @pytest.mark.asyncio
-async def test_cannot_acquire_after_closing(event_loop, pool_maker, dsn):
-    pool = await pool_maker(event_loop, dsn=dsn)
+async def test_cannot_acquire_after_closing(loop, pool_maker, dsn):
+    pool = await pool_maker(loop, dsn=dsn)
 
     pool.close()
 
@@ -303,8 +303,8 @@ async def test_cannot_acquire_after_closing(event_loop, pool_maker, dsn):
 
 
 @pytest.mark.asyncio
-async def test_wait_closed(event_loop, pool_maker, dsn):
-    pool = await pool_maker(event_loop, dsn=dsn)
+async def test_wait_closed(loop, pool_maker, dsn):
+    pool = await pool_maker(loop, dsn=dsn)
 
     c1 = await pool.acquire()
     c2 = await pool.acquire()
@@ -314,7 +314,7 @@ async def test_wait_closed(event_loop, pool_maker, dsn):
     ops = []
 
     async def do_release(conn):
-        await asyncio.sleep(0, loop=event_loop)
+        await asyncio.sleep(0, loop=loop)
         await pool.release(conn)
         ops.append('release')
 
@@ -326,14 +326,14 @@ async def test_wait_closed(event_loop, pool_maker, dsn):
     await asyncio.gather(wait_closed(),
                          do_release(c1),
                          do_release(c2),
-                         loop=event_loop)
+                         loop=loop)
     assert ['release', 'release', 'wait_closed'] == ops
     assert 0 == pool.freesize
 
 
 @pytest.mark.asyncio
-async def test_echo(event_loop, pool_maker, dsn):
-    pool = await pool_maker(event_loop, dsn=dsn, echo=True)
+async def test_echo(loop, pool_maker, dsn):
+    pool = await pool_maker(loop, dsn=dsn, echo=True)
 
     assert pool.echo
     conn = await pool.acquire()
@@ -342,8 +342,8 @@ async def test_echo(event_loop, pool_maker, dsn):
 
 
 @pytest.mark.asyncio
-async def test_release_closed_connection(event_loop, pool_maker, dsn):
-    pool = await pool_maker(event_loop, dsn=dsn)
+async def test_release_closed_connection(loop, pool_maker, dsn):
+    pool = await pool_maker(loop, dsn=dsn)
 
     conn = await pool.acquire()
     await conn.close()
@@ -353,8 +353,8 @@ async def test_release_closed_connection(event_loop, pool_maker, dsn):
 
 
 @pytest.mark.asyncio
-async def test_wait_closing_on_not_closed(event_loop, pool_maker, dsn):
-    pool = await pool_maker(event_loop, dsn=dsn)
+async def test_wait_closing_on_not_closed(loop, pool_maker, dsn):
+    pool = await pool_maker(loop, dsn=dsn)
 
     with pytest.raises(RuntimeError):
         await pool.wait_closed()
@@ -362,22 +362,22 @@ async def test_wait_closing_on_not_closed(event_loop, pool_maker, dsn):
 
 
 @pytest.mark.asyncio
-async def test_close_with_acquired_connections(event_loop, pool_maker, dsn):
-    pool = await pool_maker(event_loop, dsn=dsn)
+async def test_close_with_acquired_connections(loop, pool_maker, dsn):
+    pool = await pool_maker(loop, dsn=dsn)
 
     conn = await pool.acquire()
     pool.close()
 
     with pytest.raises(asyncio.TimeoutError):
-        await asyncio.wait_for(pool.wait_closed(), 0.1, loop=event_loop)
+        await asyncio.wait_for(pool.wait_closed(), 0.1, loop=loop)
     await conn.close()
     await pool.release(conn)
 
 
 @pytest.mark.parametrize('db', pytest.db_list)
 @pytest.mark.asyncio
-async def test_pool_with_executor(event_loop, pool_maker, dsn, executor):
-    pool = await pool_maker(event_loop, executor=executor, dsn=dsn, minsize=2, maxsize=2)
+async def test_pool_with_executor(loop, pool_maker, dsn, executor):
+    pool = await pool_maker(loop, executor=executor, dsn=dsn, minsize=2, maxsize=2)
 
     conn = await pool.acquire()
     try:
@@ -398,7 +398,7 @@ async def test_pool_with_executor(event_loop, pool_maker, dsn, executor):
 
 @pytest.mark.parametrize('db', pytest.db_list)
 @pytest.mark.asyncio
-async def test_pool_context_manager(event_loop, pool):
+async def test_pool_context_manager(loop, pool):
     assert not pool.closed
     async with pool:
         assert not pool.closed
@@ -407,7 +407,7 @@ async def test_pool_context_manager(event_loop, pool):
 
 @pytest.mark.parametrize('db', pytest.db_list)
 @pytest.mark.asyncio
-async def test_pool_context_manager2(event_loop, pool):
+async def test_pool_context_manager2(loop, pool):
     async with pool.acquire() as conn:
         assert not conn.closed
         cur = await conn.cursor()
@@ -418,8 +418,8 @@ async def test_pool_context_manager2(event_loop, pool):
 
 @pytest.mark.parametrize('db', pytest.db_list)
 @pytest.mark.asyncio
-async def test_all_context_managers(dsn, event_loop, executor):
-    kw = dict(dsn=dsn, loop=event_loop, executor=executor)
+async def test_all_context_managers(dsn, loop, executor):
+    kw = dict(dsn=dsn, loop=loop, executor=executor)
     async with aioodbc.create_pool(**kw) as pool:
         async with pool.acquire() as conn:
             async with conn.cursor() as cur:

@@ -51,7 +51,7 @@ async def test_cursor_await(conn, table):
 async def test_cursor(conn):
     cur = await conn.cursor()
     assert cur.connection is conn
-    assert cur._loop, conn.event_loop
+    assert cur._loop, conn.loop
     assert cur.arraysize == 1
     assert cur.rowcount == -1
 

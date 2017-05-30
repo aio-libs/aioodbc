@@ -38,8 +38,14 @@ def event_loop(loop_type):
     loop.close()
 
 
+# alias
 @pytest.fixture(scope='session')
-async def docker(event_loop):
+def loop(event_loop):
+    return event_loop
+
+
+@pytest.fixture(scope='session')
+async def docker(loop):
     client = Docker()
     yield client
     await client.close()
@@ -51,13 +57,13 @@ def host():
 
 
 @pytest.fixture
-async def pg_params(event_loop, pg_server):
+async def pg_params(loop, pg_server):
     server_info = (pg_server)['pg_params']
     return dict(**server_info)
 
 
 @pytest.fixture(scope='session')
-async def pg_server(event_loop, host, docker, session_id):
+async def pg_server(loop, host, docker, session_id):
     pg_tag = '9.5'
 
     await docker.pull('postgres:{}'.format(pg_tag))
@@ -109,13 +115,13 @@ async def pg_server(event_loop, host, docker, session_id):
 
 
 @pytest.fixture
-async def mysql_params(event_loop, mysql_server):
+async def mysql_params(loop, mysql_server):
     server_info = (mysql_server)['mysql_params']
     return dict(**server_info)
 
 
 @pytest.fixture(scope='session')
-async def mysql_server(event_loop, host, docker, session_id):
+async def mysql_server(loop, host, docker, session_id):
     mysql_tag = '5.7'
     await docker.pull('mysql:{}'.format(mysql_tag))
     container = await docker.containers.create_or_replace(
@@ -212,13 +218,13 @@ def dsn(request, db):
 
 
 @pytest.fixture
-async def conn(event_loop, dsn, connection_maker):
+async def conn(loop, dsn, connection_maker):
     connection = await connection_maker()
     yield connection
 
 
 @pytest.fixture
-async def connection_maker(event_loop, dsn):
+async def connection_maker(loop, dsn):
     cleanup = []
 
     async def make(**kw):
@@ -228,7 +234,7 @@ async def connection_maker(event_loop, dsn):
         else:
             executor = kw['executor']
 
-        conn = await aioodbc.connect(dsn=dsn, loop=event_loop, **kw)
+        conn = await aioodbc.connect(dsn=dsn, loop=loop, **kw)
         cleanup.append((conn, executor))
         return conn
 
@@ -240,8 +246,8 @@ async def connection_maker(event_loop, dsn):
 
 
 @pytest.fixture
-async def pool(event_loop, dsn):
-    pool = await aioodbc.create_pool(loop=event_loop, dsn=dsn)
+async def pool(loop, dsn):
+    pool = await aioodbc.create_pool(loop=loop, dsn=dsn)
 
     yield pool
 
@@ -250,7 +256,7 @@ async def pool(event_loop, dsn):
 
 
 @pytest.fixture
-async def pool_maker(event_loop):
+async def pool_maker(loop):
     pool = None
 
     async def make(loop, **kw):
@@ -266,7 +272,7 @@ async def pool_maker(event_loop):
 
 
 @pytest.fixture
-async def table(event_loop, conn):
+async def table(loop, conn):
 
     cur = await conn.cursor()
     await cur.execute("CREATE TABLE t1(n INT, v VARCHAR(10));")

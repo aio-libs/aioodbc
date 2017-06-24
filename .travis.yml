@@ -14,7 +14,7 @@ env:
 
 install:
     - sudo apt-get update
-    - sudo apt-get install -o Dpkg::Options::="--force-confold" --force-yes -y docker-engine
+    - sudo apt-get install -o Dpkg::Options::="--force-confold" --force-yes -y docker-ce
     - pip install coverage
     - pip install pytest
     - pip install pytest-cov

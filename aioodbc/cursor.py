@@ -299,10 +299,10 @@ class Cursor:
         return fut
 
     if PY_352:
-        async def __aiter__(self):
+        def __aiter__(self):
             return self
     else:
-        def __aiter__(self):
+        async def __aiter__(self):
             return self
 
     async def __anext__(self):

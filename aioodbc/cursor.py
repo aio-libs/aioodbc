@@ -97,7 +97,7 @@ class Cursor:
         await self._run_operation(self._impl.close)
         self._conn = None
 
-    def execute(self, sql, *params):
+    async def execute(self, sql, *params):
         """Executes the given operation substituting any markers with
         the given parameters.
 
@@ -110,8 +110,8 @@ class Cursor:
         if self._echo:
             logger.info(sql)
             logger.info("%r", sql)
-        fut = self._run_operation(self._impl.execute, sql, *params)
-        return fut
+        await self._run_operation(self._impl.execute, sql, *params)
+        return self
 
     def executemany(self, sql, *params):
         """Prepare a database query or command and then execute it against

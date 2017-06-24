@@ -26,7 +26,8 @@ async def test_cursor_with(conn, table):
 async def test_cursor_lightweight(conn, table):
 
     cur = await conn.cursor()
-    await cur.execute('SELECT * FROM t1;')
+    ex_cursor = await cur.execute('SELECT * FROM t1;')
+    assert ex_cursor is cur
 
     assert not cur.closed
     async with cur:

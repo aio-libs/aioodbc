@@ -5,7 +5,7 @@ from .connection import connect, Connection
 from .pool import create_pool, Pool
 
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 __all__ = ['connect', 'Connection', 'create_pool', 'Pool', 'dataSources']
 
 (connect, Connection, create_pool, Pool)  # pyflakes

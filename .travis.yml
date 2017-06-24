@@ -7,16 +7,14 @@ services:
 python:
     - 3.6
 
-before_install:
-    - sudo apt-get update
-
 env:
     matrix:
         - PYTHONASYNCIODEBUG=1
         - PYTHONASYNCIODEBUG=
 
 install:
-    - sudo apt-get -o Dpkg::Options::="--force-confnew" install --force-yes docker-engine
+    - sudo apt-get update
+    - sudo apt-get install -o Dpkg::Options::="--force-confold" --force-yes -y docker-ce
     - pip install coverage
     - pip install pytest
     - pip install pytest-cov

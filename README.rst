@@ -4,6 +4,9 @@ aioodbc
     :target: https://travis-ci.org/aio-libs/aioodbc
 .. image:: https://coveralls.io/repos/aio-libs/aioodbc/badge.svg?branch=master&service=github
     :target: https://coveralls.io/github/aio-libs/aioodbc?branch=master
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+    :target: https://gitter.im/aio-libs/Lobby
+    :alt: Chat on Gitter
 
 **aioodbc** is Python 3.5+ module that makes possible accessing ODBC_ databases
 with asyncio_. It is rely on awesome pyodbc_ library, preserve same look and

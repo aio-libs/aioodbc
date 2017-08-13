@@ -4,6 +4,8 @@ aioodbc
     :target: https://travis-ci.org/aio-libs/aioodbc
 .. image:: https://coveralls.io/repos/aio-libs/aioodbc/badge.svg?branch=master&service=github
     :target: https://coveralls.io/github/aio-libs/aioodbc?branch=master
+.. image:: https://img.shields.io/pypi/v/aioodbc.svg
+    :target: https://pypi.python.org/pypi/aioodbc
 .. image:: https://badges.gitter.im/Join%20Chat.svg
     :target: https://gitter.im/aio-libs/Lobby
     :alt: Chat on Gitter

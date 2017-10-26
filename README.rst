@@ -96,7 +96,7 @@ Connection pooling ported from aiopg_ and rely on PEP492_ features:
         pool.close()
         await pool.wait_closed()
 
-    loop.run_until_complete(test_example())
+    loop.run_until_complete(test_pool())
 
 
 Context Managers

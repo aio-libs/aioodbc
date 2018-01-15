@@ -60,9 +60,11 @@ Properties are unchanged, so ``conn.prop`` is correct as well as
         conn = await aioodbc.connect(dsn=dsn, loop=loop)
 
         cur = await conn.cursor()
-        await cur.execute("SELECT 42;")
-        r = await cur.fetchall()
-        print(r)
+        await cur.execute("SELECT 42 AS age;")
+        rows = await cur.fetchall()
+        print(rows)
+        print(rows[0])
+        print(rows[0].age)
         await cur.close()
         await conn.close()
 
@@ -119,9 +121,10 @@ protocol:
         async with aioodbc.create_pool(dsn=dsn, loop=loop) as pool:
             async with pool.acquire() as conn:
                 async with conn.cursor() as cur:
-                    await cur.execute('SELECT 42;')
+                    await cur.execute('SELECT 42 AS age;')
                     val = await cur.fetchone()
                     print(val)
+                    print(val.age)
 
     loop.run_until_complete(test_example())
 

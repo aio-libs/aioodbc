@@ -10,22 +10,22 @@ aioodbc
     :target: https://gitter.im/aio-libs/Lobby
     :alt: Chat on Gitter
 
-**aioodbc** is Python 3.5+ module that makes possible accessing ODBC_ databases
-with asyncio_. It is rely on awesome pyodbc_ library, preserve same look and
-feel. *aioodbc* was written `async/await` syntax (PEP492_) thus not compatible
-with Python older then 3.5.  Internally *aioodbc* employ threads to avoid
-blocking the event loop, btw threads_ are not that bad as you think, other
-drivers like motor_ use same approach.
+**aioodbc** is a Python 3.5+ module that makes it possible to access ODBC_ databases
+with asyncio_. It relies on the awesome pyodbc_ library and preserves the same look and
+feel. *aioodbc* was written using `async/await` syntax (PEP492_) and thus is not compatible
+with Python versions older than 3.5.  Internally *aioodbc* employs threads to avoid
+blocking the event loop, threads_ are not that as bad as you think!. Other
+drivers like motor_ use the same approach.
 
-**aioodbc** fully compatible and tested with uvloop_. Take a look on a test
-suite, all tests are executed with both: default and uvloop_.
+**aioodbc** is fully compatible and tested with uvloop_. Take a look at the test
+suite, all tests are executed with both the default event loop and uvloop_.
 
 Supported Databases
 -------------------
 
-**aioodbc** should work with all databases supported by pyodbc_. But for now
-library have been tested with: **SQLite**, **MySQL** and **PostgreSQL**. Feel
-free to add other databases to the test suite by submitting PR.
+**aioodbc** should work with all databases supported by pyodbc_. But for now the
+library has been tested with: **SQLite**, **MySQL** and **PostgreSQL**. Feel
+free to add other databases to the test suite by submitting a PR.
 
 
 Community
@@ -38,9 +38,8 @@ Chat room: https://gitter.im/aio-libs/Lobby
 Basic Example
 -------------
 
-**aioodbc** based on pyodbc_ , and provides same api, you just need
-to use  ``yield from conn.f()`` or ``await conn.f()`` instead of just
-call ``conn.f()`` for every method.
+**aioodbc** is based on pyodbc_ and provides the same api, you just need
+to use  ``yield from conn.f()`` or ``await conn.f()`` instead of ``conn.f()``
 
 Properties are unchanged, so ``conn.prop`` is correct as well as
 ``conn.prop = val``.
@@ -73,7 +72,7 @@ Properties are unchanged, so ``conn.prop`` is correct as well as
 
 Connection Pool
 ---------------
-Connection pooling ported from aiopg_ and rely on PEP492_ features:
+Connection pooling is ported from aiopg_ and relies on PEP492_ features:
 
 .. code:: python
 
@@ -103,7 +102,7 @@ Connection pooling ported from aiopg_ and rely on PEP492_ features:
 
 Context Managers
 ----------------
-`Pool`, `Connection` and `Cursor` objects support context manager
+`Pool`, `Connection` and `Cursor` objects support the context management
 protocol:
 
 .. code:: python
@@ -132,8 +131,8 @@ protocol:
 Installation
 ------------
 
-In Linux environment pyodbc_ (hence *aioodbc*) requires unixODBC_ library.
-You can install it using package manager from your OS distribution, for example::
+In a linux environment pyodbc_ (hence *aioodbc*) requires the unixODBC_ library.
+You can install it using your package manager, for example::
 
       $ sudo apt-get install unixodbc
       $ sudo apt-get install unixodbc-dev
@@ -146,22 +145,21 @@ then::
 Run tests
 ---------
 
-For testing purposes you need to install docker_ and development
+For testing purposes you need to install docker_ and the development
 requirements::
 
     $ pip install -r requirements-dev.txt
 
-In order to simplify development all tests and environment created inside
-separate docker image, you do not need to install any database of system level
-libraries, everything happens automatically inside container.
+In order to simplify development you should install the provided docker container.
+This way you don't need to install any databases or other system libraries, everything happens inside the container.
 
 Then just execute::
 
     $ make docker_build
     $ make docker_test
 
-Test will automatically pull images and build containers with
-required databases.
+The test will automatically pull images and build containers with
+the required databases.
 
 *NOTE:* Running tests requires Python 3.6 or higher.
 

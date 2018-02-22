@@ -11,18 +11,19 @@ __all__ = ['create_pool', 'Pool']
 
 
 def create_pool(minsize=10, maxsize=10, echo=False, loop=None,
-                **kwargs):
+                pool_recycle=-1, **kwargs):
     return _PoolContextManager(_create_pool(minsize=minsize, maxsize=maxsize,
-                               echo=echo, loop=loop, **kwargs))
+                               echo=echo, loop=loop, pool_recycle=pool_recycle,
+                               **kwargs))
 
 
 async def _create_pool(minsize=10, maxsize=10, echo=False, loop=None,
-                       **kwargs):
+                       pool_recycle=-1, **kwargs):
     if loop is None:
         loop = asyncio.get_event_loop()
 
     pool = Pool(minsize=minsize, maxsize=maxsize, echo=echo, loop=loop,
-                **kwargs)
+                pool_recycle=pool_recycle, **kwargs)
     if minsize > 0:
         with (await pool._cond):
             await pool._fill_free_pool(False)
@@ -32,7 +33,7 @@ async def _create_pool(minsize=10, maxsize=10, echo=False, loop=None,
 class Pool(asyncio.AbstractServer):
     """Connection pool"""
 
-    def __init__(self, minsize, maxsize, echo, loop, **kwargs):
+    def __init__(self, minsize, maxsize, echo, loop, pool_recycle, **kwargs):
         if minsize < 0:
             raise ValueError("minsize should be zero or greater")
         if maxsize < minsize:
@@ -41,6 +42,7 @@ class Pool(asyncio.AbstractServer):
         self._loop = loop
         self._conn_kwargs = kwargs
         self._acquiring = 0
+        self._recycle = pool_recycle
         self._free = collections.deque(maxlen=maxsize)
         self._cond = asyncio.Condition(loop=loop)
         self._used = set()
@@ -130,6 +132,17 @@ class Pool(asyncio.AbstractServer):
                     await self._cond.wait()
 
     async def _fill_free_pool(self, override_min):
+        n, free = 0, len(self._free)
+        while n < free:
+            conn = self._free[-1]
+            if self._recycle > -1 \
+                    and self._loop.time() - conn.last_usage > self._recycle:
+                await conn.close()
+                self._free.pop()
+            else:
+                self._free.rotate()
+            n += 1
+
         while self.size < self.minsize:
             self._acquiring += 1
             try:

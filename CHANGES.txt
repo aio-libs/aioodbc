@@ -1,11 +1,17 @@
 Changes
 -------
 
+0.3.0 (2018-02-23)
+^^^^^^^^^^^^^^^^^^
+* Added optional pool connections recycling #167 (thanks @drpoggi)
+
+
 0.2.0 (2017-06-24)
 ^^^^^^^^^^^^^^^^^^
 * Fixed Cursor.execute returns a pyodbc.Cursor instead of itself #114
 * Fixed __aiter__ to not be awaitable for python>=3.5.2 #113
 * Tests now using aiodocker #106
+
 
 0.1.0 (2017-04-30)
 ^^^^^^^^^^^^^^^^^^

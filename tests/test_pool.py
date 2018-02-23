@@ -241,6 +241,24 @@ async def test_connect_from_acquire(loop, pool_maker, dsn):
 
 
 @pytest.mark.asyncio
+async def test_pool_with_connection_recycling(loop, pool_maker, dsn):
+    pool = await pool_maker(loop,
+                            dsn=dsn,
+                            minsize=1,
+                            maxsize=1,
+                            pool_recycle=3)
+    async with pool.acquire() as conn:
+        conn1 = conn
+
+    await asyncio.sleep(5, loop=loop)
+
+    assert 1 == pool.freesize
+    async with pool.acquire() as conn:
+        conn2 = conn
+
+    assert conn1 is not conn2
+
+@pytest.mark.asyncio
 async def test_concurrency(loop, pool_maker, dsn):
     pool = await pool_maker(loop, dsn=dsn, minsize=2, maxsize=4)
 

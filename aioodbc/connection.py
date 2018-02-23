@@ -60,6 +60,7 @@ class Connection:
         self._conn = None
 
         self._timeout = timeout
+        self._last_usage = self._loop.time()
         self._autocommit = autocommit
         self._ansi = ansi
         self._dsn = dsn
@@ -105,11 +106,16 @@ class Connection:
         return self._conn.timeout
 
     @property
+    def last_usage(self):
+        return self._last_usage
+
+    @property
     def echo(self):
         return self._echo
 
     async def _cursor(self):
         c = await self._execute(self._conn.cursor)
+        self._last_usage = self._loop.time()
         connection = self
         return Cursor(c, connection)
 

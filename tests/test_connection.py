@@ -12,6 +12,7 @@ def test_connect(loop, conn):
     assert conn.loop is loop
     assert not conn.autocommit
     assert conn.timeout == 0
+    assert conn._posthook is None
     assert not conn.closed
 
 

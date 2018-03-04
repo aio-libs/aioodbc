@@ -13,7 +13,7 @@ __all__ = ['connect', 'Connection']
 
 
 def connect(*, dsn, autocommit=False, ansi=False, timeout=0, loop=None,
-            executor=None, echo=False, **kwargs):
+            executor=None, echo=False, after_created=None, **kwargs):
     """Accepts an ODBC connection string and returns a new Connection object.
 
     The connection string can be passed as the string `str`, as a list of
@@ -30,18 +30,22 @@ def connect(*, dsn, autocommit=False, ansi=False, timeout=0, loop=None,
     :param timeout int: An integer login timeout in seconds, used to set
         the SQL_ATTR_LOGIN_TIMEOUT attribute of the connection. The default is
          0  which means the database's default timeout, if any, is use
+    :param after_created callable: support customize configuration after
+        connection is connected.  Must be an async unary function, or leave it
+        as None.
     """
     return _ContextManager(_connect(dsn=dsn, autocommit=autocommit,
                            ansi=ansi, timeout=timeout, loop=loop,
-                           executor=executor, echo=echo, **kwargs))
+                           executor=executor, echo=echo,
+                           after_created=after_created, **kwargs))
 
 
 async def _connect(*, dsn, autocommit=False, ansi=False, timeout=0, loop=None,
-                   executor=None, echo=False, **kwargs):
+                   executor=None, echo=False, after_created=None, **kwargs):
     loop = loop or asyncio.get_event_loop()
     conn = Connection(dsn=dsn, autocommit=autocommit, ansi=ansi,
                       timeout=timeout, echo=echo, loop=loop, executor=executor,
-                      **kwargs)
+                      after_created=after_created, **kwargs)
     await conn._connect()
     return conn
 
@@ -54,7 +58,8 @@ class Connection:
     _source_traceback = None
 
     def __init__(self, *, dsn, autocommit=False, ansi=None,
-                 timeout=0, executor=None, echo=False, loop=None, **kwargs):
+                 timeout=0, executor=None, echo=False, loop=None,
+                 after_created=None, **kwargs):
         self._executor = executor
         self._loop = loop or asyncio.get_event_loop()
         self._conn = None
@@ -64,6 +69,7 @@ class Connection:
         self._ansi = ansi
         self._dsn = dsn
         self._echo = echo
+        self._posthook = after_created
         self._kwargs = kwargs
         if loop.get_debug():
             self._source_traceback = traceback.extract_stack(sys._getframe(1))
@@ -81,6 +87,8 @@ class Connection:
                           timeout=self._timeout,
                           **self._kwargs)
         self._conn = await f
+        if self._posthook is not None:
+            await self._posthook(self._conn)
 
     @property
     def loop(self):

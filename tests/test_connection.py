@@ -12,8 +12,20 @@ def test_connect(loop, conn):
     assert conn.loop is loop
     assert not conn.autocommit
     assert conn.timeout == 0
-    assert conn._posthook is None
     assert not conn.closed
+
+
+@pytest.mark.parametrize('db', pytest.db_list)
+@pytest.mark.asyncio
+async def test_connect_hook(connection_maker):
+    raw_conn = None
+
+    async def hook(conn):
+        nonlocal raw_conn
+        raw_conn = conn
+
+    connection = await connection_maker(after_created=hook)
+    assert connection._conn == raw_conn
 
 
 @pytest.mark.parametrize('db', pytest.db_list)

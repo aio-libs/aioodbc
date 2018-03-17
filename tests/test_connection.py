@@ -17,6 +17,19 @@ def test_connect(loop, conn):
 
 @pytest.mark.parametrize('db', pytest.db_list)
 @pytest.mark.asyncio
+async def test_connect_hook(connection_maker):
+    raw_conn = None
+
+    async def hook(conn):
+        nonlocal raw_conn
+        raw_conn = conn
+
+    connection = await connection_maker(after_created=hook)
+    assert connection._conn == raw_conn
+
+
+@pytest.mark.parametrize('db', pytest.db_list)
+@pytest.mark.asyncio
 async def test_basic_cursor(conn):
     cursor = await conn.cursor()
     sql = 'SELECT 10;'

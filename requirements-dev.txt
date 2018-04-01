@@ -3,7 +3,7 @@ aiodocker==0.11.0
 flake8==3.5.0
 ipdb==0.11
 ipython==6.2.1
-pyodbc==4.0.22
+pyodbc==4.0.23
 pytest==3.4.1
 pytest-asyncio==0.8.0
 pytest-cov==2.5.1

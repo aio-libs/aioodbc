@@ -8,6 +8,6 @@ pytest==3.5.1
 pytest-asyncio==0.8.0
 pytest-cov==2.5.1
 pytest-sugar==0.9.1
-sphinx==1.7.2
+sphinx==1.7.4
 sphinxcontrib-asyncio==0.2.0
 uvloop==0.9.1

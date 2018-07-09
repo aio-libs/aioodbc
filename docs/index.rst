@@ -69,6 +69,7 @@ Contents:
    :maxdepth: 2
 
    examples
+   tuning
    glossary
    contributing
 

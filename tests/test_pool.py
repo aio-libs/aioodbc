@@ -3,7 +3,7 @@ import asyncio
 import pytest
 import aioodbc
 from aioodbc import Pool, Connection
-
+from pyodbc import Error
 
 @pytest.mark.asyncio
 async def test_create_pool(loop, pool_maker, dsn):
@@ -452,3 +452,39 @@ async def test_all_context_managers(dsn, loop, executor):
     assert pool.closed
     assert conn.closed
     assert cur.closed
+
+
+@pytest.mark.parametrize('db', pytest.db_list)
+@pytest.mark.asyncio
+async def test_context_manager_aexit(loop, connection_maker):
+    async def aexit_conntex_managet(conn):
+        # commit on exit if no error
+        params = (1, '123.45')
+        async with conn.cursor() as cur:
+            await cur.execute("CREATE TABLE cmt1(n int, v VARCHAR(10))")
+            await cur.execute("INSERT INTO cmt1 VALUES (?,?);", params)
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT v FROM cmt1 WHERE n=1;")
+            (value, ) = await cur.fetchone()
+            assert value == params[1]
+
+        # rollback on exit if error
+        with pytest.raises(Error):
+            async with conn.cursor() as cur:
+                await cur.execute("ins INTO cmt1 VALUES (2, '666');")
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT v FROM cmt1 WHERE n=2;")
+            row = await cur.fetchone()
+            assert row == None
+
+        async with conn.cursor() as cur:
+            await cur.execute("DROP TABLE cmt1;")
+        
+    conn = await connection_maker(autocommit=False)
+    assert not conn.autocommit
+    await aexit_conntex_managet(conn)
+
+    conn = await connection_maker(autocommit=True)
+    assert conn.autocommit
+    await aexit_conntex_managet(conn)
+

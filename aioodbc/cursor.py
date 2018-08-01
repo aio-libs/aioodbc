@@ -39,6 +39,14 @@ class Cursor:
         return self._conn
 
     @property
+    def autocommit(self):
+        """Show autocommit mode for current database session. True if
+        connection is in autocommit mode; False otherwse. The default
+        is False.
+        """
+        return self._conn.autocommit
+
+    @property
     def rowcount(self):
         """The number of rows modified by the previous DDL statement.
 

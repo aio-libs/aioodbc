@@ -15,6 +15,7 @@ if not PY_VER >= (3, 5):
 def read(f):
     return open(os.path.join(os.path.dirname(__file__), f)).read().strip()
 
+
 extras_require = {}
 
 
@@ -29,6 +30,7 @@ def read_version():
                 return match.group(1)
         else:
             raise RuntimeError('Cannot find version in aioodbc/__init__.py')
+
 
 classifiers = [
     'License :: OSI Approved :: Apache Software License',

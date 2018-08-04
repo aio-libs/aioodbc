@@ -5,6 +5,7 @@ import aioodbc
 from aioodbc import Pool, Connection
 from pyodbc import Error
 
+
 @pytest.mark.asyncio
 async def test_create_pool(loop, pool_maker, dsn):
     pool = await pool_maker(loop, dsn=dsn)
@@ -258,6 +259,7 @@ async def test_pool_with_connection_recycling(loop, pool_maker, dsn):
 
     assert conn1 is not conn2
 
+
 @pytest.mark.asyncio
 async def test_concurrency(loop, pool_maker, dsn):
     pool = await pool_maker(loop, dsn=dsn, minsize=2, maxsize=4)
@@ -395,7 +397,8 @@ async def test_close_with_acquired_connections(loop, pool_maker, dsn):
 @pytest.mark.parametrize('db', pytest.db_list)
 @pytest.mark.asyncio
 async def test_pool_with_executor(loop, pool_maker, dsn, executor):
-    pool = await pool_maker(loop, executor=executor, dsn=dsn, minsize=2, maxsize=2)
+    pool = await pool_maker(
+        loop, executor=executor, dsn=dsn, minsize=2, maxsize=2)
 
     conn = await pool.acquire()
     try:
@@ -475,11 +478,11 @@ async def test_context_manager_aexit(loop, connection_maker):
         async with conn.cursor() as cur:
             await cur.execute("SELECT v FROM cmt1 WHERE n=2;")
             row = await cur.fetchone()
-            assert row == None
+            assert row is None
 
         async with conn.cursor() as cur:
             await cur.execute("DROP TABLE cmt1;")
-        
+
     conn = await connection_maker(autocommit=False)
     assert not conn.autocommit
     await aexit_conntex_managet(conn)
@@ -487,4 +490,3 @@ async def test_context_manager_aexit(loop, connection_maker):
     conn = await connection_maker(autocommit=True)
     assert conn.autocommit
     await aexit_conntex_managet(conn)
-

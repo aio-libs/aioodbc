@@ -1,7 +1,6 @@
 import asyncio
 import gc
 import os
-import socket
 import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor

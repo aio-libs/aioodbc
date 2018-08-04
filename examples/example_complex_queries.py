@@ -38,7 +38,7 @@ async def test_error_without_context_managers(loop=None):
         await cur.execute("SELECT 42 AS;")
         rows = await cur.fetchall()
         print(rows)
-    except:
+    except Exception:
         pass
     finally:
         await cur.close()

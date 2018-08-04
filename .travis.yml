@@ -18,9 +18,11 @@ install:
     - pip install coverage
     - pip install pytest
     - pip install pytest-cov
+    - pip install -r requirements-dev.txt
     - pip install codecov
 
 script:
+    - make flake
     - make docker_build
     - make docker_cov
 

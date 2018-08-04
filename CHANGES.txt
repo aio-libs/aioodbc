@@ -1,6 +1,12 @@
 Changes
 -------
 
+0.3.2 (2018-08-04)
+^^^^^^^^^^^^^^^^^^
+* Added basic documentation for after_created and ThreadPoolExecutor #176 (thanks @AlexHagerman)
+* Cursor/connection context managers now rollback transaction on error,
+  otherwise commit if autocommit=False #178 (thanks @julianit)
+
 0.3.1 (2018-03-23)
 ^^^^^^^^^^^^^^^^^^
 * Add after_create hook for connection configuration (thanks @lanfon72)

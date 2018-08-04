@@ -80,15 +80,17 @@ async def pg_server(loop, host, docker, session_id):
     await container.start()
     port = (await container.port(5432))[0]['HostPort']
 
-    pg_params = dict(database='postgres',
-                     user='postgres',
-                     password='mysecretpassword',
-                     host=host,
-                     port=port)
+    pg_params = {
+        'database': 'postgres',
+        'user': 'postgres',
+        'password': 'mysecretpassword',
+        'host': host,
+        'port': port
+    }
     delay = 0.001
     dsn = create_pg_dsn(pg_params)
     last_error = None
-    for i in range(100):
+    for _ in range(100):
         try:
             conn = pyodbc.connect(dsn)
             cur = conn.cursor()
@@ -140,15 +142,17 @@ async def mysql_server(loop, host, docker, session_id):
     )
     await container.start()
     port = (await container.port(3306))[0]['HostPort']
-    mysql_params = dict(database='aioodbc',
-                        user='aioodbc',
-                        password='mysecretpassword',
-                        host=host,
-                        port=port)
+    mysql_params = {
+        'database': 'aioodbc',
+        'user': 'aioodbc',
+        'password': 'mysecretpassword',
+        'host': host,
+        'port': port
+    }
     delay = 0.001
     dsn = create_mysql_dsn(mysql_params)
     last_error = None
-    for i in range(100):
+    for _ in range(100):
         try:
             conn = pyodbc.connect(dsn)
             cur = conn.cursor()

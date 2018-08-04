@@ -3,7 +3,10 @@
 FLAGS=
 
 
-flake:
+checkrst:
+	python setup.py check --restructuredtext
+
+flake: checkrst
 	flake8 aioodbc tests examples setup.py
 
 test: flake

@@ -440,7 +440,7 @@ async def test_pool_context_manager2(loop, pool):
 @pytest.mark.parametrize('db', pytest.db_list)
 @pytest.mark.asyncio
 async def test_all_context_managers(dsn, loop, executor):
-    kw = dict(dsn=dsn, loop=loop, executor=executor)
+    kw = {'dsn': dsn, 'loop': loop, 'executor': executor}
     async with aioodbc.create_pool(**kw) as pool:
         async with pool.acquire() as conn:
             async with conn.cursor() as cur:

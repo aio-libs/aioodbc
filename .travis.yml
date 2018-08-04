@@ -21,6 +21,7 @@ install:
     - pip install codecov
 
 script:
+    - make flake
     - make docker_build
     - make docker_cov
 

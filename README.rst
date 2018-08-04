@@ -1,7 +1,7 @@
 aioodbc
 =======
-.. image:: https://travis-ci.org/aio-libs/aioodbc.svg?branch=master
-    :target: https://travis-ci.org/aio-libs/aioodbc
+.. image:: https://travis-ci.com/aio-libs/aioodbc.svg?branch=master
+    :target: https://travis-ci.com/aio-libs/aioodbc
 .. image:: https://coveralls.io/repos/aio-libs/aioodbc/badge.svg?branch=master&service=github
     :target: https://coveralls.io/github/aio-libs/aioodbc?branch=master
 .. image:: https://img.shields.io/pypi/v/aioodbc.svg

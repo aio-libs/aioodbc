@@ -19,6 +19,6 @@ pytest==3.7.4
 pytest-asyncio==0.9.0
 pytest-cov==2.5.1
 pytest-sugar==0.9.1
-sphinx==1.7.5
+sphinx==1.7.8
 sphinxcontrib-asyncio==0.2.0
 uvloop==0.10.2

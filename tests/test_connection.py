@@ -166,8 +166,16 @@ async def test_connection_simple_with(loop, conn):
 @pytest.mark.parametrize('db', pytest.db_list)
 @pytest.mark.asyncio
 async def test_connect_context_manager(loop, dsn):
-    async with aioodbc.connect(dsn=dsn, loop=loop) as conn:
+    async with aioodbc.connect(dsn=dsn, loop=loop, echo=True) as conn:
         assert not conn.closed
+        assert conn.echo
+
+        cur = await conn.execute('SELECT 10;')
+        assert cur.echo
+        (resp,) = await cur.fetchone()
+        assert resp == 10
+        await cur.close()
+
     assert conn.closed
 
 

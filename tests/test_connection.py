@@ -174,7 +174,7 @@ async def test_connect_context_manager(loop, dsn):
         assert cur.echo
         (resp,) = await cur.fetchone()
         assert resp == 10
-        await conn.close()
+        await cur.close()
 
     assert conn.closed
 

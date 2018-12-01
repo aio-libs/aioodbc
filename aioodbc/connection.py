@@ -125,7 +125,7 @@ class Connection:
         c = await self._execute(self._conn.cursor)
         self._last_usage = self._loop.time()
         connection = self
-        return Cursor(c, connection)
+        return Cursor(c, connection, echo=self._echo)
 
     def cursor(self):
         return _ContextManager(self._cursor())
@@ -163,7 +163,7 @@ class Connection:
         """
         _cursor = await self._execute(self._conn.execute, sql, *args)
         connection = self
-        cursor = Cursor(_cursor, connection)
+        cursor = Cursor(_cursor, connection, echo=self._echo)
         return cursor
 
     def getinfo(self, type_):

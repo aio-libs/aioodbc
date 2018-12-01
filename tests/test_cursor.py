@@ -11,9 +11,11 @@ async def test_cursor_with(conn, table):
     cur = await conn.cursor()
     await cur.execute('SELECT * FROM t1;')
     assert not cur.closed
+    assert not cur.echo
 
     # cursor should be closed
     async with cur:
+        assert not cur.echo
         async for i in cur:
             ret.append(i)
     expected = [tuple(r) for r in ret]

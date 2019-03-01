@@ -17,7 +17,7 @@ ipython==7.3.0
 pyodbc==4.0.26
 pytest==4.3.0
 pytest-asyncio==0.10.0
-pytest-cov==2.6.0
+pytest-cov==2.6.1
 pytest-sugar==0.9.2
 sphinx==1.8.3
 sphinxcontrib-asyncio==0.2.0

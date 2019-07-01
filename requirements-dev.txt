@@ -11,7 +11,7 @@ flake8-mock==0.3
 flake8-mutable==1.2.0
 flake8-mypy==17.8.0
 flake8-pyi==19.3.0
-flake8-tuple==0.2.13
+flake8-tuple==0.3.1
 ipdb==0.11
 ipython==7.2.0
 pyodbc==4.0.25

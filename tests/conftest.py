@@ -198,7 +198,7 @@ def executor():
     try:
         yield executor
     finally:
-        executor.shutdown()
+        executor.shutdown(True)
 
 
 def pytest_configure():
@@ -265,7 +265,7 @@ async def connection_maker(loop, dsn):
     finally:
         for conn, executor in cleanup:
             await conn.close()
-            executor.shutdown()
+            executor.shutdown(True)
 
 
 @pytest.fixture

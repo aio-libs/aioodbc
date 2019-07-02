@@ -59,12 +59,16 @@ async def test_release(pool):
 async def test_op_error_release(pool, pg_server):
     with pytest.raises(Error):
         async with pool.acquire() as conn:
+            sql_task = asyncio.ensure_future(conn.execute('SELECT pg_sleep(500);'))
+
             async def _kill_conn():
                 await asyncio.sleep(1)
                 await pg_server['container'].kill()
 
-            await asyncio.gather(_kill_conn(),
-                                 conn.execute('SELECT pg_sleep(500);'))
+            try:
+                await asyncio.gather(_kill_conn(), sql_task)
+            finally:
+                sql_task.cancel()
 
     assert 9 == pool.freesize
     assert not pool._used

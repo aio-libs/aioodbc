@@ -158,13 +158,20 @@ class Connection:
         by each call, this should not be used if more than one SQL
         statement needs to be executed.
 
-        :param sql: str, formated sql statement
+        :param sql: str, formatted sql statement
         :param args: tuple, arguments for construction of sql statement
         """
-        _cursor = await self._execute(self._conn.execute, sql, *args)
-        connection = self
-        cursor = Cursor(_cursor, connection, echo=self._echo)
-        return cursor
+        try:
+            _cursor = await self._execute(self._conn.execute, sql, *args)
+            connection = self
+            cursor = Cursor(_cursor, connection, echo=self._echo)
+            return cursor
+        except pyodbc.Error as e:
+            # Issue #195.  Don't pollute the pool with bad conns
+            sqlstate = e.args[0]
+            if isinstance(e, pyodbc.OperationalError) or sqlstate == 'HY000':
+                await self.close()
+            raise
 
     def getinfo(self, type_):
         """Returns general information about the driver and data source

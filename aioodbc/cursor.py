@@ -118,8 +118,16 @@ class Cursor:
         if self._echo:
             logger.info(sql)
             logger.info("%r", sql)
-        await self._run_operation(self._impl.execute, sql, *params)
-        return self
+
+        try:
+            await self._run_operation(self._impl.execute, sql, *params)
+            return self
+        except pyodbc.Error as e:
+            # Issue #195.  Don't pollute the pool with bad conns
+            sqlstate = e.args[0]
+            if self._conn and isinstance(e, pyodbc.OperationalError) or sqlstate == 'HY000':
+                await self._conn.close()
+            raise
 
     def executemany(self, sql, *params):
         """Prepare a database query or command and then execute it against

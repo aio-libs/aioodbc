@@ -10,8 +10,11 @@ PY_352 = sys.version_info >= (3, 5, 2)
 # Unfortunately occasionally sqlite will return 'HY000' for invalid query,
 # so we need specialize the check
 _CONN_CLOSE_ERRORS = {
-    '08S01': None,  # [Microsoft][ODBC Driver 17 for SQL Server]Communication link failure
-    'HY000': '[HY000] server closed the connection unexpectedly',  # [HY000] server closed the connection unexpectedly
+    # [Microsoft][ODBC Driver 17 for SQL Server]Communication link failure
+    '08S01': None,
+
+    # [HY000] server closed the connection unexpectedly
+    'HY000': '[HY000] server closed the connection unexpectedly',
 }
 
 

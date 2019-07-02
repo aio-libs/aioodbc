@@ -1,6 +1,6 @@
 import pyodbc
 from .log import logger
-from .utils import PY_352
+from .utils import PY_352, CONN_CLOSE_ERRORS
 
 
 __all__ = ['Cursor']
@@ -21,12 +21,20 @@ class Cursor:
         self._loop = connection.loop
         self._echo = echo
 
-    def _run_operation(self, func, *args, **kwargs):
+    async def _run_operation(self, func, *args, **kwargs):
         # execute func in thread pool of attached to cursor connection
         if not self._conn:
             raise pyodbc.OperationalError('Cursor is closed.')
-        future = self._conn._execute(func, *args, **kwargs)
-        return future
+
+        try:
+            result = await self._conn._execute(func, *args, **kwargs)
+            return result
+        except pyodbc.Error as e:
+            # Issue #195.  Don't pollute the pool with bad conns
+            sqlstate = e.args[0]
+            if self._conn and sqlstate in CONN_CLOSE_ERRORS:
+                await self._conn.close()
+            raise
 
     @property
     def echo(self):
@@ -119,15 +127,8 @@ class Cursor:
             logger.info(sql)
             logger.info("%r", sql)
 
-        try:
-            await self._run_operation(self._impl.execute, sql, *params)
-            return self
-        except pyodbc.Error as e:
-            # Issue #195.  Don't pollute the pool with bad conns
-            sqlstate = e.args[0]
-            if self._conn and isinstance(e, pyodbc.OperationalError) or sqlstate == 'HY000':
-                await self._conn.close()
-            raise
+        await self._run_operation(self._impl.execute, sql, *params)
+        return self
 
     def executemany(self, sql, *params):
         """Prepare a database query or command and then execute it against

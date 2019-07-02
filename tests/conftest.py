@@ -65,13 +65,13 @@ def host():
 
 @pytest.fixture
 async def pg_params(loop, pg_server):
-    server_info = (pg_server)['pg_params']
-    return dict(**server_info)
+    server_info = pg_server['pg_params']
+    yield dict(**server_info)
 
 
 @pytest.fixture(scope='session')
 async def pg_server(loop, host, docker, session_id):
-    pg_tag = '9.6'
+    pg_tag = '9.5'
 
     await docker.pull('postgres:{}'.format(pg_tag))
     container = await docker.containers.create_or_replace(
@@ -99,6 +99,11 @@ async def pg_server(loop, host, docker, session_id):
     start = time.time()
     dsn = create_pg_dsn(pg_params)
     last_error = None
+    container_info = {
+        'port': port,
+        'pg_params': pg_params,
+        'container': container,
+    }
     try:
         while (time.time() - start) < 40:
             try:
@@ -113,20 +118,12 @@ async def pg_server(loop, host, docker, session_id):
         else:
             pytest.fail("Cannot start postgres server: {}".format(last_error))
 
-        container_info = {
-            'port': port,
-            'pg_params': pg_params,
-            'container': container,
-        }
-
         yield container_info
     finally:
-        try:
+        container = container_info['container']
+        if container:
             await container.kill()
-        except DockerError:
-            pass  # test may have killed container
-
-        await container.delete(force=True)
+            await container.delete(v=True, force=True)
 
 
 @pytest.fixture
@@ -188,7 +185,7 @@ async def mysql_server(loop, host, docker, session_id):
         yield container_info
     finally:
         await container.kill()
-        await container.delete(force=True)
+        await container.delete(v=True, force=True)
 
 
 @pytest.fixture

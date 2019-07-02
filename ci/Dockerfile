@@ -32,5 +32,4 @@ RUN rm -rf /aioodbc && \
     apt-get purge -y wget && \
     apt-get autoremove -y
 
-VOLUME /aioodbc
 WORKDIR /aioodbc

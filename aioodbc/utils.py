@@ -1,10 +1,12 @@
 import sys
 from collections.abc import Coroutine
 
-import pyodbc
-
 
 PY_352 = sys.version_info >= (3, 5, 2)
+
+CONN_CLOSE_ERRORS = {
+    '08S01',  # [Microsoft][ODBC Driver 17 for SQL Server]Communication link failure
+}
 
 
 class _ContextManager(Coroutine):
@@ -53,7 +55,7 @@ class _ContextManager(Coroutine):
 
     async def __aexit__(self, exc_type, exc, tb):
         if exc_type:
-            self._obj.rollback()
+            await self._obj.rollback()
         elif not self._obj.autocommit:
             await self._obj.commit()
         await self._obj.close()

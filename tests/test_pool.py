@@ -54,21 +54,21 @@ async def test_release(pool):
     assert not pool._used
 
 
-@pytest.mark.parametrize('db', ['pg'])
-@pytest.mark.asyncio
-async def test_op_error_release(pool, pg_server):
-    with pytest.raises(OperationalError):
-        async with pool.acquire() as conn:
-            async def _kill_conn():
-                await asyncio.sleep(1)
-                print("closing connection")
-                await pg_server['container'].kill()
-
-            await asyncio.gather(_kill_conn(),
-                                 conn.execute('SELECT pg_sleep(500);'))
-
-    assert 9 == pool.freesize
-    assert not pool._used
+# @pytest.mark.parametrize('db', ['pg'])
+# @pytest.mark.asyncio
+# async def test_op_error_release(pool, pg_server):
+#     with pytest.raises(OperationalError):
+#         async with pool.acquire() as conn:
+#             async def _kill_conn():
+#                 await asyncio.sleep(1)
+#                 print("closing connection")
+#                 await pg_server['container'].kill()
+#
+#             await asyncio.gather(_kill_conn(),
+#                                  conn.execute('SELECT pg_sleep(500);'))
+#
+#     assert 9 == pool.freesize
+#     assert not pool._used
 
 
 @pytest.mark.asyncio

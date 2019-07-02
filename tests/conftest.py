@@ -1,6 +1,7 @@
 import asyncio
 import gc
 import os
+import random
 import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
@@ -103,7 +104,7 @@ async def pg_server(loop, host, docker, session_id):
             except pyodbc.Error as e:
                 print(e)
                 last_error = e
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(random.uniform(0.1, 1))
         else:
             pytest.fail("Cannot start postgres server: {}".format(last_error))
 
@@ -164,14 +165,13 @@ async def mysql_server(loop, host, docker, session_id):
         while (time.time() - start) < 30:
             try:
                 conn = pyodbc.connect(dsn)
-                cur = conn.cursor()
-                cur.execute("SELECT 1;")
+                cur = conn.execute("SELECT 1;")
                 cur.close()
                 conn.close()
                 break
             except pyodbc.Error as e:
                 last_error = e
-                time.sleep(0.1)
+                await asyncio.sleep(random.uniform(0.1, 1))
         else:
             pytest.fail("Cannot start mysql server: {}".format(last_error))
 
@@ -217,7 +217,7 @@ def create_mysql_dsn(mysql_params):
 
 
 @pytest.fixture
-def dsn(request, db):
+def dsn(tmp_path, request, db):
     if db == 'pg':
         pg_params = request.getfixturevalue('pg_params')
         conf = create_pg_dsn(pg_params)
@@ -225,7 +225,7 @@ def dsn(request, db):
         mysql_params = request.getfixturevalue('mysql_params')
         conf = create_mysql_dsn(mysql_params)
     else:
-        conf = os.environ.get('DSN', 'Driver=SQLite;Database=sqlite.db')
+        conf = os.environ.get('DSN', f'Driver=SQLite;Database={tmp_path / "sqlite.db"}')
     return conf
 
 

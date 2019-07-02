@@ -41,6 +41,7 @@ docker_build:
 	make -C ci build
 
 docker_test:
+# NOTE: we start crashing if running tests with -n auto
 	docker run --rm -v /$$(pwd):/aioodbc -v /var/run/docker.sock:/var/run/docker.sock --name aioodbc-test-$$(date +%s) --net=host -e PYTHONASYNCIODEBUG=$(PYTHONASYNCIODEBUG) -it jettify/aioodbc-test:latest py.test -sv tests $(FLAGS)
 
 docker_cov:

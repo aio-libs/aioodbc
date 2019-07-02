@@ -1,4 +1,4 @@
-FROM python:3.6.1-slim
+FROM python:3.6.8-slim-stretch
 
 # configure apt to install minimal dependencies in non-interactive mode.
 ENV DEBIAN_FRONTEND noninteractive
@@ -6,12 +6,20 @@ RUN echo 'APT::Install-Recommends "false";' >> /etc/apt/apt.conf; \
     echo 'APT::Install-Suggests "false";' >> /etc/apt/apt.conf
 
 # jessie-updates is now archived
-RUN sed -i '/jessie-updates/d' /etc/apt/sources.list && \
-    apt-get update && apt-get install -y \
-    unixODBC wget g++ unixodbc-dev odbc-postgresql libmyodbc libsqlite-dev libtool build-essential && \
-    odbcinst -i -d -f /usr/share/libmyodbc/odbcinst.ini && \
-    wget http://archive.ubuntu.com/ubuntu/pool/universe/s/sqliteodbc/libsqliteodbc_0.9992-0.1_amd64.deb && \
-    dpkg -i libsqliteodbc_0.9992-0.1_amd64.deb
+RUN apt-get update && apt-get install -y \
+    unixodbc wget g++ unixodbc-dev odbc-postgresql libtool build-essential libsqliteodbc
+
+# build and install mysqlodbc
+# https://dev.mysql.com/doc/connector-odbc/en/connector-odbc-installation-binary-unix-tarball.html
+RUN wget -q https://dev.mysql.com/get/Downloads/Connector-ODBC/8.0/mysql-connector-odbc-8.0.16-linux-debian9-x86-64bit.tar.gz -P /tmp/ && \
+    tar -C /tmp -zxvpf /tmp/mysql-connector-odbc-*.tar.gz && \
+    cp /tmp/mysql-connector-odbc*/bin/* /usr/local/bin/ && \
+    cp /tmp/mysql-connector-odbc*/lib/* /usr/local/lib/ && \
+    myodbc-installer -a -d -n "MySQL" -t "Driver=/usr/local/lib/libmyodbc8w.so" && \
+    myodbc-installer -a -d -n "MySQL ODBC 8.0" -t "Driver=/usr/local/lib/libmyodbc8a.so"
+
+RUN sed -i 's/libsqliteodbc\.so/libsqlite3odbc\.so/g' /etc/odbcinst.ini && \
+    odbcinst -i -d -f /etc/odbcinst.ini
 
 ADD / /aioodbc
 RUN pip install -e /aioodbc/ && \
@@ -20,7 +28,6 @@ RUN pip install -e /aioodbc/ && \
 
 # with --squash option in docker build, this will reduce the final image size a bit.
 RUN rm -rf /aioodbc && \
-    rm libsqliteodbc_0.9992-0.1_amd64.deb && \
     apt-get purge -y g++ && \
     apt-get purge -y wget && \
     apt-get autoremove -y

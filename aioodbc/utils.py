@@ -1,12 +1,33 @@
 import sys
 from collections.abc import Coroutine
 
+from pyodbc import Error
+
 
 PY_352 = sys.version_info >= (3, 5, 2)
 
-CONN_CLOSE_ERRORS = {
-    '08S01',  # [Microsoft][ODBC Driver 17 for SQL Server]Communication link failure
+# Issue #195.  Don't pollute the pool with bad conns
+# Unfortunately occasionally sqlite will return 'HY000' for invalid query,
+# so we need specialize the check
+_CONN_CLOSE_ERRORS = {
+    '08S01': None,  # [Microsoft][ODBC Driver 17 for SQL Server]Communication link failure
+    'HY000': '[HY000] server closed the connection unexpectedly',  # [HY000] server closed the connection unexpectedly
 }
+
+
+def _is_conn_close_error(e):
+    if not isinstance(e, Error):
+        return False
+
+    sqlstate, msg = e.args[0], e.args[1]
+    if sqlstate not in _CONN_CLOSE_ERRORS:
+        return False
+
+    check_msg = _CONN_CLOSE_ERRORS[sqlstate]
+    if not check_msg:
+        return True
+
+    return msg.startswith(check_msg)
 
 
 class _ContextManager(Coroutine):

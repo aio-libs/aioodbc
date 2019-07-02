@@ -1,6 +1,6 @@
 import pyodbc
 from .log import logger
-from .utils import PY_352, CONN_CLOSE_ERRORS
+from .utils import PY_352, _is_conn_close_error
 
 
 __all__ = ['Cursor']
@@ -30,9 +30,7 @@ class Cursor:
             result = await self._conn._execute(func, *args, **kwargs)
             return result
         except pyodbc.Error as e:
-            # Issue #195.  Don't pollute the pool with bad conns
-            sqlstate = e.args[0]
-            if self._conn and sqlstate in CONN_CLOSE_ERRORS:
+            if self._conn and _is_conn_close_error(e):
                 await self._conn.close()
             raise
 

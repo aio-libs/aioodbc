@@ -6,7 +6,7 @@ from functools import partial
 
 import pyodbc
 from .cursor import Cursor
-from .utils import _ContextManager, CONN_CLOSE_ERRORS
+from .utils import _ContextManager, _is_conn_close_error
 
 
 __all__ = ['connect', 'Connection']
@@ -167,9 +167,7 @@ class Connection:
             cursor = Cursor(_cursor, connection, echo=self._echo)
             return cursor
         except pyodbc.Error as e:
-            # Issue #195.  Don't pollute the pool with bad conns
-            sqlstate = e.args[0]
-            if sqlstate in CONN_CLOSE_ERRORS:
+            if _is_conn_close_error(e):
                 await self.close()
             raise
 

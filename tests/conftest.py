@@ -157,42 +157,43 @@ async def mysql_server(loop, host, docker, session_id):
         'host': host,
         'port': port
     }
-    delay = 0.001
     dsn = create_mysql_dsn(mysql_params)
-    last_error = None
-    for _ in range(100):
-        try:
-            conn = pyodbc.connect(dsn)
-            cur = conn.cursor()
-            cur.execute("SELECT 1;")
-            cur.close()
-            conn.close()
-            break
-        except pyodbc.Error as e:
-            last_error = e
-            time.sleep(delay)
-            delay *= 2
-    else:
-        pytest.fail("Cannot start mysql server: {}".format(last_error))
-    container_info = {
-        'port': port,
-        'mysql_params': mysql_params,
-    }
-    yield container_info
+    start = time.time()
+    try:
+        last_error = None
+        while (time.time() - start) < 30:
+            try:
+                conn = pyodbc.connect(dsn)
+                cur = conn.cursor()
+                cur.execute("SELECT 1;")
+                cur.close()
+                conn.close()
+                break
+            except pyodbc.Error as e:
+                last_error = e
+                time.sleep(0.1)
+        else:
+            pytest.fail("Cannot start mysql server: {}".format(last_error))
 
-    await container.kill()
-    await container.delete(force=True)
+        container_info = {
+            'port': port,
+            'mysql_params': mysql_params,
+        }
+
+        yield container_info
+    finally:
+        await container.kill()
+        await container.delete(force=True)
 
 
 @pytest.fixture
 def executor():
-    executor = ThreadPoolExecutor(max_workers=1)
-    yield executor
-    executor.shutdown()
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        yield executor
 
 
-def pytest_namespace():
-    return {'db_list': ['pg', 'mysql', 'sqlite']}
+def pytest_configure():
+    pytest.db_list = ['pg', 'mysql', 'sqlite']
 
 
 @pytest.fixture

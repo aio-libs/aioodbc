@@ -1,4 +1,5 @@
 import asyncio
+import time
 
 import pytest
 import aioodbc
@@ -54,32 +55,28 @@ async def test_release(pool):
     assert not pool._used
 
 
-# @pytest.mark.asyncio
-# async def test_op_error_release(loop, pool_maker, pg_server_local):
-#     pool = await pool_maker(loop, dsn=pg_server_local['dsn'])
-#
-#     with pytest.raises(Error):
-#         async with pool.acquire() as conn:
-#             can_exit_evt = asyncio.Event()
-#
-#             async def execute():
-#                 try:
-#                     await conn.execute('SELECT pg_sleep(500);')
-#                 finally:
-#                     await can_exit_evt.wait()
-#
-#             async def _kill_conn():
-#                 await asyncio.sleep(2)
-#                 await pg_server_local['container'].kill()
-#                 await pg_server_local['container'].delete(v=True, force=True)
-#                 pg_server_local['container'] = None
-#
-#                 can_exit_evt.set()
-#
-#             await asyncio.gather(_kill_conn(), execute())
-#
-#     assert 9 == pool.freesize
-#     assert not pool._used
+@pytest.mark.asyncio
+async def test_op_error_release(loop, pool_maker, pg_server_local):
+    pool = await pool_maker(loop, dsn=pg_server_local['dsn'], autocommit=True)
+
+    with pytest.raises(Error):
+        async with pool.acquire() as conn:
+            async def execute():
+                start = time.time()
+
+                while time.time() - start < 20:
+                    await conn.execute('SELECT 1; SELECT pg_sleep(1);')
+
+            async def _kill_conn():
+                await asyncio.sleep(2)
+                await pg_server_local['container'].kill()
+                await pg_server_local['container'].delete(v=True, force=True)
+                pg_server_local['container'] = None
+
+            await asyncio.gather(_kill_conn(), execute())
+
+    assert 9 == pool.freesize
+    assert not pool._used
 
 
 @pytest.mark.asyncio

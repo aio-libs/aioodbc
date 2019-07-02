@@ -19,7 +19,7 @@ _CONN_CLOSE_ERRORS = {
 
 
 def _is_conn_close_error(e):
-    if not isinstance(e, Error):
+    if not isinstance(e, Error) or len(e.args) < 2:
         return False
 
     sqlstate, msg = e.args[0], e.args[1]

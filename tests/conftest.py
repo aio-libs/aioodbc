@@ -60,7 +60,7 @@ async def docker(loop):
 
 @pytest.fixture(scope='session')
 def host():
-    return os.environ.get('DOCKER_MACHINE_IP', '127.0.0.1')
+    return os.environ.get('DOCKER_MACHINE_IP', 'host.docker.internal')
 
 
 @pytest.fixture
@@ -86,7 +86,8 @@ async def _pg_server_helper(host, docker, session_id):
         }
     )
     await container.start()
-    port = (await container.port(5432))[0]['HostPort']
+    container_port = await container.port(5432)
+    port = container_port[0]['HostPort']
 
     pg_params = {
         'database': 'postgres',

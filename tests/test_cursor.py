@@ -91,7 +91,7 @@ async def test_description(conn):
     cur = await conn.cursor()
     assert cur.description is None
     await cur.execute('SELECT 1;')
-    expected = (('1', int, None, 10, 10, 0, True), )
+    expected = (('1', float, None, 54, 54, 0, True), )
     assert cur.description == expected
     await cur.close()
 

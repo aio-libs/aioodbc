@@ -60,7 +60,8 @@ async def docker(loop):
 
 @pytest.fixture(scope='session')
 def host():
-    return os.environ.get('DOCKER_MACHINE_IP', 'host.docker.internal')
+    # Alternative: host.docker.internal, however not working on travis
+    return os.environ.get('DOCKER_MACHINE_IP', '127.0.0.1')
 
 
 @pytest.fixture

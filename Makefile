@@ -40,12 +40,13 @@ doc:
 docker_build:
 	make -C ci build
 
-docker_test:
 # NOTE: we start crashing if running tests with -n auto
+
+docker_test:
 	docker run --rm -v /$$(pwd):/aioodbc -v /var/run/docker.sock:/var/run/docker.sock --name aioodbc-test-$$(date +%s) --net=host -e PYTHONASYNCIODEBUG=$(PYTHONASYNCIODEBUG) -it jettify/aioodbc-test:latest py.test -sv tests $(FLAGS)
 
 docker_cov:
-	docker run --rm -v /$$(pwd):/aioodbc -v /var/run/docker.sock:/var/run/docker.sock --name aioodbc-test-$$(date +%s) --net=host -e PYTHONASYNCIODEBUG=$(PYTHONASYNCIODEBUG) -it jettify/aioodbc-test:latest py.test -sv -n auto --cov-report term --cov-report html --cov tests --cov aioodbc $(FLAGS)
+	docker run --rm -v /$$(pwd):/aioodbc -v /var/run/docker.sock:/var/run/docker.sock --name aioodbc-test-$$(date +%s) --net=host -e PYTHONASYNCIODEBUG=$(PYTHONASYNCIODEBUG) -it jettify/aioodbc-test:latest py.test -sv --cov-report term --cov-report html --cov tests --cov aioodbc $(FLAGS)
 
 docker_clean:
 	docker rm -v -f $$(docker ps -a -q -f 'name=aioodbc')

@@ -61,7 +61,6 @@ async def test_op_error_release(pool, pg_server):
         async with pool.acquire() as conn:
             async def _kill_conn():
                 await asyncio.sleep(1)
-                print("closing connection")
                 await pg_server['container'].kill()
 
             await asyncio.gather(_kill_conn(),

@@ -85,10 +85,9 @@ class _PoolConnectionContextManager(_ContextManager):
         return self._conn
 
     async def __aexit__(self, exc_type, exc, tb):
-        async def __aexit__(self, exc_type, exc, tb):
-            # Issue #195.  Don't pollute the pool with bad conns
-            if exc_type == pyodbc.OperationalError:
-                await self._conn.close()
+        # Issue #195.  Don't pollute the pool with bad conns
+        if exc_type == pyodbc.OperationalError:
+            await self._conn.close()
 
         await self._pool.release(self._conn)
         self._pool = None

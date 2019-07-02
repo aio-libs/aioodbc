@@ -87,32 +87,35 @@ async def pg_server(loop, host, docker, session_id):
         'host': host,
         'port': port
     }
-    delay = 0.001
+
+    start = time.time()
     dsn = create_pg_dsn(pg_params)
     last_error = None
-    for _ in range(100):
-        try:
-            conn = pyodbc.connect(dsn)
-            cur = conn.cursor()
-            cur.execute("SELECT 1;")
-            cur.close()
-            conn.close()
-            break
-        except pyodbc.Error as e:
-            last_error = e
-            time.sleep(delay)
-            delay *= 2
-    else:
-        pytest.fail("Cannot start postgres server: {}".format(last_error))
+    try:
+        while (time.time() - start) < 20:
+            try:
+                conn = pyodbc.connect(dsn)
+                cur = conn.execute("SELECT 1;")
+                cur.close()
+                conn.close()
+                break
+            except pyodbc.Error as e:
+                print(e)
+                last_error = e
+                await asyncio.sleep(0.1)
+        else:
+            pytest.fail("Cannot start postgres server: {}".format(last_error))
 
-    container_info = {
-        'port': port,
-        'pg_params': pg_params,
-    }
-    yield container_info
+        container_info = {
+            'port': port,
+            'pg_params': pg_params,
+            'container': container,
+        }
 
-    await container.kill()
-    await container.delete(force=True)
+        yield container_info
+    finally:
+        await container.kill()
+        await container.delete(force=True)
 
 
 @pytest.fixture

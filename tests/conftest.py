@@ -11,6 +11,7 @@ import pytest
 import uvloop
 
 from aiodocker import Docker
+from aiodocker.exceptions import DockerError
 
 
 @pytest.fixture(scope='session')
@@ -92,7 +93,7 @@ async def pg_server(loop, host, docker, session_id):
     dsn = create_pg_dsn(pg_params)
     last_error = None
     try:
-        while (time.time() - start) < 20:
+        while (time.time() - start) < 40:
             try:
                 conn = pyodbc.connect(dsn)
                 cur = conn.execute("SELECT 1;")
@@ -114,7 +115,11 @@ async def pg_server(loop, host, docker, session_id):
 
         yield container_info
     finally:
-        await container.kill()
+        try:
+            await container.kill()
+        except DockerError:
+            pass  # test may have killed container
+
         await container.delete(force=True)
 
 

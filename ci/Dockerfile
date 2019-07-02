@@ -5,7 +5,8 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN echo 'APT::Install-Recommends "false";' >> /etc/apt/apt.conf; \
     echo 'APT::Install-Suggests "false";' >> /etc/apt/apt.conf
 
-RUN sed -i '/jessie-updates/d' /etc/apt/sources.list && \ # Now archived
+# jessie-updates is now archived
+RUN sed -i '/jessie-updates/d' /etc/apt/sources.list && \
     apt-get update && apt-get install -y \
     unixODBC wget g++ unixodbc-dev odbc-postgresql libmyodbc libsqlite-dev libtool build-essential && \
     odbcinst -i -d -f /usr/share/libmyodbc/odbcinst.ini && \

@@ -64,7 +64,8 @@ async def test_op_error_release(pool, pg_server):
                 print("closing connection")
                 await pg_server['container'].kill()
 
-            await asyncio.gather(_kill_conn(), conn.execute('SELECT pg_sleep(500);'))
+            await asyncio.gather(_kill_conn(),
+                                 conn.execute('SELECT pg_sleep(500);'))
 
     assert 9 == pool.freesize
     assert not pool._used

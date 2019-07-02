@@ -86,7 +86,12 @@ class _PoolConnectionContextManager(_ContextManager):
 
     async def __aexit__(self, exc_type, exc, tb):
         # Issue #195.  Don't pollute the pool with bad conns
-        if exc_type == pyodbc.OperationalError:
+
+        sqlstate = None
+        if isinstance(exc, pyodbc.Error):
+            sqlstate = exc.args[0]
+
+        if exc_type == pyodbc.OperationalError or sqlstate == 'HY000':
             await self._conn.close()
 
         await self._pool.release(self._conn)

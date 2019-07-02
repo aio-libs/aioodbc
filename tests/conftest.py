@@ -102,7 +102,6 @@ async def pg_server(loop, host, docker, session_id):
                 conn.close()
                 break
             except pyodbc.Error as e:
-                print(e)
                 last_error = e
                 await asyncio.sleep(random.uniform(0.1, 1))
         else:

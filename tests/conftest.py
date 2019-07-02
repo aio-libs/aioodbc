@@ -12,7 +12,7 @@ import pytest
 import uvloop
 
 from aiodocker import Docker
-from aiodocker.exceptions import DockerError
+from async_generator import asynccontextmanager
 
 
 @pytest.fixture(scope='session')
@@ -66,11 +66,11 @@ def host():
 @pytest.fixture
 async def pg_params(loop, pg_server):
     server_info = pg_server['pg_params']
-    yield dict(**server_info)
+    return dict(**server_info)
 
 
-@pytest.fixture(scope='session')
-async def pg_server(loop, host, docker, session_id):
+@asynccontextmanager
+async def _pg_server_helper(host, docker, session_id):
     pg_tag = '9.5'
 
     await docker.pull('postgres:{}'.format(pg_tag))
@@ -93,7 +93,7 @@ async def pg_server(loop, host, docker, session_id):
         'user': 'postgres',
         'password': 'mysecretpassword',
         'host': host,
-        'port': port
+        'port': port,
     }
 
     start = time.time()
@@ -103,6 +103,7 @@ async def pg_server(loop, host, docker, session_id):
         'port': port,
         'pg_params': pg_params,
         'container': container,
+        'dsn': dsn,
     }
     try:
         while (time.time() - start) < 40:
@@ -126,10 +127,22 @@ async def pg_server(loop, host, docker, session_id):
             await container.delete(v=True, force=True)
 
 
+@pytest.fixture(scope='session')
+async def pg_server(loop, host, docker, session_id):
+    async with _pg_server_helper(host, docker, session_id) as helper:
+        yield helper
+
+
+@pytest.fixture
+async def pg_server_local(loop, host, docker):
+    async with _pg_server_helper(host, docker, None) as helper:
+        yield helper
+
+
 @pytest.fixture
 async def mysql_params(loop, mysql_server):
     server_info = (mysql_server)['mysql_params']
-    yield dict(**server_info)
+    return dict(**server_info)
 
 
 @pytest.fixture(scope='session')
@@ -204,7 +217,7 @@ def pytest_configure():
 
 @pytest.fixture
 def db(request):
-    yield 'sqlite'
+    return 'sqlite'
 
 
 def create_pg_dsn(pg_params):
@@ -233,13 +246,13 @@ def dsn(tmp_path, request, db):
     else:
         conf = os.environ.get('DSN', f'Driver=SQLite;Database={tmp_path / "sqlite.db"}')
 
-    yield conf
+    return conf
 
 
 @pytest.fixture
 async def conn(loop, dsn, connection_maker):
     connection = await connection_maker()
-    yield connection
+    return connection
 
 
 @pytest.fixture

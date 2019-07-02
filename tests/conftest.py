@@ -34,9 +34,12 @@ def event_loop(loop_type):
     elif loop_type == 'uvloop':
         asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    gc.collect()
-    loop.close()
+
+    try:
+        yield loop
+    finally:
+        gc.collect()
+        loop.close()
 
 
 # alias
@@ -48,8 +51,11 @@ def loop(event_loop):
 @pytest.fixture(scope='session')
 async def docker(loop):
     client = Docker()
-    yield client
-    await client.close()
+
+    try:
+        yield client
+    finally:
+        await client.close()
 
 
 @pytest.fixture(scope='session')
@@ -65,7 +71,7 @@ async def pg_params(loop, pg_server):
 
 @pytest.fixture(scope='session')
 async def pg_server(loop, host, docker, session_id):
-    pg_tag = '9.5'
+    pg_tag = '9.6'
 
     await docker.pull('postgres:{}'.format(pg_tag))
     container = await docker.containers.create_or_replace(
@@ -126,7 +132,7 @@ async def pg_server(loop, host, docker, session_id):
 @pytest.fixture
 async def mysql_params(loop, mysql_server):
     server_info = (mysql_server)['mysql_params']
-    return dict(**server_info)
+    yield dict(**server_info)
 
 
 @pytest.fixture(scope='session')
@@ -187,8 +193,12 @@ async def mysql_server(loop, host, docker, session_id):
 
 @pytest.fixture
 def executor():
-    with ThreadPoolExecutor(max_workers=1) as executor:
+    executor = ThreadPoolExecutor(max_workers=1)
+
+    try:
         yield executor
+    finally:
+        executor.shutdown()
 
 
 def pytest_configure():
@@ -197,7 +207,7 @@ def pytest_configure():
 
 @pytest.fixture
 def db(request):
-    return 'sqlite'
+    yield 'sqlite'
 
 
 def create_pg_dsn(pg_params):
@@ -225,7 +235,8 @@ def dsn(tmp_path, request, db):
         conf = create_mysql_dsn(mysql_params)
     else:
         conf = os.environ.get('DSN', f'Driver=SQLite;Database={tmp_path / "sqlite.db"}')
-    return conf
+
+    yield conf
 
 
 @pytest.fixture
@@ -249,21 +260,23 @@ async def connection_maker(loop, dsn):
         cleanup.append((conn, executor))
         return conn
 
-    yield make
-
-    for conn, executor in cleanup:
-        await conn.close()
-        executor.shutdown()
+    try:
+        yield make
+    finally:
+        for conn, executor in cleanup:
+            await conn.close()
+            executor.shutdown()
 
 
 @pytest.fixture
 async def pool(loop, dsn):
     pool = await aioodbc.create_pool(loop=loop, dsn=dsn)
 
-    yield pool
-
-    pool.close()
-    await pool.wait_closed()
+    try:
+        yield pool
+    finally:
+        pool.close()
+        await pool.wait_closed()
 
 
 @pytest.fixture
@@ -275,11 +288,12 @@ async def pool_maker(loop):
         pool_list.append(pool)
         return pool
 
-    yield make
-
-    for pool in pool_list:
-        pool.close()
-        await pool.wait_closed()
+    try:
+        yield make
+    finally:
+        for pool in pool_list:
+            pool.close()
+            await pool.wait_closed()
 
 
 @pytest.fixture
@@ -292,9 +306,10 @@ async def table(loop, conn):
     await conn.commit()
     await cur.close()
 
-    yield 't1'
-
-    cur = await conn.cursor()
-    await cur.execute("DROP TABLE t1;")
-    await cur.commit()
-    await cur.close()
+    try:
+        yield 't1'
+    finally:
+        cur = await conn.cursor()
+        await cur.execute("DROP TABLE t1;")
+        await cur.commit()
+        await cur.close()

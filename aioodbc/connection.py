@@ -6,7 +6,7 @@ from functools import partial
 
 import pyodbc
 from .cursor import Cursor
-from .utils import _ContextManager
+from .utils import _ContextManager, _is_conn_close_error
 
 
 __all__ = ['connect', 'Connection']
@@ -158,13 +158,18 @@ class Connection:
         by each call, this should not be used if more than one SQL
         statement needs to be executed.
 
-        :param sql: str, formated sql statement
+        :param sql: str, formatted sql statement
         :param args: tuple, arguments for construction of sql statement
         """
-        _cursor = await self._execute(self._conn.execute, sql, *args)
-        connection = self
-        cursor = Cursor(_cursor, connection, echo=self._echo)
-        return cursor
+        try:
+            _cursor = await self._execute(self._conn.execute, sql, *args)
+            connection = self
+            cursor = Cursor(_cursor, connection, echo=self._echo)
+            return cursor
+        except pyodbc.Error as e:
+            if _is_conn_close_error(e):
+                await self.close()
+            raise
 
     def getinfo(self, type_):
         """Returns general information about the driver and data source

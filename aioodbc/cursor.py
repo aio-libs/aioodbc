@@ -1,6 +1,6 @@
 import pyodbc
 from .log import logger
-from .utils import PY_352
+from .utils import PY_352, _is_conn_close_error
 
 
 __all__ = ['Cursor']
@@ -21,12 +21,18 @@ class Cursor:
         self._loop = connection.loop
         self._echo = echo
 
-    def _run_operation(self, func, *args, **kwargs):
+    async def _run_operation(self, func, *args, **kwargs):
         # execute func in thread pool of attached to cursor connection
         if not self._conn:
             raise pyodbc.OperationalError('Cursor is closed.')
-        future = self._conn._execute(func, *args, **kwargs)
-        return future
+
+        try:
+            result = await self._conn._execute(func, *args, **kwargs)
+            return result
+        except pyodbc.Error as e:
+            if self._conn and _is_conn_close_error(e):
+                await self._conn.close()
+            raise
 
     @property
     def echo(self):
@@ -118,6 +124,7 @@ class Cursor:
         if self._echo:
             logger.info(sql)
             logger.info("%r", sql)
+
         await self._run_operation(self._impl.execute, sql, *params)
         return self
 

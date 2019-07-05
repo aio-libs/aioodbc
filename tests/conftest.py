@@ -1,6 +1,7 @@
 import asyncio
 import gc
 import os
+import random
 import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
@@ -11,6 +12,7 @@ import pytest
 import uvloop
 
 from aiodocker import Docker
+from async_generator import asynccontextmanager
 
 
 @pytest.fixture(scope='session')
@@ -32,9 +34,12 @@ def event_loop(loop_type):
     elif loop_type == 'uvloop':
         asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    gc.collect()
-    loop.close()
+
+    try:
+        yield loop
+    finally:
+        gc.collect()
+        loop.close()
 
 
 # alias
@@ -46,23 +51,27 @@ def loop(event_loop):
 @pytest.fixture(scope='session')
 async def docker(loop):
     client = Docker()
-    yield client
-    await client.close()
+
+    try:
+        yield client
+    finally:
+        await client.close()
 
 
 @pytest.fixture(scope='session')
 def host():
+    # Alternative: host.docker.internal, however not working on travis
     return os.environ.get('DOCKER_MACHINE_IP', '127.0.0.1')
 
 
 @pytest.fixture
 async def pg_params(loop, pg_server):
-    server_info = (pg_server)['pg_params']
+    server_info = pg_server['pg_params']
     return dict(**server_info)
 
 
-@pytest.fixture(scope='session')
-async def pg_server(loop, host, docker, session_id):
+@asynccontextmanager
+async def _pg_server_helper(host, docker, session_id):
     pg_tag = '9.5'
 
     await docker.pull('postgres:{}'.format(pg_tag))
@@ -78,41 +87,58 @@ async def pg_server(loop, host, docker, session_id):
         }
     )
     await container.start()
-    port = (await container.port(5432))[0]['HostPort']
+    container_port = await container.port(5432)
+    port = container_port[0]['HostPort']
 
     pg_params = {
         'database': 'postgres',
         'user': 'postgres',
         'password': 'mysecretpassword',
         'host': host,
-        'port': port
+        'port': port,
     }
-    delay = 0.001
+
+    start = time.time()
     dsn = create_pg_dsn(pg_params)
     last_error = None
-    for _ in range(100):
-        try:
-            conn = pyodbc.connect(dsn)
-            cur = conn.cursor()
-            cur.execute("SELECT 1;")
-            cur.close()
-            conn.close()
-            break
-        except pyodbc.Error as e:
-            last_error = e
-            time.sleep(delay)
-            delay *= 2
-    else:
-        pytest.fail("Cannot start postgres server: {}".format(last_error))
-
     container_info = {
         'port': port,
         'pg_params': pg_params,
+        'container': container,
+        'dsn': dsn,
     }
-    yield container_info
+    try:
+        while (time.time() - start) < 40:
+            try:
+                conn = pyodbc.connect(dsn)
+                cur = conn.execute("SELECT 1;")
+                cur.close()
+                conn.close()
+                break
+            except pyodbc.Error as e:
+                last_error = e
+                await asyncio.sleep(random.uniform(0.1, 1))
+        else:
+            pytest.fail("Cannot start postgres server: {}".format(last_error))
 
-    await container.kill()
-    await container.delete(force=True)
+        yield container_info
+    finally:
+        container = container_info['container']
+        if container:
+            await container.kill()
+            await container.delete(v=True, force=True)
+
+
+@pytest.fixture(scope='session')
+async def pg_server(loop, host, docker, session_id):
+    async with _pg_server_helper(host, docker, session_id) as helper:
+        yield helper
+
+
+@pytest.fixture
+async def pg_server_local(loop, host, docker):
+    async with _pg_server_helper(host, docker, None) as helper:
+        yield helper
 
 
 @pytest.fixture
@@ -149,42 +175,46 @@ async def mysql_server(loop, host, docker, session_id):
         'host': host,
         'port': port
     }
-    delay = 0.001
     dsn = create_mysql_dsn(mysql_params)
-    last_error = None
-    for _ in range(100):
-        try:
-            conn = pyodbc.connect(dsn)
-            cur = conn.cursor()
-            cur.execute("SELECT 1;")
-            cur.close()
-            conn.close()
-            break
-        except pyodbc.Error as e:
-            last_error = e
-            time.sleep(delay)
-            delay *= 2
-    else:
-        pytest.fail("Cannot start mysql server: {}".format(last_error))
-    container_info = {
-        'port': port,
-        'mysql_params': mysql_params,
-    }
-    yield container_info
+    start = time.time()
+    try:
+        last_error = None
+        while (time.time() - start) < 30:
+            try:
+                conn = pyodbc.connect(dsn)
+                cur = conn.execute("SELECT 1;")
+                cur.close()
+                conn.close()
+                break
+            except pyodbc.Error as e:
+                last_error = e
+                await asyncio.sleep(random.uniform(0.1, 1))
+        else:
+            pytest.fail("Cannot start mysql server: {}".format(last_error))
 
-    await container.kill()
-    await container.delete(force=True)
+        container_info = {
+            'port': port,
+            'mysql_params': mysql_params,
+        }
+
+        yield container_info
+    finally:
+        await container.kill()
+        await container.delete(v=True, force=True)
 
 
 @pytest.fixture
 def executor():
     executor = ThreadPoolExecutor(max_workers=1)
-    yield executor
-    executor.shutdown()
+
+    try:
+        yield executor
+    finally:
+        executor.shutdown(True)
 
 
-def pytest_namespace():
-    return {'db_list': ['pg', 'mysql', 'sqlite']}
+def pytest_configure():
+    pytest.db_list = ['pg', 'mysql', 'sqlite']
 
 
 @pytest.fixture
@@ -208,7 +238,7 @@ def create_mysql_dsn(mysql_params):
 
 
 @pytest.fixture
-def dsn(request, db):
+def dsn(tmp_path, request, db):
     if db == 'pg':
         pg_params = request.getfixturevalue('pg_params')
         conf = create_pg_dsn(pg_params)
@@ -216,14 +246,16 @@ def dsn(request, db):
         mysql_params = request.getfixturevalue('mysql_params')
         conf = create_mysql_dsn(mysql_params)
     else:
-        conf = os.environ.get('DSN', 'Driver=SQLite;Database=sqlite.db')
+        conf = os.environ.get(
+            'DSN', f'Driver=SQLite;Database={tmp_path / "sqlite.db"}')
+
     return conf
 
 
 @pytest.fixture
 async def conn(loop, dsn, connection_maker):
     connection = await connection_maker()
-    yield connection
+    return connection
 
 
 @pytest.fixture
@@ -241,21 +273,23 @@ async def connection_maker(loop, dsn):
         cleanup.append((conn, executor))
         return conn
 
-    yield make
-
-    for conn, executor in cleanup:
-        await conn.close()
-        executor.shutdown()
+    try:
+        yield make
+    finally:
+        for conn, executor in cleanup:
+            await conn.close()
+            executor.shutdown(True)
 
 
 @pytest.fixture
 async def pool(loop, dsn):
     pool = await aioodbc.create_pool(loop=loop, dsn=dsn)
 
-    yield pool
-
-    pool.close()
-    await pool.wait_closed()
+    try:
+        yield pool
+    finally:
+        pool.close()
+        await pool.wait_closed()
 
 
 @pytest.fixture
@@ -267,11 +301,12 @@ async def pool_maker(loop):
         pool_list.append(pool)
         return pool
 
-    yield make
-
-    for pool in pool_list:
-        pool.close()
-        await pool.wait_closed()
+    try:
+        yield make
+    finally:
+        for pool in pool_list:
+            pool.close()
+            await pool.wait_closed()
 
 
 @pytest.fixture
@@ -284,9 +319,10 @@ async def table(loop, conn):
     await conn.commit()
     await cur.close()
 
-    yield 't1'
-
-    cur = await conn.cursor()
-    await cur.execute("DROP TABLE t1;")
-    await cur.commit()
-    await cur.close()
+    try:
+        yield 't1'
+    finally:
+        cur = await conn.cursor()
+        await cur.execute("DROP TABLE t1;")
+        await cur.commit()
+        await cur.close()

@@ -4,7 +4,7 @@ Changes
 0.3.3 (YYYY-MM-DD)
 ^^^^^^^^^^^^^^^^^^
 * Parameter echo passed properly in cursor #185
-
+* Close bad connections before returning back to pool #195
 
 0.3.2 (2018-08-04)
 ^^^^^^^^^^^^^^^^^^

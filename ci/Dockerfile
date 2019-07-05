@@ -1,4 +1,5 @@
-FROM python:3.6.1-slim
+# NOTE: stretch was very crashy when using https://dev.mysql.com/get/Downloads/Connector-ODBC/8.0/mysql-connector-odbc-8.0.16-linux-debian9-x86-64bit.tar.gz
+FROM python:3.6.8-slim-jessie
 
 # configure apt to install minimal dependencies in non-interactive mode.
 ENV DEBIAN_FRONTEND noninteractive
@@ -23,5 +24,4 @@ RUN rm -rf /aioodbc && \
     apt-get purge -y wget && \
     apt-get autoremove -y
 
-VOLUME /aioodbc
 WORKDIR /aioodbc

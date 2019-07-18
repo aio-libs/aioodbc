@@ -59,21 +59,23 @@ async def test_release(pool):
 async def test_op_error_release(loop, pool_maker, pg_server_local):
     pool = await pool_maker(loop, dsn=pg_server_local['dsn'], autocommit=True)
 
-    with pytest.raises(Error):
-        async with pool.acquire() as conn:
-            async def execute():
-                start = time.time()
+    async with pool.acquire() as conn:
+        async def execute():
+            start = time.time()
 
-                while time.time() - start < 20:
-                    await conn.execute('SELECT 1; SELECT pg_sleep(1);')
+            while time.time() - start < 20:
+                await conn.execute('SELECT 1; SELECT pg_sleep(1);')
 
-            async def _kill_conn():
-                await asyncio.sleep(2)
-                await pg_server_local['container'].kill()
-                await pg_server_local['container'].delete(v=True, force=True)
-                pg_server_local['container'] = None
+        async def _kill_conn():
+            await asyncio.sleep(2)
+            await pg_server_local['container'].kill()
+            await pg_server_local['container'].delete(v=True, force=True)
+            pg_server_local['container'] = None
 
-            await asyncio.gather(_kill_conn(), execute())
+        result = await asyncio.gather(
+            _kill_conn(), execute(), return_exceptions=True)
+        exc = result[1]
+        assert isinstance(exc, Error)
 
     assert 9 == pool.freesize
     assert not pool._used

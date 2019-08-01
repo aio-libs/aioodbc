@@ -13,7 +13,7 @@ flake8-mypy==17.8.0
 flake8-pyi==19.3.0
 flake8-tuple==0.4.0
 ipdb==0.12.2
-ipython==7.2.0
+ipython==7.7.0
 pyodbc==4.0.26
 pytest==4.6.4
 pytest-asyncio==0.10.0

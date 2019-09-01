@@ -22,5 +22,5 @@ pytest-sugar==0.9.2
 pytest-faulthandler==1.6.0
 sphinx==2.2.0
 sphinxcontrib-asyncio==0.2.0
-uvloop==0.12.2
+uvloop==0.13.0
 async_generator==1.10

@@ -10,7 +10,7 @@ flake8-debugger==3.1.0
 flake8-mock==0.3
 flake8-mutable==1.2.0
 flake8-mypy==17.8.0
-flake8-pyi==18.3.1
+flake8-pyi==19.3.0
 flake8-tuple==0.2.13
 ipdb==0.11
 ipython==7.2.0

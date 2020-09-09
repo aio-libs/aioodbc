@@ -109,6 +109,10 @@ class Connection:
         """
         return self._conn.autocommit
 
+    @autocommit.setter
+    def autocommit(self, value):
+        self._conn.autocommit = value
+
     @property
     def timeout(self):
         return self._conn.timeout

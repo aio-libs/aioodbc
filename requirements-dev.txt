@@ -18,7 +18,7 @@ pyodbc==4.0.27
 pytest==5.2.0
 pytest-asyncio==0.10.0
 pytest-cov==2.7.1
-pytest-sugar==0.9.2
+pytest-sugar==0.9.4
 pytest-faulthandler==1.6.0
 sphinx==2.2.0
 sphinxcontrib-asyncio==0.2.0

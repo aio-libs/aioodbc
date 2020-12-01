@@ -14,7 +14,7 @@ flake8-pyi==19.3.0
 flake8-tuple==0.4.0
 ipdb==0.13.4
 ipython==7.19.0
-pyodbc==4.0.27
+pyodbc==4.0.30
 pytest==5.2.0
 pytest-asyncio==0.10.0
 pytest-cov==2.7.1

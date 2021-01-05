@@ -20,7 +20,7 @@ pytest-asyncio==0.14.0
 pytest-cov==2.10.1
 pytest-sugar==0.9.4
 pytest-faulthandler==2.0.1
-sphinx==3.4.1
+sphinx==3.4.2
 sphinxcontrib-asyncio==0.3.0
 uvloop==0.14.0
 async_generator==1.10

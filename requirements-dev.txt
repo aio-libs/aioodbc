@@ -16,7 +16,7 @@ ipdb==0.13.7
 ipython==7.22.0
 pyodbc==4.0.30
 pytest==6.2.3
-pytest-asyncio==0.14.0
+pytest-asyncio==0.15.0
 pytest-cov==2.11.1
 pytest-sugar==0.9.4
 pytest-faulthandler==2.0.1

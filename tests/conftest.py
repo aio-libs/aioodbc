@@ -72,7 +72,7 @@ async def pg_params(loop, pg_server):
 
 @asynccontextmanager
 async def _pg_server_helper(host, docker, session_id):
-    pg_tag = '9.5'
+    pg_tag = '9.6'
 
     await docker.pull('postgres:{}'.format(pg_tag))
     container = await docker.containers.create_or_replace(
@@ -81,14 +81,25 @@ async def _pg_server_helper(host, docker, session_id):
             'Image': f'postgres:{pg_tag}',
             'AttachStdout': False,
             'AttachStderr': False,
+            'Env': ['POSTGRES_USER=postgres',
+                    'POSTGRES_PASSWORD=mysecretpassword',
+                    'POSTGRES_DB=postgres', ],
             'HostConfig': {
                 'PublishAllPorts': True,
             },
         }
     )
     await container.start()
-    container_port = await container.port(5432)
-    port = container_port[0]['HostPort']
+    start = time.time()
+    while (time.time() - start) < 60:
+        container_port = await container.port(5432)
+        if container_port:
+            port = container_port[0]['HostPort']
+            break
+        else:
+            await asyncio.sleep(random.uniform(0.1, 1))
+    else:
+        pytest.fail("Unable to get postgres host port.")
 
     pg_params = {
         'database': 'postgres',
@@ -108,7 +119,7 @@ async def _pg_server_helper(host, docker, session_id):
         'dsn': dsn,
     }
     try:
-        while (time.time() - start) < 40:
+        while (time.time() - start) < 120:
             try:
                 conn = pyodbc.connect(dsn)
                 cur = conn.execute("SELECT 1;")
@@ -179,7 +190,7 @@ async def mysql_server(loop, host, docker, session_id):
     start = time.time()
     try:
         last_error = None
-        while (time.time() - start) < 30:
+        while (time.time() - start) < 60:
             try:
                 conn = pyodbc.connect(dsn)
                 cur = conn.execute("SELECT 1;")
@@ -188,7 +199,7 @@ async def mysql_server(loop, host, docker, session_id):
                 break
             except pyodbc.Error as e:
                 last_error = e
-                await asyncio.sleep(random.uniform(0.1, 1))
+                await asyncio.sleep(random.uniform(1, 3))
         else:
             pytest.fail("Cannot start mysql server: {}".format(last_error))
 

@@ -1,5 +1,5 @@
 coverage==5.5
-aiodocker==0.19.1
+aiodocker==0.20.0
 flake8==3.9.2
 flake8-blind-except==0.2.0
 flake8-bugbear==21.4.3

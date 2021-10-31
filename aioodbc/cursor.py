@@ -173,7 +173,7 @@ class Cursor:
         fut = self._run_operation(self._impl.fetchall)
         return fut
 
-    def fetchmany(self, size):
+    def fetchmany(self, size=0):
         """Returns a list of remaining rows, containing no more than size
         rows, used to process results in chunks. The list will be empty when
         there are no more rows.
@@ -187,6 +187,8 @@ class Cursor:
 
         :param size: int, max number of rows to return
         """
+        if not size:
+            size = self.arraysize
         fut = self._run_operation(self._impl.fetchmany, size)
         return fut
 

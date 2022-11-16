@@ -4,7 +4,10 @@
 import asyncio
 import collections
 
+from pyodbc import ProgrammingError
+
 from .connection import connect
+from .log import logger
 from .utils import _PoolContextManager, _PoolConnectionContextManager
 
 __all__ = ['create_pool', 'Pool']
@@ -137,7 +140,16 @@ class Pool(asyncio.AbstractServer):
             conn = self._free[-1]
             if self._recycle > -1 \
                     and self._loop.time() - conn.last_usage > self._recycle:
-                await conn.close()
+
+                try:
+                    if not conn.closed:
+                        await conn.close()
+                except ProgrammingError as e:
+                    # Sometimes conn.closed is False even if connection has been already closed
+                    # (ex. for impala driver clouderaimpalaodbc_2.6.16.1022-2_amd64.deb).
+                    # conn.close() will raise ProgrammingError in this case.
+                    logger.warning(e)
+
                 self._free.pop()
             else:
                 self._free.rotate()

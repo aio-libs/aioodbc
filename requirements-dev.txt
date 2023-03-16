@@ -18,7 +18,7 @@ flake8==3.9.2
 ipdb==0.13.13
 ipython==8.11.0
 isort==5.12.0
-pyodbc==4.0.31
+pyodbc==4.0.35
 pytest-asyncio==0.15.1
 pytest-cov==4.0.0
 pytest-faulthandler==2.0.1

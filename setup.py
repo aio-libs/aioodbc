@@ -1,15 +1,9 @@
 import os
 import re
-import sys
 
 from setuptools import find_packages, setup
 
-install_requires = ["pyodbc"]
-
-PY_VER = sys.version_info
-
-if not PY_VER >= (3, 5):
-    raise RuntimeError("aioodbc doesn't support Python earlier than 3.5")
+install_requires = ["pyodbc>=4.0.35"]
 
 
 def read(f):
@@ -35,8 +29,11 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.5",
-    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Operating System :: POSIX",
     "Environment :: Web Environment",
     "Development Status :: 3 - Alpha",
@@ -59,7 +56,7 @@ setup(
     download_url="https://pypi.python.org/pypi/aioodbc",
     license="Apache 2",
     packages=find_packages(),
-    python_requires=">=3.5",
+    python_requires=">=3.7",
     install_requires=install_requires,
     extras_require=extras_require,
     include_package_data=True,

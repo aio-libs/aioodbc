@@ -1,12 +1,12 @@
 import asyncio
+
 from pyodbc import dataSources as _dataSources
 
-from .connection import connect, Connection
-from .pool import create_pool, Pool
+from .connection import Connection, connect
+from .pool import Pool, create_pool
 
-
-__version__ = '0.3.3'
-__all__ = ['connect', 'Connection', 'create_pool', 'Pool', 'dataSources']
+__version__ = "0.3.3"
+__all__ = ["connect", "Connection", "create_pool", "Pool", "dataSources"]
 
 (connect, Connection, create_pool, Pool)  # pyflakes
 

@@ -5,15 +5,25 @@ import warnings
 from functools import partial
 
 import pyodbc
+
 from .cursor import Cursor
 from .utils import _ContextManager, _is_conn_close_error
 
+__all__ = ["connect", "Connection"]
 
-__all__ = ['connect', 'Connection']
 
-
-def connect(*, dsn, autocommit=False, ansi=False, timeout=0, loop=None,
-            executor=None, echo=False, after_created=None, **kwargs):
+def connect(
+    *,
+    dsn,
+    autocommit=False,
+    ansi=False,
+    timeout=0,
+    loop=None,
+    executor=None,
+    echo=False,
+    after_created=None,
+    **kwargs
+):
     """Accepts an ODBC connection string and returns a new Connection object.
 
     The connection string can be passed as the string `str`, as a list of
@@ -34,32 +44,70 @@ def connect(*, dsn, autocommit=False, ansi=False, timeout=0, loop=None,
         connection is connected.  Must be an async unary function, or leave it
         as None.
     """
-    return _ContextManager(_connect(dsn=dsn, autocommit=autocommit,
-                           ansi=ansi, timeout=timeout, loop=loop,
-                           executor=executor, echo=echo,
-                           after_created=after_created, **kwargs))
+    return _ContextManager(
+        _connect(
+            dsn=dsn,
+            autocommit=autocommit,
+            ansi=ansi,
+            timeout=timeout,
+            loop=loop,
+            executor=executor,
+            echo=echo,
+            after_created=after_created,
+            **kwargs
+        )
+    )
 
 
-async def _connect(*, dsn, autocommit=False, ansi=False, timeout=0, loop=None,
-                   executor=None, echo=False, after_created=None, **kwargs):
+async def _connect(
+    *,
+    dsn,
+    autocommit=False,
+    ansi=False,
+    timeout=0,
+    loop=None,
+    executor=None,
+    echo=False,
+    after_created=None,
+    **kwargs
+):
     loop = loop or asyncio.get_event_loop()
-    conn = Connection(dsn=dsn, autocommit=autocommit, ansi=ansi,
-                      timeout=timeout, echo=echo, loop=loop, executor=executor,
-                      after_created=after_created, **kwargs)
+    conn = Connection(
+        dsn=dsn,
+        autocommit=autocommit,
+        ansi=ansi,
+        timeout=timeout,
+        echo=echo,
+        loop=loop,
+        executor=executor,
+        after_created=after_created,
+        **kwargs
+    )
     await conn._connect()
     return conn
 
 
 class Connection:
-    """ Connection objects manage connections to the database.
+    """Connection objects manage connections to the database.
 
     Connections should only be created by the aioodbc.connect function.
     """
+
     _source_traceback = None
 
-    def __init__(self, *, dsn, autocommit=False, ansi=None,
-                 timeout=0, executor=None, echo=False, loop=None,
-                 after_created=None, **kwargs):
+    def __init__(
+        self,
+        *,
+        dsn,
+        autocommit=False,
+        ansi=None,
+        timeout=0,
+        executor=None,
+        echo=False,
+        loop=None,
+        after_created=None,
+        **kwargs
+    ):
         self._executor = executor
         self._loop = loop or asyncio.get_event_loop()
         self._conn = None
@@ -83,10 +131,14 @@ class Connection:
 
     async def _connect(self):
         # create pyodbc connection
-        f = self._execute(pyodbc.connect, self._dsn,
-                          autocommit=self._autocommit, ansi=self._ansi,
-                          timeout=self._timeout,
-                          **self._kwargs)
+        f = self._execute(
+            pyodbc.connect,
+            self._dsn,
+            autocommit=self._autocommit,
+            ansi=self._ansi,
+            timeout=self._timeout,
+            **self._kwargs
+        )
         self._conn = await f
         if self._posthook is not None:
             await self._posthook(self._conn)
@@ -223,13 +275,13 @@ class Connection:
             self._conn.close()
             self._conn = None
 
-            warnings.warn("Unclosed connection {!r}".format(self),
-                          ResourceWarning)
+            warnings.warn(
+                "Unclosed connection {!r}".format(self), ResourceWarning
+            )
 
-            context = {'connection': self,
-                       'message': 'Unclosed connection'}
+            context = {"connection": self, "message": "Unclosed connection"}
             if self._source_traceback is not None:
-                context['source_traceback'] = self._source_traceback
+                context["source_traceback"] = self._source_traceback
             self._loop.call_exception_handler(context)
 
     async def __aenter__(self):

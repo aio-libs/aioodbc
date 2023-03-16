@@ -1,12 +1,12 @@
 import asyncio
-import aioodbc
 
+import aioodbc
 
 loop = asyncio.get_event_loop()
 
 
 async def test_pool():
-    dsn = 'Driver=SQLite;Database=sqlite.db'
+    dsn = "Driver=SQLite;Database=sqlite.db"
     pool = await aioodbc.create_pool(dsn=dsn, loop=loop)
 
     async with pool.acquire() as conn:
@@ -18,5 +18,6 @@ async def test_pool():
         await conn.close()
     pool.close()
     await pool.wait_closed()
+
 
 loop.run_until_complete(test_pool())

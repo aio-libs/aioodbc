@@ -1,10 +1,9 @@
 import asyncio
-import aioodbc
-
 from functools import partial
 
+import aioodbc
 
-dsn = 'Driver=SQLite3;Database=sqlite.db'
+dsn = "Driver=SQLite3;Database=sqlite.db"
 
 
 # Sometimes you may want to reuse same connection parameters multiple times.
@@ -21,7 +20,7 @@ async def test_init_database(loop=None):
     """
     async with connect(loop=loop) as conn:
         async with conn.cursor() as cur:
-            sql = 'CREATE TABLE IF NOT EXISTS t1(n INTEGER, v TEXT);'
+            sql = "CREATE TABLE IF NOT EXISTS t1(n INTEGER, v TEXT);"
             await cur.execute(sql)
 
 
@@ -56,17 +55,19 @@ async def test_insert_with_values(loop=None):
     async with connect(loop=loop) as conn:
         async with conn.cursor() as cur:
             # Substitute sql markers with variables
-            await cur.execute('INSERT INTO t1(n, v) VALUES(?, ?);',
-                              ('2', 'test 2'))
+            await cur.execute(
+                "INSERT INTO t1(n, v) VALUES(?, ?);", ("2", "test 2")
+            )
             # NOTE: make sure to pass variables as tuple of strings even if
             # your data types are different to prevent
             # pyodbc.ProgrammingError errors. You can even do like this
-            values = (3, 'test 3')
-            await cur.execute('INSERT INTO t1(n, v) VALUES(?, ?);',
-                              *map(str, values))
+            values = (3, "test 3")
+            await cur.execute(
+                "INSERT INTO t1(n, v) VALUES(?, ?);", *map(str, values)
+            )
 
             # Retrieve id of last inserted row
-            await cur.execute('SELECT last_insert_rowid();')
+            await cur.execute("SELECT last_insert_rowid();")
             result = await cur.fetchone()
             print(result[0])
 
@@ -85,14 +86,14 @@ async def test_commit(loop=None):
 
     async with aioodbc.connect(dsn=dsn, loop=loop) as conn:
         async with conn.cursor() as cur:
-            sql_select = 'SELECT * FROM t1;'
+            sql_select = "SELECT * FROM t1;"
             await cur.execute(sql_select)
             # At this point without autocommiting you will not see
             # the data inserted above
             print(await cur.fetchone())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(test_init_database(loop))
     loop.run_until_complete(test_commit(loop))

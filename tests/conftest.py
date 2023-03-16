@@ -6,32 +6,32 @@ import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 
-import aioodbc
 import pyodbc
 import pytest
 import uvloop
-
 from aiodocker import Docker
 from async_generator import asynccontextmanager
 
+import aioodbc
 
-@pytest.fixture(scope='session')
+
+@pytest.fixture(scope="session")
 def session_id():
     """Unique session identifier, random string."""
     return str(uuid.uuid4())
 
 
 def pytest_generate_tests(metafunc):
-    if 'loop_type' in metafunc.fixturenames:
-        loop_type = ['default', 'uvloop']
-        metafunc.parametrize("loop_type", loop_type, scope='session')
+    if "loop_type" in metafunc.fixturenames:
+        loop_type = ["default", "uvloop"]
+        metafunc.parametrize("loop_type", loop_type, scope="session")
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def event_loop(loop_type):
-    if loop_type == 'default':
+    if loop_type == "default":
         asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
-    elif loop_type == 'uvloop':
+    elif loop_type == "uvloop":
         asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     loop = asyncio.get_event_loop_policy().new_event_loop()
 
@@ -43,12 +43,12 @@ def event_loop(loop_type):
 
 
 # alias
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def loop(event_loop):
     return event_loop
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 async def docker(loop):
     client = Docker()
 
@@ -58,54 +58,54 @@ async def docker(loop):
         await client.close()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def host():
     # Alternative: host.docker.internal, however not working on travis
-    return os.environ.get('DOCKER_MACHINE_IP', '127.0.0.1')
+    return os.environ.get("DOCKER_MACHINE_IP", "127.0.0.1")
 
 
 @pytest.fixture
 async def pg_params(loop, pg_server):
-    server_info = pg_server['pg_params']
+    server_info = pg_server["pg_params"]
     return dict(**server_info)
 
 
 @asynccontextmanager
 async def _pg_server_helper(host, docker, session_id):
-    pg_tag = '9.5'
+    pg_tag = "9.5"
 
-    await docker.pull('postgres:{}'.format(pg_tag))
+    await docker.pull("postgres:{}".format(pg_tag))
     container = await docker.containers.create_or_replace(
-        name=f'aioodbc-test-server-{pg_tag}-{session_id}',
+        name=f"aioodbc-test-server-{pg_tag}-{session_id}",
         config={
-            'Image': f'postgres:{pg_tag}',
-            'AttachStdout': False,
-            'AttachStderr': False,
-            'HostConfig': {
-                'PublishAllPorts': True,
+            "Image": f"postgres:{pg_tag}",
+            "AttachStdout": False,
+            "AttachStderr": False,
+            "HostConfig": {
+                "PublishAllPorts": True,
             },
-        }
+        },
     )
     await container.start()
     container_port = await container.port(5432)
-    port = container_port[0]['HostPort']
+    port = container_port[0]["HostPort"]
 
     pg_params = {
-        'database': 'postgres',
-        'user': 'postgres',
-        'password': 'mysecretpassword',
-        'host': host,
-        'port': port,
+        "database": "postgres",
+        "user": "postgres",
+        "password": "mysecretpassword",
+        "host": host,
+        "port": port,
     }
 
     start = time.time()
     dsn = create_pg_dsn(pg_params)
     last_error = None
     container_info = {
-        'port': port,
-        'pg_params': pg_params,
-        'container': container,
-        'dsn': dsn,
+        "port": port,
+        "pg_params": pg_params,
+        "container": container,
+        "dsn": dsn,
     }
     try:
         while (time.time() - start) < 40:
@@ -123,13 +123,13 @@ async def _pg_server_helper(host, docker, session_id):
 
         yield container_info
     finally:
-        container = container_info['container']
+        container = container_info["container"]
         if container:
             await container.kill()
             await container.delete(v=True, force=True)
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 async def pg_server(loop, host, docker, session_id):
     async with _pg_server_helper(host, docker, session_id) as helper:
         yield helper
@@ -143,37 +143,39 @@ async def pg_server_local(loop, host, docker):
 
 @pytest.fixture
 async def mysql_params(loop, mysql_server):
-    server_info = (mysql_server)['mysql_params']
+    server_info = (mysql_server)["mysql_params"]
     return dict(**server_info)
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 async def mysql_server(loop, host, docker, session_id):
-    mysql_tag = '5.7'
-    await docker.pull('mysql:{}'.format(mysql_tag))
+    mysql_tag = "5.7"
+    await docker.pull("mysql:{}".format(mysql_tag))
     container = await docker.containers.create_or_replace(
-        name=f'aioodbc-test-server-{mysql_tag}-{session_id}',
+        name=f"aioodbc-test-server-{mysql_tag}-{session_id}",
         config={
-            'Image': 'mysql:{}'.format(mysql_tag),
-            'AttachStdout': False,
-            'AttachStderr': False,
-            'Env': ['MYSQL_USER=aioodbc',
-                    'MYSQL_PASSWORD=mysecretpassword',
-                    'MYSQL_DATABASE=aioodbc',
-                    'MYSQL_ROOT_PASSWORD=mysecretpassword'],
-            'HostConfig': {
-                'PublishAllPorts': True,
+            "Image": "mysql:{}".format(mysql_tag),
+            "AttachStdout": False,
+            "AttachStderr": False,
+            "Env": [
+                "MYSQL_USER=aioodbc",
+                "MYSQL_PASSWORD=mysecretpassword",
+                "MYSQL_DATABASE=aioodbc",
+                "MYSQL_ROOT_PASSWORD=mysecretpassword",
+            ],
+            "HostConfig": {
+                "PublishAllPorts": True,
             },
-        }
+        },
     )
     await container.start()
-    port = (await container.port(3306))[0]['HostPort']
+    port = (await container.port(3306))[0]["HostPort"]
     mysql_params = {
-        'database': 'aioodbc',
-        'user': 'aioodbc',
-        'password': 'mysecretpassword',
-        'host': host,
-        'port': port
+        "database": "aioodbc",
+        "user": "aioodbc",
+        "password": "mysecretpassword",
+        "host": host,
+        "port": port,
     }
     dsn = create_mysql_dsn(mysql_params)
     start = time.time()
@@ -193,8 +195,8 @@ async def mysql_server(loop, host, docker, session_id):
             pytest.fail("Cannot start mysql server: {}".format(last_error))
 
         container_info = {
-            'port': port,
-            'mysql_params': mysql_params,
+            "port": port,
+            "mysql_params": mysql_params,
         }
 
         yield container_info
@@ -214,40 +216,45 @@ def executor():
 
 
 def pytest_configure():
-    pytest.db_list = ['sqlite']
+    pytest.db_list = ["sqlite"]
 
 
 @pytest.fixture
 def db(request):
-    return 'sqlite'
+    return "sqlite"
 
 
 def create_pg_dsn(pg_params):
-    dsn = ('Driver=PostgreSQL Unicode;'
-           'Server={host};Port={port};'
-           'Database={database};Uid={user};'
-           'Pwd={password};'.format(**pg_params))
+    dsn = (
+        "Driver=PostgreSQL Unicode;"
+        "Server={host};Port={port};"
+        "Database={database};Uid={user};"
+        "Pwd={password};".format(**pg_params)
+    )
     return dsn
 
 
 def create_mysql_dsn(mysql_params):
-    dsn = ('Driver=MySQL;Server={host};Port={port};'
-           'Database={database};User={user};'
-           'Password={password}'.format(**mysql_params))
+    dsn = (
+        "Driver=MySQL;Server={host};Port={port};"
+        "Database={database};User={user};"
+        "Password={password}".format(**mysql_params)
+    )
     return dsn
 
 
 @pytest.fixture
 def dsn(tmp_path, request, db):
-    if db == 'pg':
-        pg_params = request.getfixturevalue('pg_params')
+    if db == "pg":
+        pg_params = request.getfixturevalue("pg_params")
         conf = create_pg_dsn(pg_params)
-    elif db == 'mysql':
-        mysql_params = request.getfixturevalue('mysql_params')
+    elif db == "mysql":
+        mysql_params = request.getfixturevalue("mysql_params")
         conf = create_mysql_dsn(mysql_params)
     else:
         conf = os.environ.get(
-            'DSN', f'Driver=SQLite3;Database={tmp_path / "sqlite.db"}')
+            "DSN", f'Driver=SQLite3;Database={tmp_path / "sqlite.db"}'
+        )
 
     return conf
 
@@ -263,11 +270,11 @@ async def connection_maker(loop, dsn):
     cleanup = []
 
     async def make(**kw):
-        if kw.get('executor', None) is None:
+        if kw.get("executor", None) is None:
             executor = ThreadPoolExecutor(max_workers=1)
-            kw['executor'] = executor
+            kw["executor"] = executor
         else:
-            executor = kw['executor']
+            executor = kw["executor"]
 
         conn = await aioodbc.connect(dsn=dsn, loop=loop, **kw)
         cleanup.append((conn, executor))
@@ -311,7 +318,6 @@ async def pool_maker(loop):
 
 @pytest.fixture
 async def table(loop, conn):
-
     cur = await conn.cursor()
     await cur.execute("CREATE TABLE t1(n INT, v VARCHAR(10));")
     await cur.execute("INSERT INTO t1 VALUES (1, '123.45');")
@@ -320,7 +326,7 @@ async def table(loop, conn):
     await cur.close()
 
     try:
-        yield 't1'
+        yield "t1"
     finally:
         cur = await conn.cursor()
         await cur.execute("DROP TABLE t1;")

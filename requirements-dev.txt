@@ -26,4 +26,4 @@ pytest-sugar
 pytest==7.2.2
 sphinx==4.1.2
 sphinxcontrib-asyncio==0.3.0
-uvloop==0.15.3
+uvloop==0.17.0

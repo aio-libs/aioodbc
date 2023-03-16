@@ -1,9 +1,10 @@
 aioodbc
 =======
-.. image:: https://travis-ci.com/aio-libs/aioodbc.svg?branch=master
-    :target: https://travis-ci.com/aio-libs/aioodbc
-.. image:: https://coveralls.io/repos/aio-libs/aioodbc/badge.svg?branch=master&service=github
-    :target: https://coveralls.io/github/aio-libs/aioodbc?branch=master
+.. image:: https://github.com/aio-libs/aioodbc/workflows/CI/badge.svg
+   :target: https://github.com/aio-libs/aioodbc/actions?query=workflow%3ACI
+   :alt: GitHub Actions status for master branch
+.. image:: https://codecov.io/gh/aio-libs/aioodbc/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/aio-libs/aioodbc
 .. image:: https://img.shields.io/pypi/v/aioodbc.svg
     :target: https://pypi.python.org/pypi/aioodbc
 .. image:: https://badges.gitter.im/Join%20Chat.svg
@@ -150,13 +151,10 @@ requirements::
 
     $ pip install -r requirements-dev.txt
 
-In order to simplify development you should install the provided docker container.
-This way you don't need to install any databases or other system libraries, everything happens inside the container.
 
 Then just execute::
 
-    $ make docker_build
-    $ make docker_test
+    $ make test
 
 The test will automatically pull images and build containers with
 the required databases.

@@ -6,7 +6,7 @@ FLAGS=
 checkrst:
 	python setup.py check --restructuredtext
 
-flake: checkrst
+lint: checkrst
 	flake8 aioodbc tests examples setup.py
 
 test: flake

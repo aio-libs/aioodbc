@@ -75,7 +75,7 @@ async def test_getinfo(conn):
     assert data in (pg, sqlite, mysql)
 
 
-@pytest.mark.parametrize('db', ['mysql'])
+@pytest.mark.parametrize('db', ['sqlite'])
 @pytest.mark.asyncio
 async def test_output_conversion(conn, table):
     def convert(value):

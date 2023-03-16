@@ -15,7 +15,7 @@ flake8-mypy==17.8.0
 flake8-pyi==20.10.0
 flake8-tuple==0.4.1
 flake8==3.9.2
-ipdb==0.13.9
+ipdb==0.13.13
 ipython==8.10.0
 isort==5.12.0
 pyodbc==4.0.31

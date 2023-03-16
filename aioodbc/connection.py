@@ -22,7 +22,7 @@ def connect(
     executor=None,
     echo=False,
     after_created=None,
-    **kwargs
+    **kwargs,
 ):
     """Accepts an ODBC connection string and returns a new Connection object.
 
@@ -54,7 +54,7 @@ def connect(
             executor=executor,
             echo=echo,
             after_created=after_created,
-            **kwargs
+            **kwargs,
         )
     )
 
@@ -69,7 +69,7 @@ async def _connect(
     executor=None,
     echo=False,
     after_created=None,
-    **kwargs
+    **kwargs,
 ):
     loop = loop or asyncio.get_event_loop()
     conn = Connection(
@@ -81,7 +81,7 @@ async def _connect(
         loop=loop,
         executor=executor,
         after_created=after_created,
-        **kwargs
+        **kwargs,
     )
     await conn._connect()
     return conn
@@ -106,7 +106,7 @@ class Connection:
         echo=False,
         loop=None,
         after_created=None,
-        **kwargs
+        **kwargs,
     ):
         self._executor = executor
         self._loop = loop or asyncio.get_event_loop()
@@ -137,7 +137,7 @@ class Connection:
             autocommit=self._autocommit,
             ansi=self._ansi,
             timeout=self._timeout,
-            **self._kwargs
+            **self._kwargs,
         )
         self._conn = await f
         if self._posthook is not None:
@@ -276,7 +276,7 @@ class Connection:
             self._conn = None
 
             warnings.warn(
-                "Unclosed connection {!r}".format(self), ResourceWarning
+                f"Unclosed connection {self!r}", ResourceWarning, stacklevel=1
             )
 
             context = {"connection": self, "message": "Unclosed connection"}

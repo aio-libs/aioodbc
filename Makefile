@@ -1,6 +1,7 @@
 # Some simple testing tasks (sorry, UNIX only).
 
 FLAGS=
+FILES := aioodbc tests examples setup.py
 
 
 checkrst:
@@ -37,18 +38,15 @@ doc:
 	make -C docs html
 	@echo "open file://`pwd`/docs/_build/html/index.html"
 
-docker_build:
-	make -C ci build
+black:
+	black -l 79 $(FILES)
 
-# NOTE: we start crashing if running tests with -n auto
+fmt:
+	isort ${FILES}
+	black -l 79 ${FILES}
 
-docker_test:
-	docker run --rm -v /$$(pwd):/aioodbc -v /var/run/docker.sock:/var/run/docker.sock --name aioodbc-test-$$(date +%s) --net=host -e PYTHONASYNCIODEBUG=$(PYTHONASYNCIODEBUG) -it jettify/aioodbc-test:latest py.test -sv tests $(FLAGS)
-
-docker_cov:
-	docker run --rm -v /$$(pwd):/aioodbc -v /var/run/docker.sock:/var/run/docker.sock --name aioodbc-test-$$(date +%s) --net=host -e PYTHONASYNCIODEBUG=$(PYTHONASYNCIODEBUG) -it jettify/aioodbc-test:latest py.test -sv --cov-report term --cov-report html --cov tests --cov aioodbc $(FLAGS)
-
-docker_clean:
-	docker rm -v -f $$(docker ps -a -q -f 'name=aioodbc')
+checkfmt:
+	isort --check-only --diff $(FILES)
+	black -l 79 --check $(FILES)
 
 .PHONY: all flake test vtest cov clean doc

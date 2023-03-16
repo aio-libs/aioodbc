@@ -2,9 +2,10 @@ import asyncio
 import time
 
 import pytest
-import aioodbc
-from aioodbc import Pool, Connection
 from pyodbc import Error
+
+import aioodbc
+from aioodbc import Connection, Pool
 
 
 @pytest.mark.asyncio
@@ -28,7 +29,7 @@ async def test_create_pool2(loop, pool_maker, dsn):
     assert 10 == pool.freesize
 
 
-@pytest.mark.parametrize('db', pytest.db_list)
+@pytest.mark.parametrize("db", pytest.db_list)
 @pytest.mark.asyncio
 async def test_acquire(pool):
     conn = await pool.acquire()
@@ -36,7 +37,7 @@ async def test_acquire(pool):
         assert isinstance(conn, Connection)
         assert not conn.closed
         cur = await conn.cursor()
-        await cur.execute('SELECT 1')
+        await cur.execute("SELECT 1")
         val = await cur.fetchone()
         assert (1,) == tuple(val)
     finally:
@@ -58,23 +59,25 @@ async def test_release(pool):
 @pytest.mark.skip(reason="PG fixture needs update.")
 @pytest.mark.asyncio
 async def test_op_error_release(loop, pool_maker, pg_server_local):
-    pool = await pool_maker(loop, dsn=pg_server_local['dsn'], autocommit=True)
+    pool = await pool_maker(loop, dsn=pg_server_local["dsn"], autocommit=True)
 
     async with pool.acquire() as conn:
+
         async def execute():
             start = time.time()
 
             while time.time() - start < 20:
-                await conn.execute('SELECT 1; SELECT pg_sleep(1);')
+                await conn.execute("SELECT 1; SELECT pg_sleep(1);")
 
         async def _kill_conn():
             await asyncio.sleep(2)
-            await pg_server_local['container'].kill()
-            await pg_server_local['container'].delete(v=True, force=True)
-            pg_server_local['container'] = None
+            await pg_server_local["container"].kill()
+            await pg_server_local["container"].delete(v=True, force=True)
+            pg_server_local["container"] = None
 
         result = await asyncio.gather(
-            _kill_conn(), execute(), return_exceptions=True)
+            _kill_conn(), execute(), return_exceptions=True
+        )
         exc = result[1]
         assert isinstance(exc, Error)
 
@@ -192,8 +195,7 @@ async def test_parallel_tasks_more(loop, pool_maker, dsn):
     fut2 = pool.acquire()
     fut3 = pool.acquire()
 
-    conn1, conn2, conn3 = await asyncio.gather(fut1, fut2, fut3,
-                                               loop=loop)
+    conn1, conn2, conn3 = await asyncio.gather(fut1, fut2, fut3, loop=loop)
     assert 3 == pool.size
     assert 0 == pool.freesize
     assert {conn1, conn2, conn3} == pool._used
@@ -240,8 +242,7 @@ async def test__fill_free(loop, pool_maker, dsn):
         assert 0 == pool.freesize
         assert 1 == pool.size
 
-        conn = await asyncio.wait_for(pool.acquire(), timeout=0.5,
-                                      loop=loop)
+        conn = await asyncio.wait_for(pool.acquire(), timeout=0.5, loop=loop)
         assert 0 == pool.freesize
         assert 2 == pool.size
         await pool.release(conn)
@@ -271,11 +272,9 @@ async def test_connect_from_acquire(loop, pool_maker, dsn):
 
 @pytest.mark.asyncio
 async def test_pool_with_connection_recycling(loop, pool_maker, dsn):
-    pool = await pool_maker(loop,
-                            dsn=dsn,
-                            minsize=1,
-                            maxsize=1,
-                            pool_recycle=3)
+    pool = await pool_maker(
+        loop, dsn=dsn, minsize=1, maxsize=1, pool_recycle=3
+    )
     async with pool.acquire() as conn:
         conn1 = conn
 
@@ -306,8 +305,7 @@ async def test_invalid_minsize_and_maxsize(loop, dsn):
         await aioodbc.create_pool(dsn=dsn, loop=loop, minsize=-1)
 
     with pytest.raises(ValueError):
-        await aioodbc.create_pool(dsn=dsn, loop=loop, minsize=5,
-                                  maxsize=2)
+        await aioodbc.create_pool(dsn=dsn, loop=loop, minsize=5, maxsize=2)
 
 
 @pytest.mark.asyncio
@@ -364,18 +362,17 @@ async def test_wait_closed(loop, pool_maker, dsn):
     async def do_release(conn):
         await asyncio.sleep(0, loop=loop)
         await pool.release(conn)
-        ops.append('release')
+        ops.append("release")
 
     async def wait_closed():
         await pool.wait_closed()
-        ops.append('wait_closed')
+        ops.append("wait_closed")
 
     pool.close()
-    await asyncio.gather(wait_closed(),
-                         do_release(c1),
-                         do_release(c2),
-                         loop=loop)
-    assert ['release', 'release', 'wait_closed'] == ops
+    await asyncio.gather(
+        wait_closed(), do_release(c1), do_release(c2), loop=loop
+    )
+    assert ["release", "release", "wait_closed"] == ops
     assert 0 == pool.freesize
 
 
@@ -422,11 +419,12 @@ async def test_close_with_acquired_connections(loop, pool_maker, dsn):
     await pool.release(conn)
 
 
-@pytest.mark.parametrize('db', pytest.db_list)
+@pytest.mark.parametrize("db", pytest.db_list)
 @pytest.mark.asyncio
 async def test_pool_with_executor(loop, pool_maker, dsn, executor):
     pool = await pool_maker(
-        loop, executor=executor, dsn=dsn, minsize=2, maxsize=2)
+        loop, executor=executor, dsn=dsn, minsize=2, maxsize=2
+    )
 
     conn = await pool.acquire()
     try:
@@ -434,7 +432,7 @@ async def test_pool_with_executor(loop, pool_maker, dsn, executor):
         assert not conn.closed
         assert conn._executor is executor
         cur = await conn.cursor()
-        await cur.execute('SELECT 1')
+        await cur.execute("SELECT 1")
         val = await cur.fetchone()
         assert (1,) == tuple(val)
     finally:
@@ -445,7 +443,7 @@ async def test_pool_with_executor(loop, pool_maker, dsn, executor):
     await pool.wait_closed()
 
 
-@pytest.mark.parametrize('db', pytest.db_list)
+@pytest.mark.parametrize("db", pytest.db_list)
 @pytest.mark.asyncio
 async def test_pool_context_manager(loop, pool):
     assert not pool.closed
@@ -454,21 +452,21 @@ async def test_pool_context_manager(loop, pool):
     assert pool.closed
 
 
-@pytest.mark.parametrize('db', pytest.db_list)
+@pytest.mark.parametrize("db", pytest.db_list)
 @pytest.mark.asyncio
 async def test_pool_context_manager2(loop, pool):
     async with pool.acquire() as conn:
         assert not conn.closed
         cur = await conn.cursor()
-        await cur.execute('SELECT 1')
+        await cur.execute("SELECT 1")
         val = await cur.fetchone()
         assert (1,) == tuple(val)
 
 
-@pytest.mark.parametrize('db', pytest.db_list)
+@pytest.mark.parametrize("db", pytest.db_list)
 @pytest.mark.asyncio
 async def test_all_context_managers(dsn, loop, executor):
-    kw = {'dsn': dsn, 'loop': loop, 'executor': executor}
+    kw = {"dsn": dsn, "loop": loop, "executor": executor}
     async with aioodbc.create_pool(**kw) as pool:
         async with pool.acquire() as conn:
             async with conn.cursor() as cur:
@@ -476,7 +474,7 @@ async def test_all_context_managers(dsn, loop, executor):
                 assert not conn.closed
                 assert not cur.closed
 
-                await cur.execute('SELECT 1')
+                await cur.execute("SELECT 1")
                 val = await cur.fetchone()
                 assert (1,) == tuple(val)
 
@@ -485,18 +483,18 @@ async def test_all_context_managers(dsn, loop, executor):
     assert cur.closed
 
 
-@pytest.mark.parametrize('db', pytest.db_list)
+@pytest.mark.parametrize("db", pytest.db_list)
 @pytest.mark.asyncio
 async def test_context_manager_aexit(loop, connection_maker):
     async def aexit_conntex_managet(conn):
         # commit on exit if no error
-        params = (1, '123.45')
+        params = (1, "123.45")
         async with conn.cursor() as cur:
             await cur.execute("CREATE TABLE cmt1(n int, v VARCHAR(10))")
             await cur.execute("INSERT INTO cmt1 VALUES (?,?);", params)
         async with conn.cursor() as cur:
             await cur.execute("SELECT v FROM cmt1 WHERE n=1;")
-            (value, ) = await cur.fetchone()
+            (value,) = await cur.fetchone()
             assert value == params[1]
 
         # rollback on exit if error

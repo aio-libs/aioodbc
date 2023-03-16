@@ -74,7 +74,7 @@ async def pg_params(loop, pg_server):
 async def _pg_server_helper(host, docker, session_id):
     pg_tag = "9.5"
 
-    await docker.pull("postgres:{}".format(pg_tag))
+    await docker.pull(f"postgres:{pg_tag}")
     container = await docker.containers.create_or_replace(
         name=f"aioodbc-test-server-{pg_tag}-{session_id}",
         config={
@@ -119,7 +119,7 @@ async def _pg_server_helper(host, docker, session_id):
                 last_error = e
                 await asyncio.sleep(random.uniform(0.1, 1))
         else:
-            pytest.fail("Cannot start postgres server: {}".format(last_error))
+            pytest.fail(f"Cannot start postgres server: {last_error}")
 
         yield container_info
     finally:
@@ -150,11 +150,11 @@ async def mysql_params(loop, mysql_server):
 @pytest.fixture(scope="session")
 async def mysql_server(loop, host, docker, session_id):
     mysql_tag = "5.7"
-    await docker.pull("mysql:{}".format(mysql_tag))
+    await docker.pull(f"mysql:{mysql_tag}")
     container = await docker.containers.create_or_replace(
         name=f"aioodbc-test-server-{mysql_tag}-{session_id}",
         config={
-            "Image": "mysql:{}".format(mysql_tag),
+            "Image": f"mysql:{mysql_tag}",
             "AttachStdout": False,
             "AttachStderr": False,
             "Env": [
@@ -192,7 +192,7 @@ async def mysql_server(loop, host, docker, session_id):
                 last_error = e
                 await asyncio.sleep(random.uniform(0.1, 1))
         else:
-            pytest.fail("Cannot start mysql server: {}".format(last_error))
+            pytest.fail(f"Cannot start mysql server: {last_error}")
 
         container_info = {
             "port": port,

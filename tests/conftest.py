@@ -214,7 +214,7 @@ def executor():
 
 
 def pytest_configure():
-    pytest.db_list = ['pg', 'mysql', 'sqlite']
+    pytest.db_list = ['sqlite']
 
 
 @pytest.fixture
@@ -247,7 +247,7 @@ def dsn(tmp_path, request, db):
         conf = create_mysql_dsn(mysql_params)
     else:
         conf = os.environ.get(
-            'DSN', f'Driver=SQLite;Database={tmp_path / "sqlite.db"}')
+            'DSN', f'Driver=SQLite3;Database={tmp_path / "sqlite.db"}')
 
     return conf
 

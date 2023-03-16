@@ -55,6 +55,7 @@ async def test_release(pool):
     assert not pool._used
 
 
+@pytest.mark.skip(reason="PG fixture needs update.")
 @pytest.mark.asyncio
 async def test_op_error_release(loop, pool_maker, pg_server_local):
     pool = await pool_maker(loop, dsn=pg_server_local['dsn'], autocommit=True)

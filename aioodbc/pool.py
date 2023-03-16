@@ -145,8 +145,9 @@ class Pool(asyncio.AbstractServer):
                     if not conn.closed:
                         await conn.close()
                 except ProgrammingError as e:
-                    # Sometimes conn.closed is False even if connection has been already closed
-                    # (ex. for impala driver clouderaimpalaodbc_2.6.16.1022-2_amd64.deb).
+                    # Sometimes conn.closed is False even if connection has
+                    # been already closed (ex. for impala driver
+                    #   clouderaimpalaodbc_2.6.16.1022-2_amd64.deb).
                     # conn.close() will raise ProgrammingError in this case.
                     logger.warning(e)
 

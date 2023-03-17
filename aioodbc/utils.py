@@ -1,9 +1,6 @@
-import sys
 from collections.abc import Coroutine
 
 from pyodbc import Error
-
-PY_352 = sys.version_info >= (3, 5, 2)
 
 # Issue #195.  Don't pollute the pool with bad conns
 # Unfortunately occasionally sqlite will return 'HY000' for invalid query,

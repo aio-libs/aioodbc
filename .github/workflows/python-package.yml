@@ -44,7 +44,7 @@ jobs:
 
     - name: Test
       run: |
-        make cov
+        make ci
 
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v3

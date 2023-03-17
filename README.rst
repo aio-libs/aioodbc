@@ -11,7 +11,7 @@ aioodbc
     :target: https://gitter.im/aio-libs/Lobby
     :alt: Chat on Gitter
 
-**aioodbc** is a Python 3.5+ module that makes it possible to access ODBC_ databases
+**aioodbc** is a Python 3.7+ module that makes it possible to access ODBC_ databases
 with asyncio_. It relies on the awesome pyodbc_ library and preserves the same look and
 feel. *aioodbc* was written using `async/await` syntax (PEP492_) and thus is not compatible
 with Python versions older than 3.5.  Internally *aioodbc* employs threads to avoid
@@ -20,20 +20,6 @@ drivers like motor_ use the same approach.
 
 **aioodbc** is fully compatible and tested with uvloop_. Take a look at the test
 suite, all tests are executed with both the default event loop and uvloop_.
-
-Supported Databases
--------------------
-
-**aioodbc** should work with all databases supported by pyodbc_. But for now the
-library has been tested with: **SQLite**, **MySQL** and **PostgreSQL**. Feel
-free to add other databases to the test suite by submitting a PR.
-
-
-Community
----------
-Mailing List: https://groups.google.com/forum/#!forum/aio-libs
-
-Chat room: https://gitter.im/aio-libs/Lobby
 
 
 Basic Example
@@ -49,15 +35,13 @@ Properties are unchanged, so ``conn.prop`` is correct as well as
 .. code:: python
 
     import asyncio
+
     import aioodbc
 
 
-    loop = asyncio.get_event_loop()
-
-
     async def test_example():
-        dsn = 'Driver=SQLite;Database=sqlite.db'
-        conn = await aioodbc.connect(dsn=dsn, loop=loop)
+        dsn = "Driver=SQLite;Database=sqlite.db"
+        conn = await aioodbc.connect(dsn=dsn)
 
         cur = await conn.cursor()
         await cur.execute("SELECT 42 AS age;")
@@ -68,7 +52,8 @@ Properties are unchanged, so ``conn.prop`` is correct as well as
         await cur.close()
         await conn.close()
 
-    loop.run_until_complete(test_example())
+
+    asyncio.run(test_example())
 
 
 Connection Pool
@@ -78,15 +63,13 @@ Connection pooling is ported from aiopg_ and relies on PEP492_ features:
 .. code:: python
 
     import asyncio
+
     import aioodbc
 
 
-    loop = asyncio.get_event_loop()
-
-
     async def test_pool():
-        dsn = 'Driver=SQLite;Database=sqlite.db'
-        pool = await aioodbc.create_pool(dsn=dsn, loop=loop)
+        dsn = "Driver=SQLite3;Database=sqlite.db"
+        pool = await aioodbc.create_pool(dsn=dsn)
 
         async with pool.acquire() as conn:
             cur = await conn.cursor()
@@ -98,7 +81,8 @@ Connection pooling is ported from aiopg_ and relies on PEP492_ features:
         pool.close()
         await pool.wait_closed()
 
-    loop.run_until_complete(test_pool())
+
+    asyncio.run(test_pool())
 
 
 Context Managers
@@ -109,24 +93,23 @@ protocol:
 .. code:: python
 
     import asyncio
+
     import aioodbc
 
 
-    loop = asyncio.get_event_loop()
-
-
     async def test_example():
-        dsn = 'Driver=SQLite;Database=sqlite.db'
+        dsn = "Driver=SQLite;Database=sqlite.db"
 
-        async with aioodbc.create_pool(dsn=dsn, loop=loop) as pool:
+        async with aioodbc.create_pool(dsn=dsn) as pool:
             async with pool.acquire() as conn:
                 async with conn.cursor() as cur:
-                    await cur.execute('SELECT 42 AS age;')
+                    await cur.execute("SELECT 42 AS age;")
                     val = await cur.fetchone()
                     print(val)
                     print(val.age)
 
-    loop.run_until_complete(test_example())
+
+    asyncio.run(test_example())
 
 
 Installation
@@ -172,7 +155,7 @@ Other SQL Drivers
 Requirements
 ------------
 
-* Python_ 3.5+
+* Python_ 3.7+
 * pyodbc_
 * uvloop_ (optional)
 

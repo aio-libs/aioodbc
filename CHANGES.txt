@@ -1,5 +1,13 @@
 Changes
 -------
+0.4.0 (2023-03-16)
+^^^^^^^^^^^^^^^^^^
+* Fixed compatibility with python 3.9+.
+* Removed usage of explicit loop parameter.
+* Added default read size parameter for cursor.
+* Updated tests and CI scripts.
+* Code base formatted with black.
+
 
 0.3.3 (2019-07-05)
 ^^^^^^^^^^^^^^^^^^

@@ -7,6 +7,8 @@ aioodbc
     :target: https://codecov.io/gh/aio-libs/aioodbc
 .. image:: https://img.shields.io/pypi/v/aioodbc.svg
     :target: https://pypi.python.org/pypi/aioodbc
+.. image:: https://img.shields.io/pypi/pyversions/aioodbc.svg
+    :target: https://pypi.org/project/aioodbc
 .. image:: https://badges.gitter.im/Join%20Chat.svg
     :target: https://gitter.im/aio-libs/Lobby
     :alt: Chat on Gitter

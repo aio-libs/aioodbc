@@ -1,4 +1,3 @@
-import asyncio
 import gc
 from unittest import mock
 
@@ -8,8 +7,8 @@ import pytest
 import aioodbc
 
 
-def test_connect(loop, conn):
-    assert conn.loop is loop
+@pytest.mark.asyncio
+async def test_connect(conn):
     assert not conn.autocommit
     assert conn.timeout == 0
     assert not conn.closed
@@ -36,15 +35,6 @@ async def test_basic_cursor(conn):
     await cursor.execute(sql)
     (resp,) = await cursor.fetchone()
     assert resp == 10
-
-
-@pytest.mark.parametrize("db", pytest.db_list)
-@pytest.mark.asyncio
-async def test_default_loop(loop, dsn):
-    asyncio.set_event_loop(loop)
-    conn = await aioodbc.connect(dsn=dsn)
-    assert conn._loop is loop
-    await conn.close()
 
 
 @pytest.mark.parametrize("db", pytest.db_list)
@@ -105,7 +95,7 @@ async def test_output_conversion(conn, table):
 
 @pytest.mark.parametrize("db", pytest.db_list)
 @pytest.mark.asyncio
-async def test_autocommit(loop, connection_maker):
+async def test_autocommit(connection_maker):
     conn = await connection_maker(autocommit=True)
     assert conn.autocommit, True
 
@@ -137,8 +127,8 @@ async def test_rollback(conn):
 
 @pytest.mark.parametrize("db", pytest.db_list)
 @pytest.mark.asyncio
-async def test_custom_executor(loop, dsn, executor):
-    conn = await aioodbc.connect(dsn=dsn, executor=executor, loop=loop)
+async def test_custom_executor(dsn, executor):
+    conn = await aioodbc.connect(dsn=dsn, executor=executor)
     assert conn._executor is executor
     cur = await conn.execute("SELECT 10;")
     (resp,) = await cur.fetchone()
@@ -148,14 +138,14 @@ async def test_custom_executor(loop, dsn, executor):
 
 
 @pytest.mark.asyncio
-async def test_dataSources(loop, executor):
-    data = await aioodbc.dataSources(loop, executor)
+async def test_dataSources(executor):
+    data = await aioodbc.dataSources(executor)
     assert isinstance(data, dict)
 
 
 @pytest.mark.parametrize("db", pytest.db_list)
 @pytest.mark.asyncio
-async def test_connection_simple_with(loop, conn):
+async def test_connection_simple_with(conn):
     assert not conn.closed
     async with conn:
         pass
@@ -165,8 +155,8 @@ async def test_connection_simple_with(loop, conn):
 
 @pytest.mark.parametrize("db", pytest.db_list)
 @pytest.mark.asyncio
-async def test_connect_context_manager(loop, dsn):
-    async with aioodbc.connect(dsn=dsn, loop=loop, echo=True) as conn:
+async def test_connect_context_manager(dsn):
+    async with aioodbc.connect(dsn=dsn, echo=True) as conn:
         assert not conn.closed
         assert conn.echo
 
@@ -182,8 +172,7 @@ async def test_connect_context_manager(loop, dsn):
 @pytest.mark.parametrize("db", pytest.db_list)
 @pytest.mark.asyncio
 async def test___del__(loop, dsn, recwarn, executor):
-    return
-    conn = await aioodbc.connect(dsn=dsn, loop=loop, executor=executor)
+    conn = await aioodbc.connect(dsn=dsn, executor=executor)
     exc_handler = mock.Mock()
     loop.set_exception_handler(exc_handler)
 
@@ -196,6 +185,4 @@ async def test___del__(loop, dsn, recwarn, executor):
         "connection": mock.ANY,  # conn was deleted
         "message": "Unclosed connection",
     }
-    if loop.get_debug():
-        msg["source_traceback"] = mock.ANY
     exc_handler.assert_called_with(loop, msg)

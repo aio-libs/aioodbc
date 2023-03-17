@@ -44,13 +44,15 @@ def connect(
         connection is connected.  Must be an async unary function, or leave it
         as None.
     """
+    if loop is not None:
+        msg = "Explicit loop is deprecated, and has no effect."
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
     return _ContextManager(
         _connect(
             dsn=dsn,
             autocommit=autocommit,
             ansi=ansi,
             timeout=timeout,
-            loop=loop,
             executor=executor,
             echo=echo,
             after_created=after_created,
@@ -65,20 +67,18 @@ async def _connect(
     autocommit=False,
     ansi=False,
     timeout=0,
-    loop=None,
     executor=None,
     echo=False,
     after_created=None,
     **kwargs,
 ):
-    loop = loop or asyncio.get_event_loop()
     conn = Connection(
         dsn=dsn,
         autocommit=autocommit,
         ansi=ansi,
         timeout=timeout,
         echo=echo,
-        loop=loop,
+        loop=None,  # deprecated
         executor=executor,
         after_created=after_created,
         **kwargs,
@@ -104,12 +104,15 @@ class Connection:
         timeout=0,
         executor=None,
         echo=False,
-        loop=None,
+        loop=None,  # deprecated
         after_created=None,
         **kwargs,
     ):
+        if loop is not None:
+            msg = "Explicit loop is deprecated, and has no effect."
+            warnings.warn(msg, DeprecationWarning, stacklevel=2)
         self._executor = executor
-        self._loop = loop or asyncio.get_event_loop()
+        self._loop = asyncio.get_event_loop()
         self._conn = None
 
         self._timeout = timeout
@@ -120,7 +123,7 @@ class Connection:
         self._echo = echo
         self._posthook = after_created
         self._kwargs = kwargs
-        if loop.get_debug():
+        if self._loop.get_debug():
             self._source_traceback = traceback.extract_stack(sys._getframe(1))
 
     def _execute(self, func, *args, **kwargs):

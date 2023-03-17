@@ -21,17 +21,11 @@ def session_id():
     return str(uuid.uuid4())
 
 
-def pytest_generate_tests(metafunc):
-    if "loop_type" in metafunc.fixturenames:
-        loop_type = ["default", "uvloop"]
-        metafunc.parametrize("loop_type", loop_type, scope="session")
-
-
-@pytest.fixture(scope="session")
-def event_loop(loop_type):
-    if loop_type == "default":
+@pytest.fixture(autouse=True, scope="session", params=["default", "uvloop"])
+def event_loop(request):
+    if request.param == "default":
         asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
-    elif loop_type == "uvloop":
+    elif request.param == "uvloop":
         asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     loop = asyncio.get_event_loop_policy().new_event_loop()
 
@@ -49,7 +43,7 @@ def loop(event_loop):
 
 
 @pytest.fixture(scope="session")
-async def docker(loop):
+async def docker():
     client = Docker()
 
     try:
@@ -65,7 +59,7 @@ def host():
 
 
 @pytest.fixture
-async def pg_params(loop, pg_server):
+async def pg_params(pg_server):
     server_info = pg_server["pg_params"]
     return dict(**server_info)
 
@@ -130,25 +124,25 @@ async def _pg_server_helper(host, docker, session_id):
 
 
 @pytest.fixture(scope="session")
-async def pg_server(loop, host, docker, session_id):
+async def pg_server(host, docker, session_id):
     async with _pg_server_helper(host, docker, session_id) as helper:
         yield helper
 
 
 @pytest.fixture
-async def pg_server_local(loop, host, docker):
+async def pg_server_local(host, docker):
     async with _pg_server_helper(host, docker, None) as helper:
         yield helper
 
 
 @pytest.fixture
-async def mysql_params(loop, mysql_server):
+async def mysql_params(mysql_server):
     server_info = (mysql_server)["mysql_params"]
     return dict(**server_info)
 
 
 @pytest.fixture(scope="session")
-async def mysql_server(loop, host, docker, session_id):
+async def mysql_server(host, docker, session_id):
     mysql_tag = "5.7"
     await docker.pull(f"mysql:{mysql_tag}")
     container = await docker.containers.create_or_replace(
@@ -260,13 +254,13 @@ def dsn(tmp_path, request, db):
 
 
 @pytest.fixture
-async def conn(loop, dsn, connection_maker):
+async def conn(dsn, connection_maker):
     connection = await connection_maker()
     return connection
 
 
 @pytest.fixture
-async def connection_maker(loop, dsn):
+async def connection_maker(dsn):
     cleanup = []
 
     async def make(**kw):
@@ -276,7 +270,7 @@ async def connection_maker(loop, dsn):
         else:
             executor = kw["executor"]
 
-        conn = await aioodbc.connect(dsn=dsn, loop=loop, **kw)
+        conn = await aioodbc.connect(dsn=dsn, **kw)
         cleanup.append((conn, executor))
         return conn
 
@@ -289,8 +283,8 @@ async def connection_maker(loop, dsn):
 
 
 @pytest.fixture
-async def pool(loop, dsn):
-    pool = await aioodbc.create_pool(loop=loop, dsn=dsn)
+async def pool(dsn):
+    pool = await aioodbc.create_pool(dsn=dsn)
 
     try:
         yield pool
@@ -300,11 +294,11 @@ async def pool(loop, dsn):
 
 
 @pytest.fixture
-async def pool_maker(loop):
+async def pool_maker():
     pool_list = []
 
-    async def make(loop, **kw):
-        pool = await aioodbc.create_pool(loop=loop, **kw)
+    async def make(**kw):
+        pool = await aioodbc.create_pool(**kw)
         pool_list.append(pool)
         return pool
 
@@ -317,7 +311,7 @@ async def pool_maker(loop):
 
 
 @pytest.fixture
-async def table(loop, conn):
+async def table(conn):
     cur = await conn.cursor()
     await cur.execute("CREATE TABLE t1(n INT, v VARCHAR(10));")
     await cur.execute("INSERT INTO t1 VALUES (1, '123.45');")

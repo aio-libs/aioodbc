@@ -3,6 +3,7 @@
 
 import asyncio
 import collections
+import warnings
 
 from pyodbc import ProgrammingError
 
@@ -16,12 +17,15 @@ __all__ = ["create_pool", "Pool"]
 def create_pool(
     minsize=10, maxsize=10, echo=False, loop=None, pool_recycle=-1, **kwargs
 ):
+    if loop is not None:
+        msg = "Explicit loop is deprecated, and has no effect."
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
+
     return _PoolContextManager(
         _create_pool(
             minsize=minsize,
             maxsize=maxsize,
             echo=echo,
-            loop=loop,
             pool_recycle=pool_recycle,
             **kwargs
         )
@@ -29,16 +33,12 @@ def create_pool(
 
 
 async def _create_pool(
-    minsize=10, maxsize=10, echo=False, loop=None, pool_recycle=-1, **kwargs
+    minsize=10, maxsize=10, echo=False, pool_recycle=-1, **kwargs
 ):
-    if loop is None:
-        loop = asyncio.get_event_loop()
-
     pool = Pool(
         minsize=minsize,
         maxsize=maxsize,
         echo=echo,
-        loop=loop,
         pool_recycle=pool_recycle,
         **kwargs
     )
@@ -51,18 +51,25 @@ async def _create_pool(
 class Pool(asyncio.AbstractServer):
     """Connection pool"""
 
-    def __init__(self, minsize, maxsize, echo, loop, pool_recycle, **kwargs):
+    def __init__(
+        self, minsize, maxsize, echo, pool_recycle, loop=None, **kwargs
+    ):
         if minsize < 0:
             raise ValueError("minsize should be zero or greater")
         if maxsize < minsize:
             raise ValueError("maxsize should be not less than minsize")
+
+        if loop is not None:
+            msg = "Explicit loop is deprecated, and has no effect."
+            warnings.warn(msg, DeprecationWarning, stacklevel=2)
+
         self._minsize = minsize
-        self._loop = loop
+        self._loop = asyncio.get_event_loop()
         self._conn_kwargs = kwargs
         self._acquiring = 0
         self._recycle = pool_recycle
         self._free = collections.deque(maxlen=maxsize)
-        self._cond = asyncio.Condition(loop=loop)
+        self._cond = asyncio.Condition()
         self._used = set()
         self._closing = False
         self._closed = False
@@ -176,9 +183,7 @@ class Pool(asyncio.AbstractServer):
         while self.size < self.minsize:
             self._acquiring += 1
             try:
-                conn = await connect(
-                    echo=self._echo, loop=self._loop, **self._conn_kwargs
-                )
+                conn = await connect(echo=self._echo, **self._conn_kwargs)
                 # raise exception if pool is closing
                 self._free.append(conn)
                 self._cond.notify()
@@ -190,9 +195,7 @@ class Pool(asyncio.AbstractServer):
         if override_min and self.size < self.maxsize:
             self._acquiring += 1
             try:
-                conn = await connect(
-                    echo=self._echo, loop=self._loop, **self._conn_kwargs
-                )
+                conn = await connect(echo=self._echo, **self._conn_kwargs)
                 # raise exception if pool is closing
                 self._free.append(conn)
                 self._cond.notify()

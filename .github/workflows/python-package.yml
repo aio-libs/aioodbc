@@ -31,6 +31,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
+        git fetch --tags
         sudo apt-get install -y libsqliteodbc unixodbc
         odbcinst -j
         cat /etc/odbcinst.ini

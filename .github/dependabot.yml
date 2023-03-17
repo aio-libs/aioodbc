@@ -3,7 +3,7 @@ updates:
 - package-ecosystem: pip
   directory: "/"
   schedule:
-    interval: weekly
+    interval: monthly
     day: "monday"
     time: "10:00"
   open-pull-requests-limit: 10

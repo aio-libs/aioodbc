@@ -1,0 +1,6 @@
+# pyproject.toml
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm>=6.2", "setuptools_scm_git_archive"]
+
+[tool.setuptools_scm]
+write_to = "aioodbc/_version.py"

@@ -15,10 +15,9 @@ aioodbc
 
 **aioodbc** is a Python 3.7+ module that makes it possible to access ODBC_ databases
 with asyncio_. It relies on the awesome pyodbc_ library and preserves the same look and
-feel. *aioodbc* was written using `async/await` syntax (PEP492_) and thus is not compatible
-with Python versions older than 3.5.  Internally *aioodbc* employs threads to avoid
-blocking the event loop, threads_ are not that as bad as you think!. Other
-drivers like motor_ use the same approach.
+feel. Internally *aioodbc* employs threads to avoid blocking the event loop,
+threads_ are not that as bad as you think!. Other drivers like motor_ use the
+same approach.
 
 **aioodbc** is fully compatible and tested with uvloop_. Take a look at the test
 suite, all tests are executed with both the default event loop and uvloop_.
@@ -123,28 +122,27 @@ You can install it using your package manager, for example::
       $ sudo apt-get install unixodbc
       $ sudo apt-get install unixodbc-dev
 
-then::
+Then::
 
    pip install aioodbc
 
 
 Run tests
 ---------
+To run tests locally without docker, install `unixodbc` and `sqlite` driver::
 
-For testing purposes you need to install docker_ and the development
-requirements::
+      $ sudo apt-get install unixodbc
+      $ sudo apt-get install libsqliteodbc
 
-    $ pip install -r requirements-dev.txt
+Create virtualenv and install package with requirements::
 
+      $ pip install -r requirements-dev.txt
 
-Then just execute::
+Run tests, lints etc::
 
-    $ make test
-
-The test will automatically pull images and build containers with
-the required databases.
-
-*NOTE:* Running tests requires Python 3.6 or higher.
+      $ make fmt
+      $ make lint
+      $ make test
 
 
 Other SQL Drivers

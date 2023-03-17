@@ -7,8 +7,8 @@ FILES := aioodbc tests examples setup.py
 checkrst:
 	python setup.py check --restructuredtext
 
-lint: checkrst
-	flake8 aioodbc tests examples setup.py
+lint: checkrst checkbuild
+	flake8 $(FILES)
 
 test: flake
 	py.test -s $(FLAGS) ./tests/
@@ -42,7 +42,7 @@ black:
 	black -l 79 $(FILES)
 
 fmt:
-	isort ${FILES}
+	isort $(FILES)
 	black -l 79 ${FILES}
 
 checkfmt:
@@ -56,5 +56,9 @@ run_examples:
 	python examples/example_complex_queries.py
 
 ci: cov run_examples
+
+checkbuild:
+	python setup.py sdist bdist_wheel
+	twine check dist/*
 
 .PHONY: all flake test vtest cov clean doc

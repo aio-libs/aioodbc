@@ -70,3 +70,7 @@ sqlite.db
 # virtual envs
 venv*/
 virtualenv*/
+cscope.files
+cscope.out
+sqlite_*.db
+_version.py

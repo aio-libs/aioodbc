@@ -1,7 +1,7 @@
 import pyodbc
 
 from .log import logger
-from .utils import PY_352, _is_conn_close_error
+from .utils import _is_conn_close_error
 
 __all__ = ["Cursor"]
 
@@ -331,15 +331,8 @@ class Cursor:
         fut = self._run_operation(self._impl.rollback)
         return fut
 
-    if PY_352:
-
-        def __aiter__(self):
-            return self
-
-    else:
-
-        async def __aiter__(self):
-            return self
+    def __aiter__(self):
+        return self
 
     async def __anext__(self):
         ret = await self.fetchone()

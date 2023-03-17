@@ -52,6 +52,10 @@ class Cursor:
         """
         return self._conn.autocommit
 
+    @autocommit.setter
+    def autocommit(self, value):
+        self._conn.autocommit = value
+
     @property
     def rowcount(self):
         """The number of rows modified by the previous DDL statement.

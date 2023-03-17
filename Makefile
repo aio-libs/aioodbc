@@ -49,4 +49,12 @@ checkfmt:
 	isort --check-only --diff $(FILES)
 	black -l 79 --check $(FILES)
 
+run_examples:
+	python examples/example_context_managers.py
+	python examples/example_pool.py
+	python examples/example_simple.py
+	python examples/example_complex_queries.py
+
+ci: cov run_examples
+
 .PHONY: all flake test vtest cov clean doc

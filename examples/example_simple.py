@@ -2,12 +2,10 @@ import asyncio
 
 import aioodbc
 
-loop = asyncio.get_event_loop()
-
 
 async def test_example():
-    dsn = "Driver=SQLite;Database=sqlite.db"
-    conn = await aioodbc.connect(dsn=dsn, loop=loop)
+    dsn = "Driver=SQLite3;Database=sqlite_simple.db"
+    conn = await aioodbc.connect(dsn=dsn)
 
     cur = await conn.cursor()
     await cur.execute("SELECT 42 AS age;")
@@ -19,4 +17,4 @@ async def test_example():
     await conn.close()
 
 
-loop.run_until_complete(test_example())
+asyncio.run(test_example())

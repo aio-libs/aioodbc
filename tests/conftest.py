@@ -5,12 +5,13 @@ import random
 import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import asynccontextmanager
 
 import pyodbc
 import pytest
+import pytest_asyncio
 import uvloop
 from aiodocker import Docker
-from async_generator import asynccontextmanager
 
 import aioodbc
 
@@ -58,7 +59,7 @@ def host():
     return os.environ.get("DOCKER_MACHINE_IP", "127.0.0.1")
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def pg_params(pg_server):
     server_info = pg_server["pg_params"]
     return dict(**server_info)
@@ -253,13 +254,13 @@ def dsn(tmp_path, request, db):
     return conf
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def conn(dsn, connection_maker):
     connection = await connection_maker()
-    return connection
+    yield connection
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def connection_maker(dsn):
     cleanup = []
 
@@ -282,7 +283,7 @@ async def connection_maker(dsn):
             executor.shutdown(True)
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def pool(dsn):
     pool = await aioodbc.create_pool(dsn=dsn)
 
@@ -293,7 +294,7 @@ async def pool(dsn):
         await pool.wait_closed()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def pool_maker():
     pool_list = []
 
@@ -310,7 +311,7 @@ async def pool_maker():
             await pool.wait_closed()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def table(conn):
     cur = await conn.cursor()
     await cur.execute("CREATE TABLE t1(n INT, v VARCHAR(10));")

@@ -3,7 +3,7 @@ aiodocker==0.21.0
 bandit==1.7.5
 black==23.1.0
 flake8-bugbear==23.3.12
-flake8==3.9.2
+flake8==6.0.0
 ipdb==0.13.13
 twine==4.0.2
 ipython==8.11.0

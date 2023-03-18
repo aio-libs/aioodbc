@@ -3,11 +3,13 @@ import warnings
 
 from pyodbc import dataSources as _dataSources
 
+from ._version import version, version_tuple
 from .connection import Connection, connect
 from .pool import Pool, create_pool
 
-__version__ = "0.4.0"
-__all__ = ["connect", "Connection", "create_pool", "Pool", "dataSources"]
+__version__ = version
+__version_tuple__ = version_tuple
+__all__ = ("connect", "Connection", "create_pool", "Pool", "dataSources")
 
 
 async def dataSources(loop=None, executor=None):

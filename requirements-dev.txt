@@ -1,7 +1,7 @@
 -e .
 aiodocker==0.21.0
 async_generator==1.10
-bandit==1.7.4
+bandit==1.7.5
 black==23.1.0
 flake8-blind-except==0.2.1
 flake8-bugbear==23.3.12

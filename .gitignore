@@ -74,3 +74,5 @@ cscope.files
 cscope.out
 sqlite_*.db
 _version.py
+.mypy_cache/
+.eggs/

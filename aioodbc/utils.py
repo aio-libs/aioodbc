@@ -1,11 +1,12 @@
 from collections.abc import Coroutine
+from typing import Dict, Union
 
 from pyodbc import Error
 
 # Issue #195.  Don't pollute the pool with bad conns
 # Unfortunately occasionally sqlite will return 'HY000' for invalid query,
 # so we need specialize the check
-_CONN_CLOSE_ERRORS = {
+_CONN_CLOSE_ERRORS: Dict[str, Union[str, None]] = {
     # [Microsoft][ODBC Driver 17 for SQL Server]Communication link failure
     "08S01": None,
     # [HY000] server closed the connection unexpectedly
@@ -13,7 +14,7 @@ _CONN_CLOSE_ERRORS = {
 }
 
 
-def _is_conn_close_error(e):
+def _is_conn_close_error(e: Exception) -> bool:
     if not isinstance(e, Error) or len(e.args) < 2:
         return False
 

@@ -5,11 +5,19 @@ from pyodbc import dataSources as _dataSources
 
 from ._version import version, version_tuple
 from .connection import Connection, connect
+from .cursor import Cursor
 from .pool import Pool, create_pool
 
 __version__ = version
 __version_tuple__ = version_tuple
-__all__ = ("connect", "Connection", "create_pool", "Pool", "dataSources")
+__all__ = (
+    "connect",
+    "Connection",
+    "create_pool",
+    "Pool",
+    "dataSources",
+    "Cursor",
+)
 
 
 async def dataSources(loop=None, executor=None):

@@ -61,4 +61,10 @@ checkbuild:
 	python setup.py sdist bdist_wheel
 	twine check dist/*
 
+mypy:
+	mypy --ignore-missing-imports aioodbc
+
+mypy_strict:
+	mypy --strict --ignore-missing-imports aioodbc
+
 .PHONY: all flake test vtest cov clean doc

@@ -42,11 +42,11 @@ black:
 	black -l 79 $(FILES)
 
 fmt:
-	isort $(FILES)
+	isort --profile black $(FILES)
 	black -l 79 ${FILES}
 
 checkfmt:
-	isort --check-only --diff $(FILES)
+	isort --profile black --check-only --diff $(FILES)
 	black -l 79 --check $(FILES)
 
 run_examples:

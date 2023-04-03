@@ -57,8 +57,21 @@ def connect(
             echo=echo,
             after_created=after_created,
             **kwargs,
-        )
+        ),
+        _disconnect,
+        _disconnect_on_error,
     )
+
+
+async def _disconnect(c: "Connection") -> None:
+    if not c.autocommit:
+        await c.commit()
+    await c.close()
+
+
+async def _disconnect_on_error(c: "Connection") -> None:
+    await c.rollback()
+    await c.close()
 
 
 async def _connect(
@@ -85,6 +98,17 @@ async def _connect(
     )
     await conn._connect()
     return conn
+
+
+async def _close_cursor(c: Cursor) -> None:
+    if not c.autocommit:
+        await c.commit()
+    await c.close()
+
+
+async def _close_cursor_on_error(c: Cursor) -> None:
+    await c.rollback()
+    await c.close()
 
 
 class Connection:
@@ -187,7 +211,9 @@ class Connection:
         return Cursor(c, connection, echo=self._echo)
 
     def cursor(self):
-        return _ContextManager(self._cursor())
+        return _ContextManager["Cursor"](
+            self._cursor(), _close_cursor, _close_cursor_on_error
+        )
 
     async def close(self):
         """Close pyodbc connection"""

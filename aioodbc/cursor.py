@@ -15,11 +15,11 @@ class Cursor:
     the other cursors.
     """
 
-    def __init__(self, pyodbc_cursor, connection, echo=False):
+    def __init__(self, pyodbc_cursor: pyodbc.Cursor, connection, echo=False):
         self._conn = connection
-        self._impl = pyodbc_cursor
+        self._impl: pyodbc.Cursor = pyodbc_cursor
         self._loop = connection.loop
-        self._echo = echo
+        self._echo: bool = echo
 
     async def _run_operation(self, func, *args, **kwargs):
         # execute func in thread pool of attached to cursor connection

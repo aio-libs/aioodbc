@@ -7,11 +7,16 @@ import warnings
 
 from pyodbc import ProgrammingError
 
-from .connection import connect
+from .connection import Connection, connect
 from .log import logger
-from .utils import _PoolConnectionContextManager, _PoolContextManager
+from .utils import _ContextManager
 
 __all__ = ["create_pool", "Pool"]
+
+
+async def _destroy_pool(pool: "Pool") -> None:
+    pool.close()
+    await pool.wait_closed()
 
 
 def create_pool(
@@ -21,14 +26,15 @@ def create_pool(
         msg = "Explicit loop is deprecated, and has no effect."
         warnings.warn(msg, DeprecationWarning, stacklevel=2)
 
-    return _PoolContextManager(
+    return _ContextManager[Pool](
         _create_pool(
             minsize=minsize,
             maxsize=maxsize,
             echo=echo,
             pool_recycle=pool_recycle,
             **kwargs
-        )
+        ),
+        _destroy_pool,
     )
 
 
@@ -140,7 +146,7 @@ class Pool(asyncio.AbstractServer):
     def acquire(self):
         """Acquire free connection from the pool."""
         coro = self._acquire()
-        return _PoolConnectionContextManager(coro, self)
+        return _ContextManager[Connection](coro, self.release)
 
     async def _acquire(self):
         if self._closing:

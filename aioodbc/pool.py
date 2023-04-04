@@ -14,46 +14,6 @@ from .utils import _ContextManager
 __all__ = ["create_pool", "Pool"]
 
 
-async def _destroy_pool(pool: "Pool") -> None:
-    pool.close()
-    await pool.wait_closed()
-
-
-def create_pool(
-    minsize=10, maxsize=10, echo=False, loop=None, pool_recycle=-1, **kwargs
-):
-    if loop is not None:
-        msg = "Explicit loop is deprecated, and has no effect."
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
-
-    return _ContextManager[Pool](
-        _create_pool(
-            minsize=minsize,
-            maxsize=maxsize,
-            echo=echo,
-            pool_recycle=pool_recycle,
-            **kwargs
-        ),
-        _destroy_pool,
-    )
-
-
-async def _create_pool(
-    minsize=10, maxsize=10, echo=False, pool_recycle=-1, **kwargs
-):
-    pool = Pool(
-        minsize=minsize,
-        maxsize=maxsize,
-        echo=echo,
-        pool_recycle=pool_recycle,
-        **kwargs
-    )
-    if minsize > 0:
-        async with pool._cond:
-            await pool._fill_free_pool(False)
-    return pool
-
-
 class Pool(asyncio.AbstractServer):
     """Connection pool"""
 
@@ -229,3 +189,43 @@ class Pool(asyncio.AbstractServer):
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         self.close()
         await self.wait_closed()
+
+
+async def _destroy_pool(pool: "Pool") -> None:
+    pool.close()
+    await pool.wait_closed()
+
+
+async def _create_pool(
+    minsize=10, maxsize=10, echo=False, pool_recycle=-1, **kwargs
+):
+    pool = Pool(
+        minsize=minsize,
+        maxsize=maxsize,
+        echo=echo,
+        pool_recycle=pool_recycle,
+        **kwargs
+    )
+    if minsize > 0:
+        async with pool._cond:
+            await pool._fill_free_pool(False)
+    return pool
+
+
+def create_pool(
+    minsize=10, maxsize=10, echo=False, loop=None, pool_recycle=-1, **kwargs
+):
+    if loop is not None:
+        msg = "Explicit loop is deprecated, and has no effect."
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
+
+    return _ContextManager[Pool](
+        _create_pool(
+            minsize=minsize,
+            maxsize=maxsize,
+            echo=echo,
+            pool_recycle=pool_recycle,
+            **kwargs
+        ),
+        _destroy_pool,
+    )

@@ -1,5 +1,7 @@
 import asyncio
 import warnings
+from concurrent.futures.thread import ThreadPoolExecutor
+from typing import Dict, Optional
 
 from pyodbc import dataSources as _dataSources
 
@@ -20,10 +22,13 @@ __all__ = (
 )
 
 
-async def dataSources(loop=None, executor=None):
+async def dataSources(
+    loop: Optional[asyncio.AbstractEventLoop] = None,
+    executor: Optional[ThreadPoolExecutor] = None,
+) -> Dict[str, str]:
     """Returns a dictionary mapping available DSNs to their descriptions.
 
-    :param loop: asyncio compatible event loop
+    :param loop: asyncio compatible event loop, deprecated
     :param executor: instance of custom ThreadPoolExecutor, if not supplied
         default executor will be used
     :return dict: mapping of dsn to driver description

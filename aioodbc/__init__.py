@@ -1,6 +1,6 @@
 import asyncio
 import warnings
-from concurrent.futures.thread import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, Optional
 
 from pyodbc import dataSources as _dataSources
@@ -37,5 +37,7 @@ async def dataSources(
         msg = "Explicit loop is deprecated, and has no effect."
         warnings.warn(msg, DeprecationWarning, stacklevel=2)
     loop = asyncio.get_event_loop()
-    sources = await loop.run_in_executor(executor, _dataSources)
+    sources: Dict[str, str] = await loop.run_in_executor(
+        executor, _dataSources
+    )
     return sources

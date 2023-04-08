@@ -55,7 +55,7 @@ run_examples:
 	python examples/example_simple.py
 	python examples/example_complex_queries.py
 
-ci: cov run_examples
+ci: lint checkfmt mypy cov run_examples
 
 checkbuild:
 	python setup.py sdist bdist_wheel

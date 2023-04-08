@@ -42,10 +42,12 @@ jobs:
       run: |
           make lint
           make checkfmt
+          make mypy
 
     - name: Test
       run: |
-        make ci
+        make cov
+        make run_examples
 
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v3

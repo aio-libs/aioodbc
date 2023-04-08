@@ -4,7 +4,8 @@
 import asyncio
 import collections
 import warnings
-from typing import Any, Deque, Dict, Optional, Set
+from types import TracebackType
+from typing import Any, Deque, Dict, Optional, Set, Type
 
 from pyodbc import ProgrammingError
 
@@ -195,7 +196,10 @@ class Pool:
         return self
 
     async def __aexit__(
-        self, exc_type: None, exc_val: None, exc_tb: None
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc: Optional[BaseException],
+        tb: Optional[TracebackType],
     ) -> None:
         self.close()
         await self.wait_closed()

@@ -68,7 +68,7 @@ class Connection:
         future = self._loop.run_in_executor(self._executor, func)
         return future
 
-    async def _connect(self):
+    async def _connect(self) -> None:
         # create pyodbc connection
         f = self._execute(
             pyodbc.connect,
@@ -83,11 +83,11 @@ class Connection:
             await self._posthook(self._conn)
 
     @property
-    def loop(self):
+    def loop(self) -> asyncio.AbstractEventLoop:
         return self._loop
 
     @property
-    def closed(self):
+    def closed(self) -> bool:
         if self._conn:
             return False
         return True
@@ -98,22 +98,25 @@ class Connection:
         connection is in autocommit mode; False otherwise. The default
         is False
         """
+        assert self._conn is not None  # mypy
         return self._conn.autocommit
 
     @autocommit.setter
     def autocommit(self, value):
+        assert self._conn is not None  # mypy
         self._conn.autocommit = value
 
     @property
-    def timeout(self):
+    def timeout(self) -> int:
+        assert self._conn is not None  # mypy
         return self._conn.timeout
 
     @property
-    def last_usage(self):
+    def last_usage(self) -> float:
         return self._last_usage
 
     @property
-    def echo(self):
+    def echo(self) -> bool:
         return self._echo
 
     async def _cursor(self):
@@ -122,12 +125,12 @@ class Connection:
         connection = self
         return Cursor(c, connection, echo=self._echo)
 
-    def cursor(self):
+    def cursor(self) -> _ContextManager:
         return _ContextManager["Cursor"](
             self._cursor(), _close_cursor, _close_cursor_on_error
         )
 
-    async def close(self):
+    async def close(self) -> None:
         """Close pyodbc connection"""
         if not self._conn:
             return
@@ -135,19 +138,19 @@ class Connection:
         self._conn = None
         return c
 
-    def commit(self):
+    async def commit(self) -> None:
         """Commit any pending transaction to the database."""
-        fut = self._execute(self._conn.commit)
-        return fut
+        assert self._conn is not None  # mypy
+        await self._execute(self._conn.commit)
 
-    def rollback(self):
+    async def rollback(self) -> None:
         """Causes the database to roll back to the start of any pending
         transaction.
         """
-        fut = self._execute(self._conn.rollback)
-        return fut
+        assert self._conn is not None  # mypy
+        await self._execute(self._conn.rollback)
 
-    async def execute(self, sql, *args):
+    async def execute(self, sql: str, *args) -> Cursor:
         """Create a new Cursor object, call its execute method, and return it.
 
         See Cursor.execute for more details.This is a convenience method
@@ -158,6 +161,7 @@ class Connection:
         :param sql: str, formatted sql statement
         :param args: tuple, arguments for construction of sql statement
         """
+        assert self._conn is not None  # mypy
         try:
             _cursor = await self._execute(self._conn.execute, sql, *args)
             connection = self

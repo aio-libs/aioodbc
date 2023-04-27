@@ -22,6 +22,9 @@ same approach.
 **aioodbc** is fully compatible and tested with uvloop_. Take a look at the test
 suite, all tests are executed with both the default event loop and uvloop_.
 
+**aioodbc** also supports `PEP 561`_. Developers should be able to utilize *aioodbc*'s
+type annotations in their own projects with confidence.
+
 
 Basic Example
 -------------
@@ -171,4 +174,5 @@ Requirements
 .. _unixODBC: http://www.unixodbc.org/
 .. _threads: http://techspot.zzzeek.org/2015/02/15/asynchronous-python-and-databases/
 .. _docker: https://docs.docker.com/engine/installation/
+.. _PEP 561: https://peps.python.org/pep-0561/
 .. _motor: https://emptysqua.re/blog/motor-0-7-beta/

@@ -1,5 +1,10 @@
 Changes
 -------
+422.doc (2023-04-27)
+^^^^^^^^^^^^^^^^^^^^
+* Added PEP 561 support.
+
+
 0.4.0 (2023-03-16)
 ^^^^^^^^^^^^^^^^^^
 * Fixed compatibility with python 3.9+.

@@ -243,13 +243,13 @@ class Connection:
         return
 
 
-async def _disconnect(c: "Connection") -> None:
+async def _disconnect(c: Connection) -> None:
     if not c.autocommit:
         await c.commit()
     await c.close()
 
 
-async def _disconnect_on_error(c: "Connection") -> None:
+async def _disconnect_on_error(c: Connection) -> None:
     await c.rollback()
     await c.close()
 

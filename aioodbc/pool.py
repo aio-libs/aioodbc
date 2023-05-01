@@ -23,6 +23,7 @@ class Pool:
 
     def __init__(
         self,
+        dsn: str,
         minsize: int,
         maxsize: int,
         echo: bool,
@@ -39,6 +40,7 @@ class Pool:
             msg = "Explicit loop is deprecated, and has no effect."
             warnings.warn(msg, DeprecationWarning, stacklevel=2)
 
+        self._dsn = dsn
         self._minsize = minsize
         self._maxsize = maxsize
         self._loop = asyncio.get_event_loop()
@@ -160,7 +162,7 @@ class Pool:
         while self.size < self.minsize:
             self._acquiring += 1
             try:
-                conn = await connect(echo=self._echo, **self._conn_kwargs)
+                conn = await connect(dsn=self._dsn, echo=self._echo, **self._conn_kwargs)
                 # raise exception if pool is closing
                 self._free.append(conn)
                 self._cond.notify()
@@ -172,7 +174,7 @@ class Pool:
         if override_min and self.size < self.maxsize:
             self._acquiring += 1
             try:
-                conn = await connect(echo=self._echo, **self._conn_kwargs)
+                conn = await connect(dsn=self._dsn, echo=self._echo, **self._conn_kwargs)
                 # raise exception if pool is closing
                 self._free.append(conn)
                 self._cond.notify()
@@ -213,6 +215,7 @@ async def _destroy_pool(pool: Pool) -> None:
 
 
 async def _create_pool(
+    dsn: str,
     minsize: int = 10,
     maxsize: int = 10,
     echo: bool = False,
@@ -220,6 +223,7 @@ async def _create_pool(
     **kwargs: Dict[Any, Any],
 ) -> Pool:
     pool = Pool(
+        dsn=dsn,
         minsize=minsize,
         maxsize=maxsize,
         echo=echo,
@@ -234,6 +238,7 @@ async def _create_pool(
 
 
 def create_pool(
+    dsn: str,
     minsize: int = 10,
     maxsize: int = 10,
     echo: bool = False,
@@ -247,6 +252,7 @@ def create_pool(
 
     return _ContextManager[Pool](
         _create_pool(
+            dsn=dsn,
             minsize=minsize,
             maxsize=maxsize,
             echo=echo,

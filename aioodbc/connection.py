@@ -122,6 +122,7 @@ class Connection:
         return self._echo
 
     async def _cursor(self):
+        assert self._conn is not None  # mypy
         c = await self._execute(self._conn.cursor)
         self._last_usage = self._loop.time()
         connection = self
@@ -182,6 +183,7 @@ class Connection:
 
         :param type_: int, pyodbc.SQL_* constant
         """
+        assert self._conn is not None  # mypy
         fut = self._execute(self._conn.getinfo, type_)
         return fut
 
@@ -198,6 +200,7 @@ class Connection:
             value. If the value is NULL, the parameter will be None.
             Otherwise it will be a Python string.
         """
+        assert self._conn is not None  # mypy
         fut = self._execute(self._conn.add_output_converter, sqltype, func)
         return fut
 
@@ -205,6 +208,7 @@ class Connection:
         """Remove all output converter functions added by
         add_output_converter.
         """
+        assert self._conn is not None  # mypy
         fut = self._execute(self._conn.clear_output_converters)
         return fut
 
@@ -216,6 +220,7 @@ class Connection:
         :parm value: the connection attribute value to set. At this time
             only integer values are supported.
         """
+        assert self._conn is not None  # mypy
         fut = self._execute(self._conn.set_attr, attr_id, value)
         return fut
 
@@ -223,6 +228,7 @@ class Connection:
         if not self.closed:
             # This will block the loop, please use close
             # coroutine to close connection
+            assert self._conn is not None  # mypy
             self._conn.close()
             self._conn = None
 

@@ -1,6 +1,8 @@
 # copied from aiopg
 # https://github.com/aio-libs/aiopg/blob/master/aiopg/pool.py
 
+from __future__ import annotations
+
 import asyncio
 import collections
 import warnings

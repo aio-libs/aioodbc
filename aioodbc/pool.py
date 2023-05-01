@@ -194,7 +194,7 @@ class Pool:
                 self._free.append(conn)
             await self._wakeup()
 
-    async def __aenter__(self) -> "Pool":
+    async def __aenter__(self) -> Pool:
         return self
 
     async def __aexit__(
@@ -207,7 +207,7 @@ class Pool:
         await self.wait_closed()
 
 
-async def _destroy_pool(pool: "Pool") -> None:
+async def _destroy_pool(pool: Pool) -> None:
     pool.close()
     await pool.wait_closed()
 

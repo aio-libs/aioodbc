@@ -4,7 +4,9 @@ import asyncio
 import sys
 import traceback
 import warnings
+from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from typing import Any, Callable, Coroutine, Optional, TypeVar
 
 import pyodbc
 
@@ -25,6 +27,9 @@ async def _close_cursor_on_error(c: Cursor) -> None:
     await c.close()
 
 
+_T = TypeVar("_T")
+
+
 class Connection:
     """Connection objects manage connections to the database.
 
@@ -36,15 +41,15 @@ class Connection:
     def __init__(
         self,
         *,
-        dsn,
-        autocommit=False,
-        ansi=False,
-        timeout=0,
-        executor=None,
-        echo=False,
-        loop=None,  # deprecated
-        after_created=None,
-        **kwargs,
+        dsn: str,
+        autocommit: bool = False,
+        ansi: bool = False,
+        timeout: int = 0,
+        executor: Optional[ThreadPoolExecutor] = None,
+        echo: bool = False,
+        loop: Optional[asyncio.AbstractEventLoop] = None,  # deprecated
+        after_created: Optional[Callable[[_Connection], Coroutine[Any, Any, Any]]] = None,
+        **kwargs: Any,
     ):
         if loop is not None:
             msg = "Explicit loop is deprecated, and has no effect."
@@ -64,7 +69,12 @@ class Connection:
         if self._loop.get_debug():
             self._source_traceback = traceback.extract_stack(sys._getframe(1))
 
-    def _execute(self, func, *args, **kwargs):
+    def _execute(
+        self,
+        func: Callable[..., _T],
+        *args: Any,
+        **kwargs: Any,
+    ) -> asyncio.Future[_T]:
         # execute function with args and kwargs in thread pool
         func = partial(func, *args, **kwargs)
         future = self._loop.run_in_executor(self._executor, func)
@@ -95,7 +105,7 @@ class Connection:
         return True
 
     @property
-    def autocommit(self):
+    def autocommit(self) -> bool:
         """Show autocommit mode for current database session. True if the
         connection is in autocommit mode; False otherwise. The default
         is False
@@ -104,7 +114,7 @@ class Connection:
         return self._conn.autocommit
 
     @autocommit.setter
-    def autocommit(self, value):
+    def autocommit(self, value: bool) -> None:
         assert self._conn is not None  # mypy
         self._conn.autocommit = value
 
@@ -121,14 +131,14 @@ class Connection:
     def echo(self) -> bool:
         return self._echo
 
-    async def _cursor(self):
+    async def _cursor(self) -> Cursor:
         assert self._conn is not None  # mypy
         c = await self._execute(self._conn.cursor)
         self._last_usage = self._loop.time()
         connection = self
         return Cursor(c, connection, echo=self._echo)
 
-    def cursor(self) -> _ContextManager:
+    def cursor(self) -> _ContextManager[Cursor]:
         return _ContextManager["Cursor"](
             self._cursor(), _close_cursor, _close_cursor_on_error
         )
@@ -175,7 +185,7 @@ class Connection:
                 await self.close()
             raise
 
-    def getinfo(self, type_):
+    def getinfo(self, type_: int) -> asyncio.Future[Any]:
         """Returns general information about the driver and data source
         associated with a connection by calling SQLGetInfo and returning its
         results. See Microsoft's SQLGetInfo documentation for the types of
@@ -187,7 +197,11 @@ class Connection:
         fut = self._execute(self._conn.getinfo, type_)
         return fut
 
-    def add_output_converter(self, sqltype, func):
+    def add_output_converter(
+        self,
+        sqltype: int,
+        func: Callable[[Optional[str]], Any],
+    ) -> asyncio.Future[None]:
         """Register an output converter function that will be called whenever
         a value with the given SQL type is read from the database.
 
@@ -204,7 +218,7 @@ class Connection:
         fut = self._execute(self._conn.add_output_converter, sqltype, func)
         return fut
 
-    def clear_output_converters(self):
+    def clear_output_converters(self) -> asyncio.Future[None]:
         """Remove all output converter functions added by
         add_output_converter.
         """
@@ -212,7 +226,7 @@ class Connection:
         fut = self._execute(self._conn.clear_output_converters)
         return fut
 
-    def set_attr(self, attr_id, value):
+    def set_attr(self, attr_id: int, value: int) -> asyncio.Future[None]:
         """Calls SQLSetConnectAttr with the given values.
 
         :param attr_id: the attribute ID (integer) to set. These are ODBC or
@@ -224,7 +238,7 @@ class Connection:
         fut = self._execute(self._conn.set_attr, attr_id, value)
         return fut
 
-    def __del__(self):
+    def __del__(self) -> None:
         if not self.closed:
             # This will block the loop, please use close
             # coroutine to close connection
@@ -241,10 +255,10 @@ class Connection:
                 context["source_traceback"] = self._source_traceback
             self._loop.call_exception_handler(context)
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Connection:
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         await self.close()
         return
 
@@ -262,14 +276,14 @@ async def _disconnect_on_error(c: Connection) -> None:
 
 async def _connect(
     *,
-    dsn,
-    autocommit=False,
-    ansi=False,
-    timeout=0,
-    executor=None,
-    echo=False,
-    after_created=None,
-    **kwargs,
+    dsn: str,
+    autocommit: bool = False,
+    ansi: bool = False,
+    timeout: int = 0,
+    executor: Optional[ThreadPoolExecutor] = None,
+    echo: bool = False,
+    after_created: Optional[Callable[[_Connection], Coroutine[Any, Any, Any]]] = None,
+    **kwargs: Any,
 ):
     conn = Connection(
         dsn=dsn,
@@ -288,15 +302,15 @@ async def _connect(
 
 def connect(
     *,
-    dsn,
-    autocommit=False,
-    ansi=False,
-    timeout=0,
-    loop=None,
-    executor=None,
-    echo=False,
-    after_created=None,
-    **kwargs,
+    dsn: str,
+    autocommit: bool = False,
+    ansi: bool = False,
+    timeout: int = 0,
+    loop: Optional[asyncio.AbstractEventLoop] = None,
+    executor: Optional[ThreadPoolExecutor] = None,
+    echo: bool = False,
+    after_created: Optional[Callable[[_Connection], Coroutine[Any, Any, Any]]] = None,
+    **kwargs: Any,
 ):
     """Accepts an ODBC connection string and returns a new Connection object.
 

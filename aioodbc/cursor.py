@@ -52,10 +52,12 @@ class Cursor:
         connection is in autocommit mode; False otherwse. The default
         is False.
         """
+        assert self._conn is not None  # mypy
         return self._conn.autocommit
 
     @autocommit.setter
     def autocommit(self, value):
+        assert self._conn is not None  # mypy
         self._conn.autocommit = value
 
     @property

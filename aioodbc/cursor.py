@@ -239,10 +239,11 @@ class Cursor:
         fut = self._run_operation(self._impl.columns, **kw)
         return fut
 
-    def statistics(self, catalog=None, schema=None, unique=False, quick=True):
+    def statistics(self, table, catalog=None, schema=None, unique=False, quick=True):
         """Creates a results set of statistics about a single table and
         the indexes associated with the table by executing SQLStatistics.
 
+        :param table: the table tname
         :param catalog: the catalog name
         :param schema: the schmea name
         :param unique: if True, only unique indexes are retured. Otherwise
@@ -252,6 +253,7 @@ class Cursor:
         """
         fut = self._run_operation(
             self._impl.statistics,
+            table,
             catalog=catalog,
             schema=schema,
             unique=unique,

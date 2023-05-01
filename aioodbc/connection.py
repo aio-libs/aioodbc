@@ -38,7 +38,7 @@ class Connection:
         *,
         dsn,
         autocommit=False,
-        ansi=None,
+        ansi=False,
         timeout=0,
         executor=None,
         echo=False,

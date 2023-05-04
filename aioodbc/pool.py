@@ -162,7 +162,11 @@ class Pool:
         while self.size < self.minsize:
             self._acquiring += 1
             try:
-                conn = await connect(dsn=self._dsn, echo=self._echo, **self._conn_kwargs)
+                conn = await connect(
+                    dsn=self._dsn,
+                    echo=self._echo,
+                    **self._conn_kwargs,
+                )
                 # raise exception if pool is closing
                 self._free.append(conn)
                 self._cond.notify()
@@ -174,7 +178,11 @@ class Pool:
         if override_min and self.size < self.maxsize:
             self._acquiring += 1
             try:
-                conn = await connect(dsn=self._dsn, echo=self._echo, **self._conn_kwargs)
+                conn = await connect(
+                    dsn=self._dsn,
+                    echo=self._echo,
+                    **self._conn_kwargs,
+                )
                 # raise exception if pool is closing
                 self._free.append(conn)
                 self._cond.notify()

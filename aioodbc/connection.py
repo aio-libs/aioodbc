@@ -48,7 +48,9 @@ class Connection:
         executor: Optional[ThreadPoolExecutor] = None,
         echo: bool = False,
         loop: Optional[asyncio.AbstractEventLoop] = None,  # deprecated
-        after_created: Optional[Callable[[pyodbc.Connection], Coroutine[Any, Any, Any]]] = None,
+        after_created: Optional[
+            Callable[[pyodbc.Connection], Coroutine[Any, Any, Any]],
+        ] = None,
         **kwargs: Any,
     ):
         if loop is not None:
@@ -282,7 +284,9 @@ async def _connect(
     timeout: int = 0,
     executor: Optional[ThreadPoolExecutor] = None,
     echo: bool = False,
-    after_created: Optional[Callable[[pyodbc.Connection], Coroutine[Any, Any, Any]]] = None,
+    after_created: Optional[
+        Callable[[pyodbc.Connection], Coroutine[Any, Any, Any]],
+    ] = None,
     **kwargs: Any,
 ):
     conn = Connection(
@@ -309,7 +313,9 @@ def connect(
     loop: Optional[asyncio.AbstractEventLoop] = None,
     executor: Optional[ThreadPoolExecutor] = None,
     echo: bool = False,
-    after_created: Optional[Callable[[pyodbc.Connection], Coroutine[Any, Any, Any]]] = None,
+    after_created: Optional[
+        Callable[[pyodbc.Connection], Coroutine[Any, Any, Any]],
+    ] = None,
     **kwargs: Any,
 ):
     """Accepts an ODBC connection string and returns a new Connection object.

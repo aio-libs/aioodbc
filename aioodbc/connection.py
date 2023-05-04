@@ -187,7 +187,7 @@ class Connection:
                 await self.close()
             raise
 
-    def getinfo(self, type_: int) -> asyncio.Future[Any]:
+    async def getinfo(self, type_: int) -> Any:
         """Returns general information about the driver and data source
         associated with a connection by calling SQLGetInfo and returning its
         results. See Microsoft's SQLGetInfo documentation for the types of
@@ -197,13 +197,13 @@ class Connection:
         """
         assert self._conn is not None  # mypy
         fut = self._execute(self._conn.getinfo, type_)
-        return fut
+        return await fut
 
-    def add_output_converter(
+    async def add_output_converter(
         self,
         sqltype: int,
         func: Callable[[Optional[str]], Any],
-    ) -> asyncio.Future[None]:
+    ) -> None:
         """Register an output converter function that will be called whenever
         a value with the given SQL type is read from the database.
 
@@ -218,17 +218,17 @@ class Connection:
         """
         assert self._conn is not None  # mypy
         fut = self._execute(self._conn.add_output_converter, sqltype, func)
-        return fut
+        return await fut
 
-    def clear_output_converters(self) -> asyncio.Future[None]:
+    async def clear_output_converters(self) -> None:
         """Remove all output converter functions added by
         add_output_converter.
         """
         assert self._conn is not None  # mypy
         fut = self._execute(self._conn.clear_output_converters)
-        return fut
+        return await fut
 
-    def set_attr(self, attr_id: int, value: int) -> asyncio.Future[None]:
+    async def set_attr(self, attr_id: int, value: int) -> None:
         """Calls SQLSetConnectAttr with the given values.
 
         :param attr_id: the attribute ID (integer) to set. These are ODBC or
@@ -238,7 +238,7 @@ class Connection:
         """
         assert self._conn is not None  # mypy
         fut = self._execute(self._conn.set_attr, attr_id, value)
-        return fut
+        return await fut
 
     def __del__(self) -> None:
         if not self.closed:

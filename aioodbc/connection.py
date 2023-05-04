@@ -52,7 +52,7 @@ class Connection:
             Callable[[pyodbc.Connection], Coroutine[Any, Any, Any]],
         ] = None,
         **kwargs: Any,
-    ):
+    ) -> None:
         if loop is not None:
             msg = "Explicit loop is deprecated, and has no effect."
             warnings.warn(msg, DeprecationWarning, stacklevel=2)
@@ -288,7 +288,7 @@ async def _connect(
         Callable[[pyodbc.Connection], Coroutine[Any, Any, Any]],
     ] = None,
     **kwargs: Any,
-):
+) -> Connection:
     conn = Connection(
         dsn=dsn,
         autocommit=autocommit,
@@ -317,7 +317,7 @@ def connect(
         Callable[[pyodbc.Connection], Coroutine[Any, Any, Any]],
     ] = None,
     **kwargs: Any,
-):
+) -> _ContextManager[Connection]:
     """Accepts an ODBC connection string and returns a new Connection object.
 
     The connection string can be passed as the string `str`, as a list of

@@ -7,7 +7,7 @@ import asyncio
 import collections
 import warnings
 from types import TracebackType
-from typing import Any, Deque, Dict, Optional, Set, Type
+from typing import Any, Deque, Optional, Set, Type
 
 from pyodbc import ProgrammingError
 
@@ -29,7 +29,7 @@ class Pool:
         echo: bool,
         pool_recycle: int,
         loop: Optional[asyncio.AbstractEventLoop] = None,
-        **kwargs: Dict[Any, Any],
+        **kwargs: Any,
     ) -> None:
         if minsize < 0:
             raise ValueError("minsize should be zero or greater")
@@ -228,7 +228,7 @@ async def _create_pool(
     maxsize: int = 10,
     echo: bool = False,
     pool_recycle: int = -1,
-    **kwargs: Dict[Any, Any],
+    **kwargs: Any,
 ) -> Pool:
     pool = Pool(
         dsn=dsn,
@@ -252,7 +252,7 @@ def create_pool(
     echo: bool = False,
     loop: None = None,
     pool_recycle: int = -1,
-    **kwargs: Dict[Any, Any],
+    **kwargs: Any,
 ) -> _ContextManager[Pool]:
     if loop is not None:
         msg = "Explicit loop is deprecated, and has no effect."

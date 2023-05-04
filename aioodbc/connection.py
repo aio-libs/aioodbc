@@ -165,7 +165,7 @@ class Connection:
         assert self._conn is not None  # mypy
         await self._execute(self._conn.rollback)
 
-    async def execute(self, sql: str, *args) -> Cursor:
+    async def execute(self, sql: str, *args: Any) -> Cursor:
         """Create a new Cursor object, call its execute method, and return it.
 
         See Cursor.execute for more details.This is a convenience method

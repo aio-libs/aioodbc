@@ -6,7 +6,8 @@ import traceback
 import warnings
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from typing import Any, Callable, Coroutine, Optional, TypeVar
+from types import TracebackType
+from typing import Any, Callable, Coroutine, Optional, Type, TypeVar
 
 import pyodbc
 
@@ -260,7 +261,12 @@ class Connection:
     async def __aenter__(self) -> Connection:
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc: Optional[BaseException],
+        tb: Optional[TracebackType],
+    ) -> None:
         await self.close()
         return
 

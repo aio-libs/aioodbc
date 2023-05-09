@@ -1,11 +1,13 @@
 # copied from aiopg
 # https://github.com/aio-libs/aiopg/blob/master/aiopg/pool.py
 
+from __future__ import annotations
+
 import asyncio
 import collections
 import warnings
 from types import TracebackType
-from typing import Any, Deque, Dict, Optional, Set, Type
+from typing import Any, Deque, Optional, Set, Type
 
 from pyodbc import ProgrammingError
 
@@ -21,12 +23,13 @@ class Pool:
 
     def __init__(
         self,
+        dsn: str,
         minsize: int,
         maxsize: int,
         echo: bool,
         pool_recycle: int,
         loop: Optional[asyncio.AbstractEventLoop] = None,
-        **kwargs: Dict[Any, Any],
+        **kwargs: Any,
     ) -> None:
         if minsize < 0:
             raise ValueError("minsize should be zero or greater")
@@ -37,6 +40,7 @@ class Pool:
             msg = "Explicit loop is deprecated, and has no effect."
             warnings.warn(msg, DeprecationWarning, stacklevel=2)
 
+        self._dsn = dsn
         self._minsize = minsize
         self._maxsize = maxsize
         self._loop = asyncio.get_event_loop()
@@ -158,7 +162,11 @@ class Pool:
         while self.size < self.minsize:
             self._acquiring += 1
             try:
-                conn = await connect(echo=self._echo, **self._conn_kwargs)
+                conn = await connect(
+                    dsn=self._dsn,
+                    echo=self._echo,
+                    **self._conn_kwargs,
+                )
                 # raise exception if pool is closing
                 self._free.append(conn)
                 self._cond.notify()
@@ -170,7 +178,11 @@ class Pool:
         if override_min and self.size < self.maxsize:
             self._acquiring += 1
             try:
-                conn = await connect(echo=self._echo, **self._conn_kwargs)
+                conn = await connect(
+                    dsn=self._dsn,
+                    echo=self._echo,
+                    **self._conn_kwargs,
+                )
                 # raise exception if pool is closing
                 self._free.append(conn)
                 self._cond.notify()
@@ -192,7 +204,7 @@ class Pool:
                 self._free.append(conn)
             await self._wakeup()
 
-    async def __aenter__(self) -> "Pool":
+    async def __aenter__(self) -> Pool:
         return self
 
     async def __aexit__(
@@ -205,19 +217,21 @@ class Pool:
         await self.wait_closed()
 
 
-async def _destroy_pool(pool: "Pool") -> None:
+async def _destroy_pool(pool: Pool) -> None:
     pool.close()
     await pool.wait_closed()
 
 
 async def _create_pool(
+    dsn: str,
     minsize: int = 10,
     maxsize: int = 10,
     echo: bool = False,
     pool_recycle: int = -1,
-    **kwargs: Dict[Any, Any],
+    **kwargs: Any,
 ) -> Pool:
     pool = Pool(
+        dsn=dsn,
         minsize=minsize,
         maxsize=maxsize,
         echo=echo,
@@ -232,12 +246,13 @@ async def _create_pool(
 
 
 def create_pool(
+    dsn: str,
     minsize: int = 10,
     maxsize: int = 10,
     echo: bool = False,
     loop: None = None,
     pool_recycle: int = -1,
-    **kwargs: Dict[Any, Any],
+    **kwargs: Any,
 ) -> _ContextManager[Pool]:
     if loop is not None:
         msg = "Explicit loop is deprecated, and has no effect."
@@ -245,6 +260,7 @@ def create_pool(
 
     return _ContextManager[Pool](
         _create_pool(
+            dsn=dsn,
             minsize=minsize,
             maxsize=maxsize,
             echo=echo,

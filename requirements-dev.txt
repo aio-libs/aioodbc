@@ -13,7 +13,7 @@ pytest-asyncio==0.21.0
 pytest-cov==4.0.0
 pytest-faulthandler==2.0.1
 pytest-sugar
-pytest==7.2.2
+pytest==7.3.1
 sphinx==6.1.3
 sphinxcontrib-asyncio==0.3.0
 twine==4.0.2

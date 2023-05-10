@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Callable, List, Optional, Tuple, TypeVar
+from types import TracebackType
+from typing import Any, Callable, List, Optional, Tuple, Type, TypeVar
 
 import pyodbc
 
@@ -453,6 +454,11 @@ class Cursor:
     async def __aenter__(self) -> Cursor:
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc: Optional[BaseException],
+        tb: Optional[TracebackType],
+    ) -> None:
         await self.close()
         return

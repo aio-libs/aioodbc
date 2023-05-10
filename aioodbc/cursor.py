@@ -4,6 +4,7 @@ from typing import Any, Callable, Coroutine, List, Optional, Tuple, TypeVar
 
 import pyodbc
 
+from .connection import Connection  # Circular import
 from .log import logger
 from .utils import _is_conn_close_error
 

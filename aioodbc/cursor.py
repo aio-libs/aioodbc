@@ -32,7 +32,6 @@ class Cursor:
     ) -> None:
         self._conn = connection
         self._impl: pyodbc.Cursor = pyodbc_cursor
-        self._loop = connection.loop
         self._echo: bool = echo
 
     async def _run_operation(

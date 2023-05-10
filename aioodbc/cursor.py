@@ -1,9 +1,18 @@
+from __future__ import annotations
+
+from types import TracebackType
+from typing import Any, Callable, List, Optional, Tuple, Type, TypeVar
+
 import pyodbc
 
+from .connection import Connection  # Circular import
 from .log import logger
 from .utils import _is_conn_close_error
 
 __all__ = ["Cursor"]
+
+
+_T = TypeVar("_T")
 
 
 class Cursor:
@@ -15,13 +24,22 @@ class Cursor:
     the other cursors.
     """
 
-    def __init__(self, pyodbc_cursor: pyodbc.Cursor, connection, echo=False):
+    def __init__(
+        self,
+        pyodbc_cursor: pyodbc.Cursor,
+        connection: Connection,
+        echo: bool = False,
+    ) -> None:
         self._conn = connection
         self._impl: pyodbc.Cursor = pyodbc_cursor
-        self._loop = connection.loop
         self._echo: bool = echo
 
-    async def _run_operation(self, func, *args, **kwargs):
+    async def _run_operation(
+        self,
+        func: Callable[..., _T],
+        *args: Any,
+        **kwargs: Any,
+    ) -> _T:
         # execute func in thread pool of attached to cursor connection
         if not self._conn:
             raise pyodbc.OperationalError("Cursor is closed.")
@@ -35,29 +53,31 @@ class Cursor:
             raise
 
     @property
-    def echo(self):
+    def echo(self) -> bool:
         """Return echo mode status."""
         return self._echo
 
     @property
-    def connection(self):
+    def connection(self) -> Optional[Connection]:
         """Cursors database connection"""
         return self._conn
 
     @property
-    def autocommit(self):
+    def autocommit(self) -> bool:
         """Show autocommit mode for current database session. True if
         connection is in autocommit mode; False otherwse. The default
         is False.
         """
+        assert self._conn is not None  # mypy
         return self._conn.autocommit
 
     @autocommit.setter
-    def autocommit(self, value):
+    def autocommit(self, value: bool) -> None:
+        assert self._conn is not None  # mypy
         self._conn.autocommit = value
 
     @property
-    def rowcount(self):
+    def rowcount(self) -> int:
         """The number of rows modified by the previous DDL statement.
 
         This is -1 if no SQL has been executed or if the number of rows is
@@ -69,7 +89,7 @@ class Cursor:
         return self._impl.rowcount
 
     @property
-    def description(self):
+    def description(self) -> Tuple[Tuple[str, Any, int, int, int, int, bool]]:
         """This read-only attribute is a list of 7-item tuples, each
         containing (name, type_code, display_size, internal_size, precision,
         scale, null_ok).
@@ -87,12 +107,12 @@ class Cursor:
         return self._impl.description
 
     @property
-    def closed(self):
+    def closed(self) -> bool:
         """Read only property indicates if cursor has been closed"""
         return self._conn is None
 
     @property
-    def arraysize(self):
+    def arraysize(self) -> int:
         """This read/write attribute specifies the number of rows to fetch
         at a time with .fetchmany() . It defaults to 1 meaning to fetch a
         single row at a time.
@@ -100,10 +120,10 @@ class Cursor:
         return self._impl.arraysize
 
     @arraysize.setter
-    def arraysize(self, size):
+    def arraysize(self, size: int) -> None:
         self._impl.arraysize = size
 
-    async def close(self):
+    async def close(self) -> None:
         """Close the cursor now (rather than whenever __del__ is called).
 
         The cursor will be unusable from this point forward; an Error
@@ -115,7 +135,7 @@ class Cursor:
         await self._run_operation(self._impl.close)
         self._conn = None
 
-    async def execute(self, sql, *params):
+    async def execute(self, sql: str, *params: Any) -> Cursor:
         """Executes the given operation substituting any markers with
         the given parameters.
 
@@ -132,7 +152,7 @@ class Cursor:
         await self._run_operation(self._impl.execute, sql, *params)
         return self
 
-    def executemany(self, sql, *params):
+    async def executemany(self, sql: str, *params: Any) -> None:
         """Prepare a database query or command and then execute it against
         all parameter sequences  found in the sequence seq_of_params.
 
@@ -140,9 +160,9 @@ class Cursor:
         :param params: sequence parameters for the markers in the SQL.
         """
         fut = self._run_operation(self._impl.executemany, sql, *params)
-        return fut
+        return await fut
 
-    def callproc(self, procname, args=()):
+    async def callproc(self, procname, args=()):
         raise NotImplementedError
 
     async def setinputsizes(self, *args, **kwargs):
@@ -153,7 +173,7 @@ class Cursor:
         """Does nothing, required by DB API."""
         return None
 
-    def fetchone(self):
+    async def fetchone(self) -> Optional[pyodbc.Row]:
         """Returns the next row or None when no more data is available.
 
         A ProgrammingError exception is raised if no SQL has been executed
@@ -161,9 +181,9 @@ class Cursor:
         statement).
         """
         fut = self._run_operation(self._impl.fetchone)
-        return fut
+        return await fut
 
-    def fetchall(self):
+    async def fetchall(self) -> List[pyodbc.Row]:
         """Returns a list of all remaining rows.
 
         Since this reads all rows into memory, it should not be used if
@@ -175,9 +195,9 @@ class Cursor:
         or if it did not return a result set (e.g. was not a SELECT statement)
         """
         fut = self._run_operation(self._impl.fetchall)
-        return fut
+        return await fut
 
-    def fetchmany(self, size=0):
+    async def fetchmany(self, size: int = 0) -> List[pyodbc.Row]:
         """Returns a list of remaining rows, containing no more than size
         rows, used to process results in chunks. The list will be empty when
         there are no more rows.
@@ -194,9 +214,9 @@ class Cursor:
         if not size:
             size = self.arraysize
         fut = self._run_operation(self._impl.fetchmany, size)
-        return fut
+        return await fut
 
-    def nextset(self):
+    async def nextset(self) -> bool:
         """This method will make the cursor skip to the next available
         set, discarding any remaining rows from the current set.
 
@@ -208,9 +228,15 @@ class Cursor:
         return multiple results.
         """
         fut = self._run_operation(self._impl.nextset)
-        return fut
+        return await fut
 
-    def tables(self, **kw):
+    async def tables(
+        self,
+        table: Optional[str] = None,
+        catalog: Optional[str] = None,
+        schema: Optional[str] = None,
+        tableType: Optional[str] = None,
+    ) -> pyodbc.Cursor:
         """Creates a result set of tables in the database that match the
         given criteria.
 
@@ -219,10 +245,22 @@ class Cursor:
         :param schema: the schmea name
         :param tableType: one of TABLE, VIEW, SYSTEM TABLE ...
         """
-        fut = self._run_operation(self._impl.tables, **kw)
-        return fut
+        fut = self._run_operation(
+            self._impl.tables,
+            table=table,
+            catalog=catalog,
+            schema=schema,
+            tableType=tableType,
+        )
+        return await fut
 
-    def columns(self, **kw):
+    async def columns(
+        self,
+        table: Optional[str] = None,
+        catalog: Optional[str] = None,
+        schema: Optional[str] = None,
+        column: Optional[str] = None,
+    ) -> pyodbc.Cursor:
         """Creates a results set of column names in specified tables by
         executing the ODBC SQLColumns function. Each row fetched has the
         following columns.
@@ -232,13 +270,27 @@ class Cursor:
         :param schema: the schmea name
         :param column: string search pattern for column names.
         """
-        fut = self._run_operation(self._impl.columns, **kw)
-        return fut
+        fut = self._run_operation(
+            self._impl.columns,
+            table=table,
+            catalog=catalog,
+            schema=schema,
+            column=column,
+        )
+        return await fut
 
-    def statistics(self, catalog=None, schema=None, unique=False, quick=True):
+    async def statistics(
+        self,
+        table: str,
+        catalog: Optional[str] = None,
+        schema: Optional[str] = None,
+        unique: bool = False,
+        quick: bool = True,
+    ) -> pyodbc.Cursor:
         """Creates a results set of statistics about a single table and
         the indexes associated with the table by executing SQLStatistics.
 
+        :param table: the table tname
         :param catalog: the catalog name
         :param schema: the schmea name
         :param unique: if True, only unique indexes are retured. Otherwise
@@ -248,16 +300,21 @@ class Cursor:
         """
         fut = self._run_operation(
             self._impl.statistics,
+            table,
             catalog=catalog,
             schema=schema,
             unique=unique,
             quick=quick,
         )
-        return fut
+        return await fut
 
-    def rowIdColumns(
-        self, table, catalog=None, schema=None, nullable=True  # nopep8
-    ):
+    async def rowIdColumns(
+        self,
+        table: str,
+        catalog: Optional[str] = None,
+        schema: Optional[str] = None,
+        nullable: bool = True,
+    ) -> pyodbc.Cursor:
         """Executes SQLSpecialColumns with SQL_BEST_ROWID which creates a
         result set of columns that uniquely identify a row
         """
@@ -268,11 +325,15 @@ class Cursor:
             schema=schema,
             nullable=nullable,
         )
-        return fut
+        return await fut
 
-    def rowVerColumns(
-        self, table, catalog=None, schema=None, nullable=True  # nopep8
-    ):
+    async def rowVerColumns(
+        self,
+        table: str,
+        catalog: Optional[str] = None,
+        schema: Optional[str] = None,
+        nullable: bool = True,
+    ) -> pyodbc.Cursor:
         """Executes SQLSpecialColumns with SQL_ROWVER which creates a
         result set of columns that are automatically updated when any
         value in the row is updated.
@@ -284,70 +345,119 @@ class Cursor:
             schema=schema,
             nullable=nullable,
         )
-        return fut
+        return await fut
 
-    def primaryKeys(self, table, catalog=None, schema=None):  # nopep8
+    async def primaryKeys(
+        self,
+        table: str,
+        catalog: Optional[str] = None,
+        schema: Optional[str] = None,
+    ) -> pyodbc.Cursor:
         """Creates a result set of column names that make up the primary key
         for a table by executing the SQLPrimaryKeys function."""
         fut = self._run_operation(
             self._impl.primaryKeys, table, catalog=catalog, schema=schema
         )
-        return fut
+        return await fut
 
-    def foreignKeys(self, *a, **kw):  # nopep8
+    async def foreignKeys(
+        self,
+        table: Optional[str] = None,
+        catalog: Optional[str] = None,
+        schema: Optional[str] = None,
+        foreignTable: Optional[str] = None,
+        foreignCatalog: Optional[str] = None,
+        foreignSchema: Optional[str] = None,
+    ) -> pyodbc.Cursor:
         """Executes the SQLForeignKeys function and creates a result set
         of column names that are foreign keys in the specified table (columns
         in the specified table that refer to primary keys in other tables)
         or foreign keys in other tables that refer to the primary key in
         the specified table.
         """
-        fut = self._run_operation(self._impl.foreignKeys, *a, **kw)
-        return fut
+        fut = self._run_operation(
+            self._impl.foreignKeys,
+            table=table,
+            catalog=catalog,
+            schema=schema,
+            foreignTable=foreignTable,
+            foreignCatalog=foreignCatalog,
+            foreignSchema=foreignSchema,
+        )
+        return await fut
 
-    def getTypeInfo(self, sql_type):  # nopep8
+    async def getTypeInfo(
+        self,
+        sql_type: Optional[int] = None,
+    ) -> pyodbc.Cursor:
         """Executes SQLGetTypeInfo a creates a result set with information
         about the specified data type or all data types supported by the
         ODBC driver if not specified.
         """
         fut = self._run_operation(self._impl.getTypeInfo, sql_type)
-        return fut
+        return await fut
 
-    def procedures(self, *a, **kw):
+    async def procedures(
+        self,
+        procedure: Optional[str] = None,
+        catalog: Optional[str] = None,
+        schema: Optional[str] = None,
+    ) -> pyodbc.Cursor:
         """Executes SQLProcedures and creates a result set of information
         about the procedures in the data source.
         """
-        fut = self._run_operation(self._impl.procedures, *a, **kw)
-        return fut
+        fut = self._run_operation(
+            self._impl.procedures,
+            procedure=procedure,
+            catalog=catalog,
+            schema=schema,
+        )
+        return await fut
 
-    def procedureColumns(self, *a, **kw):  # nopep8
-        fut = self._run_operation(self._impl.procedureColumns, *a, **kw)
-        return fut
+    async def procedureColumns(
+        self,
+        procedure: Optional[str] = None,
+        catalog: Optional[str] = None,
+        schema: Optional[str] = None,
+    ) -> pyodbc.Cursor:
+        fut = self._run_operation(
+            self._impl.procedureColumns,
+            procedure=procedure,
+            catalog=catalog,
+            schema=schema,
+        )
+        return await fut
 
-    def skip(self, count):
+    async def skip(self, count: int) -> None:
         fut = self._run_operation(self._impl.skip, count)
-        return fut
+        return await fut
 
-    def commit(self):
+    async def commit(self) -> None:
         fut = self._run_operation(self._impl.commit)
-        return fut
+        return await fut
 
-    def rollback(self):
+    async def rollback(self) -> None:
         fut = self._run_operation(self._impl.rollback)
-        return fut
+        return await fut
 
-    def __aiter__(self):
+    def __aiter__(self) -> Cursor:
         return self
 
-    async def __anext__(self):
+    async def __anext__(self) -> pyodbc.Row:
         ret = await self.fetchone()
         if ret is not None:
             return ret
         else:
             raise StopAsyncIteration
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Cursor:
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc: Optional[BaseException],
+        tb: Optional[TracebackType],
+    ) -> None:
         await self.close()
         return

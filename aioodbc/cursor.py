@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Coroutine, List, Optional, Tuple, TypeVar
+from typing import Any, Callable, List, Optional, Tuple, TypeVar
 
 import pyodbc
 
@@ -152,7 +152,7 @@ class Cursor:
         await self._run_operation(self._impl.execute, sql, *params)
         return self
 
-    def executemany(self, sql: str, *params: Any) -> Coroutine[Any, Any, None]:
+    async def executemany(self, sql: str, *params: Any) -> None:
         """Prepare a database query or command and then execute it against
         all parameter sequences  found in the sequence seq_of_params.
 
@@ -160,9 +160,9 @@ class Cursor:
         :param params: sequence parameters for the markers in the SQL.
         """
         fut = self._run_operation(self._impl.executemany, sql, *params)
-        return fut
+        return await fut
 
-    def callproc(self, procname, args=()):
+    async def callproc(self, procname, args=()):
         raise NotImplementedError
 
     async def setinputsizes(self, *args, **kwargs):
@@ -173,7 +173,7 @@ class Cursor:
         """Does nothing, required by DB API."""
         return None
 
-    def fetchone(self) -> Coroutine[Any, Any, Optional[pyodbc.Row]]:
+    async def fetchone(self) -> Optional[pyodbc.Row]:
         """Returns the next row or None when no more data is available.
 
         A ProgrammingError exception is raised if no SQL has been executed
@@ -181,9 +181,9 @@ class Cursor:
         statement).
         """
         fut = self._run_operation(self._impl.fetchone)
-        return fut
+        return await fut
 
-    def fetchall(self) -> Coroutine[Any, Any, List[pyodbc.Row]]:
+    async def fetchall(self) -> List[pyodbc.Row]:
         """Returns a list of all remaining rows.
 
         Since this reads all rows into memory, it should not be used if
@@ -195,9 +195,9 @@ class Cursor:
         or if it did not return a result set (e.g. was not a SELECT statement)
         """
         fut = self._run_operation(self._impl.fetchall)
-        return fut
+        return await fut
 
-    def fetchmany(self, size: int = 0) -> Coroutine[Any, Any, List[pyodbc.Row]]:
+    async def fetchmany(self, size: int = 0) -> List[pyodbc.Row]:
         """Returns a list of remaining rows, containing no more than size
         rows, used to process results in chunks. The list will be empty when
         there are no more rows.
@@ -214,9 +214,9 @@ class Cursor:
         if not size:
             size = self.arraysize
         fut = self._run_operation(self._impl.fetchmany, size)
-        return fut
+        return await fut
 
-    def nextset(self) -> Coroutine[Any, Any, bool]:
+    async def nextset(self) -> bool:
         """This method will make the cursor skip to the next available
         set, discarding any remaining rows from the current set.
 
@@ -228,15 +228,15 @@ class Cursor:
         return multiple results.
         """
         fut = self._run_operation(self._impl.nextset)
-        return fut
+        return await fut
 
-    def tables(
+    async def tables(
         self,
         table: Optional[str] = None,
         catalog: Optional[str] = None,
         schema: Optional[str] = None,
         tableType: Optional[str] = None,
-    ) -> Coroutine[Any, Any, pyodbc.Cursor]:
+    ) -> pyodbc.Cursor:
         """Creates a result set of tables in the database that match the
         given criteria.
 
@@ -252,15 +252,15 @@ class Cursor:
             schema=schema,
             tableType=tableType,
         )
-        return fut
+        return await fut
 
-    def columns(
+    async def columns(
         self,
         table: Optional[str] = None,
         catalog: Optional[str] = None,
         schema: Optional[str] = None,
         column: Optional[str] = None,
-    ) -> Coroutine[Any, Any, pyodbc.Cursor]:
+    ) -> pyodbc.Cursor:
         """Creates a results set of column names in specified tables by
         executing the ODBC SQLColumns function. Each row fetched has the
         following columns.
@@ -277,16 +277,16 @@ class Cursor:
             schema=schema,
             column=column,
         )
-        return fut
+        return await fut
 
-    def statistics(
+    async def statistics(
         self,
         table: str,
         catalog: Optional[str] = None,
         schema: Optional[str] = None,
         unique: bool = False,
         quick: bool = True,
-    ) -> Coroutine[Any, Any, pyodbc.Cursor]:
+    ) -> pyodbc.Cursor:
         """Creates a results set of statistics about a single table and
         the indexes associated with the table by executing SQLStatistics.
 
@@ -306,15 +306,15 @@ class Cursor:
             unique=unique,
             quick=quick,
         )
-        return fut
+        return await fut
 
-    def rowIdColumns(
+    async def rowIdColumns(
         self,
         table: str,
         catalog: Optional[str] = None,
         schema: Optional[str] = None,
         nullable: bool = True,
-    ) -> Coroutine[Any, Any, pyodbc.Cursor]:
+    ) -> pyodbc.Cursor:
         """Executes SQLSpecialColumns with SQL_BEST_ROWID which creates a
         result set of columns that uniquely identify a row
         """
@@ -325,15 +325,15 @@ class Cursor:
             schema=schema,
             nullable=nullable,
         )
-        return fut
+        return await fut
 
-    def rowVerColumns(
+    async def rowVerColumns(
         self,
         table: str,
         catalog: Optional[str] = None,
         schema: Optional[str] = None,
         nullable: bool = True,
-    ) -> Coroutine[Any, Any, pyodbc.Cursor]:
+    ) -> pyodbc.Cursor:
         """Executes SQLSpecialColumns with SQL_ROWVER which creates a
         result set of columns that are automatically updated when any
         value in the row is updated.
@@ -345,22 +345,22 @@ class Cursor:
             schema=schema,
             nullable=nullable,
         )
-        return fut
+        return await fut
 
-    def primaryKeys(
+    async def primaryKeys(
         self,
         table: str,
         catalog: Optional[str] = None,
         schema: Optional[str] = None,
-    ) -> Coroutine[Any, Any, pyodbc.Cursor]:
+    ) -> pyodbc.Cursor:
         """Creates a result set of column names that make up the primary key
         for a table by executing the SQLPrimaryKeys function."""
         fut = self._run_operation(
             self._impl.primaryKeys, table, catalog=catalog, schema=schema
         )
-        return fut
+        return await fut
 
-    def foreignKeys(
+    async def foreignKeys(
         self,
         table: Optional[str] = None,
         catalog: Optional[str] = None,
@@ -368,7 +368,7 @@ class Cursor:
         foreignTable: Optional[str] = None,
         foreignCatalog: Optional[str] = None,
         foreignSchema: Optional[str] = None,
-    ) -> Coroutine[Any, Any, pyodbc.Cursor]:
+    ) -> pyodbc.Cursor:
         """Executes the SQLForeignKeys function and creates a result set
         of column names that are foreign keys in the specified table (columns
         in the specified table that refer to primary keys in other tables)
@@ -384,25 +384,25 @@ class Cursor:
             foreignCatalog=foreignCatalog,
             foreignSchema=foreignSchema,
         )
-        return fut
+        return await fut
 
-    def getTypeInfo(
+    async def getTypeInfo(
         self,
         sql_type: Optional[int] = None,
-    ) -> Coroutine[Any, Any, pyodbc.Cursor]:
+    ) -> pyodbc.Cursor:
         """Executes SQLGetTypeInfo a creates a result set with information
         about the specified data type or all data types supported by the
         ODBC driver if not specified.
         """
         fut = self._run_operation(self._impl.getTypeInfo, sql_type)
-        return fut
+        return await fut
 
-    def procedures(
+    async def procedures(
         self,
         procedure: Optional[str] = None,
         catalog: Optional[str] = None,
         schema: Optional[str] = None,
-    ) -> Coroutine[Any, Any, pyodbc.Cursor]:
+    ) -> pyodbc.Cursor:
         """Executes SQLProcedures and creates a result set of information
         about the procedures in the data source.
         """
@@ -412,33 +412,33 @@ class Cursor:
             catalog=catalog,
             schema=schema,
         )
-        return fut
+        return await fut
 
-    def procedureColumns(
+    async def procedureColumns(
         self,
         procedure: Optional[str] = None,
         catalog: Optional[str] = None,
         schema: Optional[str] = None,
-    ) -> Coroutine[Any, Any, pyodbc.Cursor]:
+    ) -> pyodbc.Cursor:
         fut = self._run_operation(
             self._impl.procedureColumns,
             procedure=procedure,
             catalog=catalog,
             schema=schema,
         )
-        return fut
+        return await fut
 
-    def skip(self, count: int) -> Coroutine[Any, Any, None]:
+    async def skip(self, count: int) -> None:
         fut = self._run_operation(self._impl.skip, count)
-        return fut
+        return await fut
 
-    def commit(self) -> Coroutine[Any, Any, None]:
+    async def commit(self) -> None:
         fut = self._run_operation(self._impl.commit)
-        return fut
+        return await fut
 
-    def rollback(self) -> Coroutine[Any, Any, None]:
+    async def rollback(self) -> None:
         fut = self._run_operation(self._impl.rollback)
-        return fut
+        return await fut
 
     def __aiter__(self) -> Cursor:
         return self

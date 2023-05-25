@@ -163,6 +163,16 @@ class Cursor:
         fut = self._run_operation(self._impl.fetchone)
         return fut
 
+    def fetchval(self):
+        """Returns the first column of the first row if there are results.
+
+        A ProgrammingError exception is raised if no SQL has been executed
+        or if it did not return a result set (e.g. was not a SELECT
+        statement).
+        """
+        fut = self._run_operation(self._impl.fetchval)
+        return fut
+
     def fetchall(self):
         """Returns a list of all remaining rows.
 

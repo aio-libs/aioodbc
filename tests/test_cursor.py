@@ -172,6 +172,18 @@ async def test_fetchone(conn, table):
     await cur.close()
 
 
+@pytest.mark.parametrize("db", pytest.db_list)
+@pytest.mark.asyncio
+async def test_fetchval(conn, table):
+    cur = await conn.cursor()
+    await cur.execute("SELECT * FROM t1;")
+    resp = await cur.fetchval()
+    expected = 1
+
+    assert expected == resp
+    await cur.close()
+
+
 @pytest.mark.parametrize("db", ["sqlite"])
 @pytest.mark.asyncio
 async def test_tables(conn, table):

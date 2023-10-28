@@ -85,15 +85,15 @@ def dsn(tmp_path, request, db):
         mysql_params = request.getfixturevalue("mysql_params")
         conf = create_mysql_dsn(mysql_params)
     else:
-        conf = os.environ.get(
-            "DSN", f'Driver=SQLite3;Database={tmp_path / "sqlite.db"}'
-        )
+        p = tmp_path / "sqlite.db"
+        conf = os.environ.get("DSN", "Driver=SQLite3;Database={}".format(p))
 
     return conf
 
 
 @pytest_asyncio.fixture
 async def conn(dsn, connection_maker):
+    assert dsn
     connection = await connection_maker()
     yield connection
 

@@ -1,5 +1,11 @@
 Changes
 -------
+0.5.0 (2023-10-28)
+^^^^^^^^^^^^^^^^^^
+* Added support for python 3.12
+* Bumped minimal supported version of pyodbc to 5.0.1
+* Dropped aiodocker related testing to unlock python 3.12
+
 0.4.1 (2023-10-28)
 ^^^^^^^^^^^^^^^^^^
 * Implemented cursor setinputsizes.

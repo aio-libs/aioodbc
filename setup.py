@@ -2,7 +2,8 @@ import os
 
 from setuptools import find_packages, setup
 
-install_requires = ["pyodbc>=5.0.0b3"]
+
+install_requires = ["pyodbc>=5.0.1"]
 
 
 def read(f):

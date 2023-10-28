@@ -56,7 +56,11 @@ async def test_cursor(conn):
     assert cur.arraysize == 1
     assert cur.rowcount == -1
 
-    r = await cur.setinputsizes()
+    r = await cur.setinputsizes(
+        [
+            (pyodbc.SQL_WVARCHAR, 50, 0),
+        ]
+    )
     assert r is None
 
     await cur.setoutputsize()
@@ -169,6 +173,18 @@ async def test_fetchone(conn, table):
     expected = (1, "123.45")
 
     assert expected == tuple(resp)
+    await cur.close()
+
+
+@pytest.mark.parametrize("db", pytest.db_list)
+@pytest.mark.asyncio
+async def test_fetchval(conn, table):
+    cur = await conn.cursor()
+    await cur.execute("SELECT * FROM t1;")
+    resp = await cur.fetchval()
+    expected = 1
+
+    assert expected == resp
     await cur.close()
 
 

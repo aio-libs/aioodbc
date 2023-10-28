@@ -1,5 +1,13 @@
 Changes
 -------
+0.4.1 (2023-10-28)
+^^^^^^^^^^^^^^^^^^
+* Implemented cursor setinputsizes.
+* Implemented cursor fetchval.
+* Added more type annotations.
+* Added autocommit setter for cusror.
+
+
 0.4.0 (2023-03-16)
 ^^^^^^^^^^^^^^^^^^
 * Fixed compatibility with python 3.9+.

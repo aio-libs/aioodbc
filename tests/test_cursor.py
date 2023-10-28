@@ -56,7 +56,11 @@ async def test_cursor(conn):
     assert cur.arraysize == 1
     assert cur.rowcount == -1
 
-    r = await cur.setinputsizes()
+    r = await cur.setinputsizes(
+        [
+            (pyodbc.SQL_WVARCHAR, 50, 0),
+        ]
+    )
     assert r is None
 
     await cur.setoutputsize()

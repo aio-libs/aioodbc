@@ -145,9 +145,21 @@ class Cursor:
     def callproc(self, procname, args=()):
         raise NotImplementedError
 
-    async def setinputsizes(self, *args, **kwargs):
-        """Does nothing, required by DB API."""
-        return None
+    async def setinputsizes(self, sizes=None) -> None:
+        """Explicitly declare the types and sizes of the parameters in a query.
+        Set to None to clear any previously registered input sizes.
+
+        :param sizes: A list of tuples, one tuple for each query parameter,
+            where each tuple contains:
+                1. the column datatype
+                2. the column size (char length or decimal precision)
+                3. the decimal scale.
+
+            For example:
+                [(pyodbc.SQL_WVARCHAR, 50, 0), (pyodbc.SQL_DECIMAL, 18, 4)]
+        """
+        # sizes: Optional[Iterable[Tuple[int, int, int]]]
+        await self._run_operation(self._impl.setinputsizes, sizes)
 
     async def setoutputsize(self, *args, **kwargs):
         """Does nothing, required by DB API."""

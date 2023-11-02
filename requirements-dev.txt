@@ -13,7 +13,7 @@ pytest-cov==4.0.0
 pytest-faulthandler==2.0.1
 pytest-sugar
 pytest==7.3.1
-sphinx==7.0.0
+sphinx==7.1.1
 sphinxcontrib-asyncio==0.3.0
 twine==4.0.2
 uvloop==0.19.0
